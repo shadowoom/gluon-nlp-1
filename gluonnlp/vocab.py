@@ -23,12 +23,13 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
-__all__ = ['Vocab']
+__all__ = ['Vocab', 'UnicodeCharsVocabulary']
 
 import json
 import warnings
 
 from mxnet import nd
+import numpy as np
 
 from .data.utils import DefaultLookupDict
 from . import _constants as C
@@ -445,3 +446,156 @@ class Vocab(object):
         vocab._bos_token = vocab_dict.get('bos_token')
         vocab._eos_token = vocab_dict.get('eos_token')
         return vocab
+
+class UnicodeCharsVocabulary(Vocab):
+    """Vocabulary containing character-level and word level information.
+
+    Has a word vocabulary that is used to lookup word ids and
+    a character id that is used to map words to arrays of character ids.
+
+    The character ids are defined by ord(c) for c in word.encode('utf-8')
+    This limits the total number of possible char ids to 256.
+    To this we add 5 additional special ids: begin sentence, end sentence,
+        begin word, end word and padding.
+    """
+    def __init__(self, counter=None, max_word_length=50, max_size=None, min_freq=1, unknown_token='<unk>',
+                 padding_token='<pad>', bos_token='<bos>', eos_token='<eos>', reserved_tokens=None):
+        super(UnicodeCharsVocabulary, self).__init__(counter, max_size, min_freq, unknown_token, padding_token,
+                                                     bos_token, eos_token, reserved_tokens)
+        self._max_word_length = max_word_length
+
+        # char ids 0-255 come from utf-8 encoding bytes
+        # assign 256-300 to special chars
+        self.bos_char = 256  # <begin sentence>
+        self.eos_char = 257  # <end sentence>
+        self.bow_char = 258  # <begin word>
+        self.eow_char = 259  # <end word>
+        self.pad_char = 260 # <padding>
+
+        if counter:
+            self.num_words = self.__len__()
+
+            self._word_char_ids = np.zeros([self.num_words, max_word_length],
+                dtype=np.int32)
+
+            # the charcter representation of the begin/end of sentence characters
+            def _make_bos_eos(c):
+                r = np.zeros([self.max_word_length], dtype=np.int32)
+                r[:] = self.pad_char
+                r[0] = self.bow_char
+                r[1] = c
+                r[2] = self.eow_char
+                return r
+            self.bos_chars = _make_bos_eos(self.bos_char)
+            self.eos_chars = _make_bos_eos(self.eos_char)
+
+            for i, word in enumerate(self._token_to_idx):
+                self._word_char_ids[i] = self._convert_word_to_char_ids(word)
+
+            self._word_char_ids[self._token_to_idx[self.bos_token]] = self.bos_chars
+            self._word_char_ids[self._token_to_idx[self.eos_token]] = self.eos_chars
+
+    @property
+    def word_char_ids(self):
+        return self._word_char_ids
+
+    @property
+    def size(self):
+        return self.num_words
+
+    @property
+    def max_word_length(self):
+        return self._max_word_length
+
+    def _convert_word_to_char_ids(self, word):
+        code = np.zeros([self.max_word_length], dtype=np.int32)
+        code[:] = self.pad_char
+
+        word_encoded = word.encode('utf-8', 'ignore')[:(self.max_word_length-2)]
+        code[0] = self.bow_char
+        for k, chr_id in enumerate(word_encoded, start=1):
+            code[k] = chr_id
+        code[k + 1] = self.eow_char
+
+        return code
+
+    def word_to_char_ids(self, word):
+        if word in self._token_to_idx:
+            return self._word_char_ids[self._token_to_idx[word]]
+        else:
+            return self._convert_word_to_char_ids(word)
+
+    def array_to_char_ids(self, input_array, max_word_length):
+        char_array = nd.full((input_array.shape[0], input_array.shape[1], max_word_length), self.pad_char)
+
+        for i in range(input_array.shape[0]):
+            for j in range(input_array.shape[1]):
+                word = input_array[i][j]
+                if word in self._token_to_idx:
+                    char_array[i][j] = self._word_char_ids[self._token_to_idx[word]]
+                else:
+                    word_encoded = word.encode('utf-8', 'ignore')[:(self.max_word_length - 2)]
+                    char_array[i][j][0] = self.bow_char
+                    for k, chr_id in enumerate(word_encoded, start=1):
+                        char_array[i][j][k] = chr_id
+                    char_array[i][j][k + 1] = self.eow_char
+
+        char_array += 1
+        return char_array
+
+    def dataset_to_char_ids(self, dataset, batch_size, sample_len, max_word_length):
+        char_dataset = nd.full((batch_size, sample_len, max_word_length), self.pad_char)
+
+        for i, word in enumerate(dataset):
+            if word in self._token_to_idx:
+                char_dataset[i // sample_len][i % sample_len] = self._word_char_ids[self._token_to_idx[word]]
+            else:
+                word_encoded = word.encode('utf-8', 'ignore')[:(self.max_word_length - 2)]
+                char_dataset[i // sample_len][i % sample_len][0] = self.bow_char
+                for k, chr_id in enumerate(word_encoded, start=1):
+                    char_dataset[i // sample_len][i % sample_len][k] = chr_id
+                char_dataset[i // sample_len][i % sample_len][k + 1] = self.eow_char
+
+        char_dataset += 1
+
+        return char_dataset
+
+    def encode_chars(self, sentence, reverse=False, split=True):
+        '''
+        Encode the sentence as a white space delimited string of tokens.
+        '''
+        if split:
+            chars_ids = [self.word_to_char_ids(cur_word)
+                     for cur_word in sentence.split()]
+        else:
+            chars_ids = [self.word_to_char_ids(cur_word)
+                     for cur_word in sentence]
+        if reverse:
+            return np.vstack([self.eos_chars] + chars_ids + [self.bos_chars])
+        else:
+            return np.vstack([self.bos_chars] + chars_ids + [self.eos_chars])
+
+    def __getitem__(self, tokens):
+        """Looks up indices of text tokens according to the vocabulary.
+
+        If `unknown_token` of the vocabulary is None, looking up unknown tokens results in KeyError.
+
+        Parameters
+        ----------
+        tokens : str or list of strs
+            A source token or tokens to be converted.
+
+
+        Returns
+        -------
+        int or list of ints
+            A token index or a list of token indices according to the vocabulary.
+        """
+
+        if isinstance(tokens, (list, tuple)):
+            return [self._token_to_idx[token] for token in tokens]
+        elif isinstance(tokens, np.ndarray):
+            vfunc = np.vectorize(self._token_to_idx.__getitem__)
+            return vfunc(tokens)
+        else:
+            return self._token_to_idx[tokens]
