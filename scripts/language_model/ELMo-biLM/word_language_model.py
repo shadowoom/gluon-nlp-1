@@ -48,7 +48,7 @@ from mxnet import gluon, autograd, init, nd
 from mxnet.gluon import nn, Block, rnn
 import gluonnlp as nlp
 
-from LSTMPCellLSTMPCellWithClip import LSTMPCellWithClip
+from LSTMPCellWithClip import LSTMPCellWithClip
 
 curr_path = os.path.dirname(os.path.abspath(os.path.expanduser(__file__)))
 sys.path.append(os.path.join(curr_path, '..', '..'))
