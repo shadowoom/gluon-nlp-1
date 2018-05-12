@@ -1,0 +1,1532 @@
+Namespace(alpha=0.0, batch_size=20, beta=0.0, bptt=35, cellclip=3.0, char_embedding=False, clip=0.25, dropout=0.5, dropout_e=0.0, dropout_h=0.0, dropout_i=0.0, emsize=650, epochs=750, eval_only=False, gpus='1', load=False, log_interval=200, lr=0.02, lr_update_factor=0.1, lr_update_interval=30, model='lstmp', nhid=650, nlayers=2, optimizer='adagrad', projclip=3.0, projsize=650, save='mx_working.params', skip_connection=True, test_mode=False, tied=False, wd=0.0, weight_dropout=0.0)
+ElmoBiLM(
+  (embedding): HybridSequential(
+    (0): Embedding(33278 -> 650, float32)
+    (1): Dropout(p = 0.5, axes=())
+  )
+  (encoder): ElmoLSTM(
+    (forward_layer_0): SequentialRNNCell(
+    (0): LSTMPCellWithClip(650 -> 2600 -> 650)
+    (1): DropoutCell(rate=0.5, axes=())
+    )
+    (backward_layer_0): SequentialRNNCell(
+    (0): LSTMPCellWithClip(650 -> 2600 -> 650)
+    (1): DropoutCell(rate=0.5, axes=())
+    )
+    (forward_layer_1): SequentialRNNCell(
+    (0): ResidualCell(LSTMPCellWithClip(650 -> 2600 -> 650))
+    )
+    (backward_layer_1): SequentialRNNCell(
+    (0): ResidualCell(LSTMPCellWithClip(650 -> 2600 -> 650))
+    )
+  )
+  (decoder): HybridSequential(
+    (0): Dense(None -> 33278, linear)
+  )
+)
+[Epoch 0 Batch 200/2983] loss 7.66, ppl 2122.07, throughput 78.14 samples/s, lr 0.02
+[Epoch 0 Batch 400/2983] loss 6.52, ppl 681.56, throughput 84.31 samples/s, lr 0.02
+[Epoch 0 Batch 600/2983] loss 6.18, ppl 485.39, throughput 83.70 samples/s, lr 0.02
+[Epoch 0 Batch 800/2983] loss 6.03, ppl 415.81, throughput 83.36 samples/s, lr 0.02
+[Epoch 0 Batch 1000/2983] loss 5.90, ppl 366.64, throughput 83.28 samples/s, lr 0.02
+[Epoch 0 Batch 1200/2983] loss 5.85, ppl 347.34, throughput 83.33 samples/s, lr 0.02
+[Epoch 0 Batch 1400/2983] loss 5.78, ppl 323.60, throughput 83.76 samples/s, lr 0.02
+[Epoch 0 Batch 1600/2983] loss 5.80, ppl 330.63, throughput 83.47 samples/s, lr 0.02
+[Epoch 0 Batch 1800/2983] loss 5.65, ppl 285.34, throughput 88.54 samples/s, lr 0.02
+[Epoch 0 Batch 2000/2983] loss 5.64, ppl 280.37, throughput 91.51 samples/s, lr 0.02
+[Epoch 0 Batch 2200/2983] loss 5.53, ppl 251.50, throughput 89.92 samples/s, lr 0.02
+[Epoch 0 Batch 2400/2983] loss 5.55, ppl 257.35, throughput 84.26 samples/s, lr 0.02
+[Epoch 0 Batch 2600/2983] loss 5.54, ppl 255.49, throughput 83.88 samples/s, lr 0.02
+[Epoch 0 Batch 2800/2983] loss 5.45, ppl 233.00, throughput 84.18 samples/s, lr 0.02
+[Epoch 0] throughput 2960.13 samples/s
+[Epoch 0] time cost 731.32s, valid loss 6.93, valid ppl 1026.75
+test loss 7.07, test ppl 1170.68
+[Epoch 1 Batch 200/2983] loss 5.46, ppl 235.87, throughput 83.28 samples/s, lr 0.02
+[Epoch 1 Batch 400/2983] loss 5.42, ppl 226.39, throughput 84.00 samples/s, lr 0.02
+[Epoch 1 Batch 600/2983] loss 5.24, ppl 188.58, throughput 84.20 samples/s, lr 0.02
+[Epoch 1 Batch 800/2983] loss 5.24, ppl 188.01, throughput 84.57 samples/s, lr 0.02
+[Epoch 1 Batch 1000/2983] loss 5.22, ppl 184.57, throughput 84.53 samples/s, lr 0.02
+[Epoch 1 Batch 1200/2983] loss 5.20, ppl 181.34, throughput 84.34 samples/s, lr 0.02
+[Epoch 1 Batch 1400/2983] loss 5.21, ppl 183.49, throughput 88.52 samples/s, lr 0.02
+[Epoch 1 Batch 1600/2983] loss 5.26, ppl 192.46, throughput 90.79 samples/s, lr 0.02
+[Epoch 1 Batch 1800/2983] loss 5.14, ppl 170.84, throughput 89.09 samples/s, lr 0.02
+[Epoch 1 Batch 2000/2983] loss 5.16, ppl 173.98, throughput 83.91 samples/s, lr 0.02
+[Epoch 1 Batch 2200/2983] loss 5.07, ppl 159.12, throughput 84.69 samples/s, lr 0.02
+[Epoch 1 Batch 2400/2983] loss 5.09, ppl 163.16, throughput 84.22 samples/s, lr 0.02
+[Epoch 1 Batch 2600/2983] loss 5.11, ppl 165.04, throughput 84.38 samples/s, lr 0.02
+[Epoch 1 Batch 2800/2983] loss 5.04, ppl 154.80, throughput 84.06 samples/s, lr 0.02
+[Epoch 1] throughput 2984.82 samples/s
+[Epoch 1] time cost 725.84s, valid loss 5.23, valid ppl 187.45
+test loss 6.03, test ppl 414.72
+[Epoch 2 Batch 200/2983] loss 5.06, ppl 158.13, throughput 84.24 samples/s, lr 0.02
+[Epoch 2 Batch 400/2983] loss 5.06, ppl 157.58, throughput 84.17 samples/s, lr 0.02
+[Epoch 2 Batch 600/2983] loss 4.88, ppl 131.95, throughput 84.87 samples/s, lr 0.02
+[Epoch 2 Batch 800/2983] loss 4.91, ppl 135.05, throughput 84.37 samples/s, lr 0.02
+[Epoch 2 Batch 1000/2983] loss 4.92, ppl 136.53, throughput 89.79 samples/s, lr 0.02
+[Epoch 2 Batch 1200/2983] loss 4.91, ppl 136.17, throughput 92.90 samples/s, lr 0.02
+[Epoch 2 Batch 1400/2983] loss 4.94, ppl 140.42, throughput 90.16 samples/s, lr 0.02
+[Epoch 2 Batch 1600/2983] loss 5.00, ppl 149.03, throughput 84.46 samples/s, lr 0.02
+[Epoch 2 Batch 1800/2983] loss 4.89, ppl 133.20, throughput 84.97 samples/s, lr 0.02
+[Epoch 2 Batch 2000/2983] loss 4.92, ppl 136.72, throughput 84.15 samples/s, lr 0.02
+[Epoch 2 Batch 2200/2983] loss 4.82, ppl 124.54, throughput 84.52 samples/s, lr 0.02
+[Epoch 2 Batch 2400/2983] loss 4.85, ppl 127.35, throughput 85.13 samples/s, lr 0.02
+[Epoch 2 Batch 2600/2983] loss 4.87, ppl 129.96, throughput 84.94 samples/s, lr 0.02
+[Epoch 2 Batch 2800/2983] loss 4.82, ppl 123.83, throughput 84.32 samples/s, lr 0.02
+[Epoch 2] throughput 3001.86 samples/s
+[Epoch 2] time cost 721.76s, valid loss 5.11, valid ppl 164.89
+test loss 5.03, test ppl 153.40
+[Epoch 3 Batch 200/2983] loss 4.84, ppl 126.69, throughput 85.05 samples/s, lr 0.02
+[Epoch 3 Batch 400/2983] loss 4.85, ppl 127.78, throughput 84.65 samples/s, lr 0.02
+[Epoch 3 Batch 600/2983] loss 4.67, ppl 107.08, throughput 88.19 samples/s, lr 0.02
+[Epoch 3 Batch 800/2983] loss 4.71, ppl 111.56, throughput 90.22 samples/s, lr 0.02
+[Epoch 3 Batch 1000/2983] loss 4.73, ppl 113.43, throughput 89.66 samples/s, lr 0.02
+[Epoch 3 Batch 1200/2983] loss 4.73, ppl 113.58, throughput 84.56 samples/s, lr 0.02
+[Epoch 3 Batch 1400/2983] loss 4.77, ppl 117.62, throughput 84.30 samples/s, lr 0.02
+[Epoch 3 Batch 1600/2983] loss 4.83, ppl 125.64, throughput 84.38 samples/s, lr 0.02
+[Epoch 3 Batch 1800/2983] loss 4.72, ppl 112.54, throughput 84.75 samples/s, lr 0.02
+[Epoch 3 Batch 2000/2983] loss 4.75, ppl 115.81, throughput 84.87 samples/s, lr 0.02
+[Epoch 3 Batch 2200/2983] loss 4.65, ppl 105.02, throughput 84.85 samples/s, lr 0.02
+[Epoch 3 Batch 2400/2983] loss 4.68, ppl 107.95, throughput 84.58 samples/s, lr 0.02
+[Epoch 3 Batch 2600/2983] loss 4.71, ppl 110.91, throughput 84.92 samples/s, lr 0.02
+[Epoch 3 Batch 2800/2983] loss 4.66, ppl 105.82, throughput 84.71 samples/s, lr 0.02
+[Epoch 3] throughput 2996.79 samples/s
+[Epoch 3] time cost 722.80s, valid loss 5.03, valid ppl 152.45
+test loss 4.96, test ppl 141.99
+[Epoch 4 Batch 200/2983] loss 4.69, ppl 108.54, throughput 89.33 samples/s, lr 0.02
+[Epoch 4 Batch 400/2983] loss 4.70, ppl 110.31, throughput 91.22 samples/s, lr 0.02
+[Epoch 4 Batch 600/2983] loss 4.52, ppl 92.27, throughput 88.48 samples/s, lr 0.02
+[Epoch 4 Batch 800/2983] loss 4.58, ppl 97.07, throughput 84.28 samples/s, lr 0.02
+[Epoch 4 Batch 1000/2983] loss 4.60, ppl 99.50, throughput 84.95 samples/s, lr 0.02
+[Epoch 4 Batch 1200/2983] loss 4.61, ppl 100.14, throughput 84.41 samples/s, lr 0.02
+[Epoch 4 Batch 1400/2983] loss 4.64, ppl 103.55, throughput 85.03 samples/s, lr 0.02
+[Epoch 4 Batch 1600/2983] loss 4.71, ppl 111.12, throughput 85.36 samples/s, lr 0.02
+[Epoch 4 Batch 1800/2983] loss 4.60, ppl 99.78, throughput 84.19 samples/s, lr 0.02
+[Epoch 4 Batch 2000/2983] loss 4.63, ppl 102.88, throughput 84.85 samples/s, lr 0.02
+[Epoch 4 Batch 2200/2983] loss 4.53, ppl 92.70, throughput 84.72 samples/s, lr 0.02
+[Epoch 4 Batch 2400/2983] loss 4.56, ppl 95.27, throughput 84.20 samples/s, lr 0.02
+[Epoch 4 Batch 2600/2983] loss 4.59, ppl 98.72, throughput 84.21 samples/s, lr 0.02
+[Epoch 4 Batch 2800/2983] loss 4.55, ppl 94.28, throughput 84.70 samples/s, lr 0.02
+[Epoch 4] throughput 3008.40 samples/s
+[Epoch 4] time cost 718.79s, valid loss 5.00, valid ppl 148.71
+test loss 4.94, test ppl 140.05
+[Epoch 5 Batch 200/2983] loss 4.57, ppl 96.63, throughput 89.16 samples/s, lr 0.02
+[Epoch 5 Batch 400/2983] loss 4.59, ppl 98.75, throughput 84.56 samples/s, lr 0.02
+[Epoch 5 Batch 600/2983] loss 4.41, ppl 82.51, throughput 84.82 samples/s, lr 0.02
+[Epoch 5 Batch 800/2983] loss 4.46, ppl 86.86, throughput 84.69 samples/s, lr 0.02
+[Epoch 5 Batch 1000/2983] loss 4.50, ppl 89.69, throughput 83.80 samples/s, lr 0.02
+[Epoch 5 Batch 1200/2983] loss 4.50, ppl 90.23, throughput 85.16 samples/s, lr 0.02
+[Epoch 5 Batch 1400/2983] loss 4.54, ppl 93.80, throughput 84.46 samples/s, lr 0.02
+[Epoch 5 Batch 1600/2983] loss 4.61, ppl 100.67, throughput 84.21 samples/s, lr 0.02
+[Epoch 5 Batch 1800/2983] loss 4.50, ppl 90.27, throughput 84.89 samples/s, lr 0.02
+[Epoch 5 Batch 2000/2983] loss 4.53, ppl 93.22, throughput 84.27 samples/s, lr 0.02
+[Epoch 5 Batch 2200/2983] loss 4.43, ppl 84.07, throughput 84.82 samples/s, lr 0.02
+[Epoch 5 Batch 2400/2983] loss 4.46, ppl 86.58, throughput 84.19 samples/s, lr 0.02
+[Epoch 5 Batch 2600/2983] loss 4.50, ppl 89.58, throughput 88.25 samples/s, lr 0.02
+[Epoch 5 Batch 2800/2983] loss 4.45, ppl 85.79, throughput 90.23 samples/s, lr 0.02
+[Epoch 5] throughput 3009.53 samples/s
+[Epoch 5] time cost 719.88s, valid loss 4.95, valid ppl 140.93
+test loss 4.88, test ppl 131.79
+[Epoch 6 Batch 200/2983] loss 4.48, ppl 88.07, throughput 84.03 samples/s, lr 0.02
+[Epoch 6 Batch 400/2983] loss 4.50, ppl 90.13, throughput 85.08 samples/s, lr 0.02
+[Epoch 6 Batch 600/2983] loss 4.32, ppl 75.41, throughput 84.39 samples/s, lr 0.02
+[Epoch 6 Batch 800/2983] loss 4.37, ppl 79.34, throughput 85.80 samples/s, lr 0.02
+[Epoch 6 Batch 1000/2983] loss 4.41, ppl 82.29, throughput 84.64 samples/s, lr 0.02
+[Epoch 6 Batch 1200/2983] loss 4.42, ppl 82.99, throughput 84.29 samples/s, lr 0.02
+[Epoch 6 Batch 1400/2983] loss 4.46, ppl 86.37, throughput 84.39 samples/s, lr 0.02
+[Epoch 6 Batch 1600/2983] loss 4.53, ppl 92.54, throughput 84.21 samples/s, lr 0.02
+[Epoch 6 Batch 1800/2983] loss 4.42, ppl 83.42, throughput 84.83 samples/s, lr 0.02
+[Epoch 6 Batch 2000/2983] loss 4.46, ppl 86.28, throughput 84.35 samples/s, lr 0.02
+[Epoch 6 Batch 2200/2983] loss 4.35, ppl 77.67, throughput 87.36 samples/s, lr 0.02
+[Epoch 6 Batch 2400/2983] loss 4.38, ppl 79.83, throughput 90.37 samples/s, lr 0.02
+[Epoch 6 Batch 2600/2983] loss 4.42, ppl 82.78, throughput 91.43 samples/s, lr 0.02
+[Epoch 6 Batch 2800/2983] loss 4.38, ppl 79.47, throughput 84.82 samples/s, lr 0.02
+[Epoch 6] throughput 2996.31 samples/s
+[Epoch 6] time cost 723.12s, valid loss 4.93, valid ppl 138.74
+test loss 4.85, test ppl 128.35
+[Epoch 7 Batch 200/2983] loss 4.40, ppl 81.43, throughput 83.92 samples/s, lr 0.02
+[Epoch 7 Batch 400/2983] loss 4.43, ppl 83.65, throughput 84.68 samples/s, lr 0.02
+[Epoch 7 Batch 600/2983] loss 4.25, ppl 69.90, throughput 84.57 samples/s, lr 0.02
+[Epoch 7 Batch 800/2983] loss 4.30, ppl 73.85, throughput 84.74 samples/s, lr 0.02
+[Epoch 7 Batch 1000/2983] loss 4.34, ppl 76.46, throughput 84.31 samples/s, lr 0.02
+[Epoch 7 Batch 1200/2983] loss 4.35, ppl 77.71, throughput 84.97 samples/s, lr 0.02
+[Epoch 7 Batch 1400/2983] loss 4.38, ppl 79.93, throughput 85.00 samples/s, lr 0.02
+[Epoch 7 Batch 1600/2983] loss 4.46, ppl 86.58, throughput 84.35 samples/s, lr 0.02
+[Epoch 7 Batch 1800/2983] loss 4.36, ppl 78.24, throughput 86.72 samples/s, lr 0.02
+[Epoch 7 Batch 2000/2983] loss 4.39, ppl 80.80, throughput 90.12 samples/s, lr 0.02
+[Epoch 7 Batch 2200/2983] loss 4.28, ppl 72.43, throughput 92.14 samples/s, lr 0.02
+[Epoch 7 Batch 2400/2983] loss 4.31, ppl 74.59, throughput 85.02 samples/s, lr 0.02
+[Epoch 7 Batch 2600/2983] loss 4.35, ppl 77.34, throughput 84.43 samples/s, lr 0.02
+[Epoch 7 Batch 2800/2983] loss 4.31, ppl 74.21, throughput 84.33 samples/s, lr 0.02
+[Epoch 7] throughput 2994.61 samples/s
+[Epoch 7] time cost 723.42s, valid loss 4.92, valid ppl 136.76
+test loss 4.86, test ppl 128.83
+[Epoch 8 Batch 200/2983] loss 4.34, ppl 76.47, throughput 84.35 samples/s, lr 0.02
+[Epoch 8 Batch 400/2983] loss 4.36, ppl 78.19, throughput 84.37 samples/s, lr 0.02
+[Epoch 8 Batch 600/2983] loss 4.18, ppl 65.34, throughput 84.63 samples/s, lr 0.02
+[Epoch 8 Batch 800/2983] loss 4.24, ppl 69.28, throughput 84.63 samples/s, lr 0.02
+[Epoch 8 Batch 1000/2983] loss 4.28, ppl 71.88, throughput 84.92 samples/s, lr 0.02
+[Epoch 8 Batch 1200/2983] loss 4.29, ppl 73.09, throughput 84.22 samples/s, lr 0.02
+[Epoch 8 Batch 1400/2983] loss 4.32, ppl 75.39, throughput 87.14 samples/s, lr 0.02
+[Epoch 8 Batch 1600/2983] loss 4.39, ppl 81.02, throughput 90.37 samples/s, lr 0.02
+[Epoch 8 Batch 1800/2983] loss 4.30, ppl 73.73, throughput 91.88 samples/s, lr 0.02
+[Epoch 8 Batch 2000/2983] loss 4.33, ppl 75.85, throughput 84.39 samples/s, lr 0.02
+[Epoch 8 Batch 2200/2983] loss 4.22, ppl 68.15, throughput 83.96 samples/s, lr 0.02
+[Epoch 8 Batch 2400/2983] loss 4.25, ppl 70.25, throughput 84.12 samples/s, lr 0.02
+[Epoch 8 Batch 2600/2983] loss 4.29, ppl 72.93, throughput 84.15 samples/s, lr 0.02
+[Epoch 8 Batch 2800/2983] loss 4.25, ppl 69.78, throughput 85.66 samples/s, lr 0.02
+[Epoch 8] throughput 2992.30 samples/s
+[Epoch 8] time cost 723.91s, valid loss 4.91, valid ppl 135.62
+test loss 4.84, test ppl 126.73
+[Epoch 9 Batch 200/2983] loss 4.27, ppl 71.73, throughput 84.34 samples/s, lr 0.02
+[Epoch 9 Batch 400/2983] loss 4.30, ppl 73.86, throughput 84.27 samples/s, lr 0.02
+[Epoch 9 Batch 600/2983] loss 4.13, ppl 62.02, throughput 84.42 samples/s, lr 0.02
+[Epoch 9 Batch 800/2983] loss 4.18, ppl 65.54, throughput 84.38 samples/s, lr 0.02
+[Epoch 9 Batch 1000/2983] loss 4.22, ppl 68.03, throughput 85.62 samples/s, lr 0.02
+[Epoch 9 Batch 1200/2983] loss 4.24, ppl 69.35, throughput 91.21 samples/s, lr 0.02
+[Epoch 9 Batch 1400/2983] loss 4.27, ppl 71.40, throughput 92.94 samples/s, lr 0.02
+[Epoch 9 Batch 1600/2983] loss 4.35, ppl 77.11, throughput 86.28 samples/s, lr 0.02
+[Epoch 9 Batch 1800/2983] loss 4.25, ppl 69.95, throughput 84.51 samples/s, lr 0.02
+[Epoch 9 Batch 2000/2983] loss 4.28, ppl 71.98, throughput 84.20 samples/s, lr 0.02
+[Epoch 9 Batch 2200/2983] loss 4.17, ppl 64.51, throughput 84.78 samples/s, lr 0.02
+[Epoch 9 Batch 2400/2983] loss 4.20, ppl 66.76, throughput 84.06 samples/s, lr 0.02
+[Epoch 9 Batch 2600/2983] loss 4.23, ppl 68.94, throughput 84.90 samples/s, lr 0.02
+[Epoch 9 Batch 2800/2983] loss 4.20, ppl 66.63, throughput 84.05 samples/s, lr 0.02
+[Epoch 9] throughput 2996.86 samples/s
+[Epoch 9] time cost 723.03s, valid loss 4.91, valid ppl 135.17
+test loss 4.83, test ppl 125.55
+[Epoch 10 Batch 200/2983] loss 4.22, ppl 68.08, throughput 84.17 samples/s, lr 0.02
+[Epoch 10 Batch 400/2983] loss 4.25, ppl 70.13, throughput 83.94 samples/s, lr 0.02
+[Epoch 10 Batch 600/2983] loss 4.07, ppl 58.64, throughput 85.67 samples/s, lr 0.02
+[Epoch 10 Batch 800/2983] loss 4.13, ppl 62.10, throughput 90.06 samples/s, lr 0.02
+[Epoch 10 Batch 1000/2983] loss 4.18, ppl 65.20, throughput 93.28 samples/s, lr 0.02
+[Epoch 10 Batch 1200/2983] loss 4.19, ppl 66.01, throughput 85.90 samples/s, lr 0.02
+[Epoch 10 Batch 1400/2983] loss 4.22, ppl 67.98, throughput 84.21 samples/s, lr 0.02
+[Epoch 10 Batch 1600/2983] loss 4.30, ppl 73.51, throughput 84.78 samples/s, lr 0.02
+[Epoch 10 Batch 1800/2983] loss 4.20, ppl 66.90, throughput 83.55 samples/s, lr 0.02
+[Epoch 10 Batch 2000/2983] loss 4.23, ppl 68.73, throughput 84.59 samples/s, lr 0.02
+[Epoch 10 Batch 2200/2983] loss 4.12, ppl 61.75, throughput 85.27 samples/s, lr 0.02
+[Epoch 10 Batch 2400/2983] loss 4.15, ppl 63.54, throughput 84.77 samples/s, lr 0.02
+[Epoch 10 Batch 2600/2983] loss 4.19, ppl 65.95, throughput 84.14 samples/s, lr 0.02
+[Epoch 10 Batch 2800/2983] loss 4.15, ppl 63.48, throughput 84.00 samples/s, lr 0.02
+[Epoch 10] throughput 2991.54 samples/s
+[Epoch 10] time cost 724.25s, valid loss 4.91, valid ppl 135.01
+test loss 4.83, test ppl 125.58
+[Epoch 11 Batch 200/2983] loss 4.18, ppl 65.14, throughput 84.17 samples/s, lr 0.02
+[Epoch 11 Batch 400/2983] loss 4.20, ppl 66.92, throughput 91.04 samples/s, lr 0.02
+[Epoch 11 Batch 600/2983] loss 4.03, ppl 56.53, throughput 92.84 samples/s, lr 0.02
+[Epoch 11 Batch 800/2983] loss 4.08, ppl 59.34, throughput 86.33 samples/s, lr 0.02
+[Epoch 11 Batch 1000/2983] loss 4.13, ppl 62.33, throughput 84.45 samples/s, lr 0.02
+[Epoch 11 Batch 1200/2983] loss 4.15, ppl 63.27, throughput 83.56 samples/s, lr 0.02
+[Epoch 11 Batch 1400/2983] loss 4.17, ppl 65.02, throughput 83.96 samples/s, lr 0.02
+[Epoch 11 Batch 1600/2983] loss 4.25, ppl 70.24, throughput 84.50 samples/s, lr 0.02
+[Epoch 11 Batch 1800/2983] loss 4.16, ppl 64.15, throughput 85.30 samples/s, lr 0.02
+[Epoch 11 Batch 2000/2983] loss 4.19, ppl 65.97, throughput 84.31 samples/s, lr 0.02
+[Epoch 11 Batch 2200/2983] loss 4.08, ppl 59.28, throughput 84.26 samples/s, lr 0.02
+[Epoch 11 Batch 2400/2983] loss 4.11, ppl 60.85, throughput 84.15 samples/s, lr 0.02
+[Epoch 11 Batch 2600/2983] loss 4.14, ppl 63.10, throughput 84.17 samples/s, lr 0.02
+[Epoch 11 Batch 2800/2983] loss 4.11, ppl 60.74, throughput 84.61 samples/s, lr 0.02
+[Epoch 11] throughput 2989.69 samples/s
+[Epoch 11] time cost 722.98s, valid loss 4.89, valid ppl 133.19
+test loss 4.82, test ppl 124.30
+[Epoch 12 Batch 200/2983] loss 4.13, ppl 62.39, throughput 92.12 samples/s, lr 0.02
+[Epoch 12 Batch 400/2983] loss 4.16, ppl 64.25, throughput 85.86 samples/s, lr 0.02
+[Epoch 12 Batch 600/2983] loss 3.99, ppl 54.01, throughput 85.36 samples/s, lr 0.02
+[Epoch 12 Batch 800/2983] loss 4.04, ppl 56.90, throughput 83.98 samples/s, lr 0.02
+[Epoch 12 Batch 1000/2983] loss 4.09, ppl 59.68, throughput 84.70 samples/s, lr 0.02
+[Epoch 12 Batch 1200/2983] loss 4.10, ppl 60.62, throughput 84.23 samples/s, lr 0.02
+[Epoch 12 Batch 1400/2983] loss 4.13, ppl 62.35, throughput 85.73 samples/s, lr 0.02
+[Epoch 12 Batch 1600/2983] loss 4.21, ppl 67.51, throughput 84.69 samples/s, lr 0.02
+[Epoch 12 Batch 1800/2983] loss 4.12, ppl 61.64, throughput 84.54 samples/s, lr 0.02
+[Epoch 12 Batch 2000/2983] loss 4.15, ppl 63.49, throughput 84.41 samples/s, lr 0.02
+[Epoch 12 Batch 2200/2983] loss 4.04, ppl 56.65, throughput 84.47 samples/s, lr 0.02
+[Epoch 12 Batch 2400/2983] loss 4.07, ppl 58.53, throughput 84.68 samples/s, lr 0.02
+[Epoch 12 Batch 2600/2983] loss 4.11, ppl 60.73, throughput 84.57 samples/s, lr 0.02
+[Epoch 12 Batch 2800/2983] loss 4.07, ppl 58.67, throughput 90.56 samples/s, lr 0.02
+[Epoch 12] throughput 3007.32 samples/s
+[Epoch 12] time cost 718.44s, valid loss 4.91, valid ppl 135.34
+[Epoch 13 Batch 200/2983] loss 4.10, ppl 60.10, throughput 84.38 samples/s, lr 0.02
+[Epoch 13 Batch 400/2983] loss 4.12, ppl 61.54, throughput 83.84 samples/s, lr 0.02
+[Epoch 13 Batch 600/2983] loss 3.95, ppl 52.16, throughput 84.52 samples/s, lr 0.02
+[Epoch 13 Batch 800/2983] loss 4.01, ppl 55.10, throughput 84.06 samples/s, lr 0.02
+[Epoch 13 Batch 1000/2983] loss 4.06, ppl 57.71, throughput 84.81 samples/s, lr 0.02
+[Epoch 13 Batch 1200/2983] loss 4.07, ppl 58.62, throughput 85.65 samples/s, lr 0.02
+[Epoch 13 Batch 1400/2983] loss 4.10, ppl 60.29, throughput 84.22 samples/s, lr 0.02
+[Epoch 13 Batch 1600/2983] loss 4.18, ppl 65.13, throughput 84.20 samples/s, lr 0.02
+[Epoch 13 Batch 1800/2983] loss 4.09, ppl 59.44, throughput 84.81 samples/s, lr 0.02
+[Epoch 13 Batch 2000/2983] loss 4.12, ppl 61.26, throughput 84.86 samples/s, lr 0.02
+[Epoch 13 Batch 2200/2983] loss 4.00, ppl 54.82, throughput 84.64 samples/s, lr 0.02
+[Epoch 13 Batch 2400/2983] loss 4.03, ppl 56.19, throughput 84.75 samples/s, lr 0.02
+[Epoch 13 Batch 2600/2983] loss 4.07, ppl 58.63, throughput 91.96 samples/s, lr 0.02
+[Epoch 13 Batch 2800/2983] loss 4.03, ppl 56.44, throughput 90.77 samples/s, lr 0.02
+[Epoch 13] throughput 2999.49 samples/s
+[Epoch 13] time cost 722.25s, valid loss 4.89, valid ppl 133.29
+[Epoch 14 Batch 200/2983] loss 4.06, ppl 57.88, throughput 83.58 samples/s, lr 0.02
+[Epoch 14 Batch 400/2983] loss 4.09, ppl 59.57, throughput 84.28 samples/s, lr 0.02
+[Epoch 14 Batch 600/2983] loss 3.92, ppl 50.43, throughput 84.47 samples/s, lr 0.02
+[Epoch 14 Batch 800/2983] loss 3.97, ppl 53.10, throughput 84.84 samples/s, lr 0.02
+[Epoch 14 Batch 1000/2983] loss 4.02, ppl 55.73, throughput 84.13 samples/s, lr 0.02
+[Epoch 14 Batch 1200/2983] loss 4.04, ppl 56.63, throughput 84.61 samples/s, lr 0.02
+[Epoch 14 Batch 1400/2983] loss 4.07, ppl 58.41, throughput 84.08 samples/s, lr 0.02
+[Epoch 14 Batch 1600/2983] loss 4.14, ppl 62.75, throughput 84.24 samples/s, lr 0.02
+[Epoch 14 Batch 1800/2983] loss 4.05, ppl 57.68, throughput 84.38 samples/s, lr 0.02
+[Epoch 14 Batch 2000/2983] loss 4.08, ppl 59.43, throughput 84.18 samples/s, lr 0.02
+[Epoch 14 Batch 2200/2983] loss 3.97, ppl 52.89, throughput 87.50 samples/s, lr 0.02
+[Epoch 14 Batch 2400/2983] loss 4.00, ppl 54.59, throughput 90.61 samples/s, lr 0.02
+[Epoch 14 Batch 2600/2983] loss 4.04, ppl 56.70, throughput 92.50 samples/s, lr 0.02
+[Epoch 14 Batch 2800/2983] loss 4.00, ppl 54.85, throughput 84.40 samples/s, lr 0.02
+[Epoch 14] throughput 2989.84 samples/s
+[Epoch 14] time cost 724.52s, valid loss 4.87, valid ppl 130.81
+test loss 4.81, test ppl 123.19
+[Epoch 15 Batch 200/2983] loss 4.03, ppl 56.15, throughput 83.72 samples/s, lr 0.02
+[Epoch 15 Batch 400/2983] loss 4.05, ppl 57.63, throughput 85.43 samples/s, lr 0.02
+[Epoch 15 Batch 600/2983] loss 3.89, ppl 48.86, throughput 85.30 samples/s, lr 0.02
+[Epoch 15 Batch 800/2983] loss 3.94, ppl 51.34, throughput 84.87 samples/s, lr 0.02
+[Epoch 15 Batch 1000/2983] loss 3.99, ppl 53.96, throughput 84.65 samples/s, lr 0.02
+[Epoch 15 Batch 1200/2983] loss 4.01, ppl 54.98, throughput 84.54 samples/s, lr 0.02
+[Epoch 15 Batch 1400/2983] loss 4.03, ppl 56.43, throughput 84.41 samples/s, lr 0.02
+[Epoch 15 Batch 1600/2983] loss 4.11, ppl 61.00, throughput 84.16 samples/s, lr 0.02
+[Epoch 15 Batch 1800/2983] loss 4.02, ppl 55.91, throughput 86.82 samples/s, lr 0.02
+[Epoch 15 Batch 2000/2983] loss 4.05, ppl 57.53, throughput 89.85 samples/s, lr 0.02
+[Epoch 15 Batch 2200/2983] loss 3.94, ppl 51.22, throughput 92.20 samples/s, lr 0.02
+[Epoch 15 Batch 2400/2983] loss 3.97, ppl 52.83, throughput 84.24 samples/s, lr 0.02
+[Epoch 15 Batch 2600/2983] loss 4.01, ppl 55.04, throughput 83.67 samples/s, lr 0.02
+[Epoch 15 Batch 2800/2983] loss 3.97, ppl 52.96, throughput 84.21 samples/s, lr 0.02
+[Epoch 15] throughput 2991.31 samples/s
+[Epoch 15] time cost 724.17s, valid loss 4.87, valid ppl 130.33
+test loss 4.80, test ppl 122.01
+[Epoch 16 Batch 200/2983] loss 4.00, ppl 54.49, throughput 83.70 samples/s, lr 0.02
+[Epoch 16 Batch 400/2983] loss 4.02, ppl 55.72, throughput 84.18 samples/s, lr 0.02
+[Epoch 16 Batch 600/2983] loss 3.86, ppl 47.42, throughput 84.44 samples/s, lr 0.02
+[Epoch 16 Batch 800/2983] loss 3.91, ppl 49.74, throughput 84.47 samples/s, lr 0.02
+[Epoch 16 Batch 1000/2983] loss 3.96, ppl 52.58, throughput 84.21 samples/s, lr 0.02
+[Epoch 16 Batch 1200/2983] loss 3.97, ppl 53.24, throughput 84.69 samples/s, lr 0.02
+[Epoch 16 Batch 1400/2983] loss 4.00, ppl 54.70, throughput 89.96 samples/s, lr 0.02
+[Epoch 16 Batch 1600/2983] loss 4.07, ppl 58.84, throughput 89.57 samples/s, lr 0.02
+[Epoch 16 Batch 1800/2983] loss 3.99, ppl 54.21, throughput 91.75 samples/s, lr 0.02
+[Epoch 16 Batch 2000/2983] loss 4.02, ppl 55.96, throughput 83.96 samples/s, lr 0.02
+[Epoch 16 Batch 2200/2983] loss 3.91, ppl 50.01, throughput 84.54 samples/s, lr 0.02
+[Epoch 16 Batch 2400/2983] loss 3.94, ppl 51.36, throughput 84.39 samples/s, lr 0.02
+[Epoch 16 Batch 2600/2983] loss 3.98, ppl 53.43, throughput 83.73 samples/s, lr 0.02
+[Epoch 16 Batch 2800/2983] loss 3.94, ppl 51.48, throughput 84.92 samples/s, lr 0.02
+[Epoch 16] throughput 2992.61 samples/s
+[Epoch 16] time cost 723.82s, valid loss 4.89, valid ppl 132.60
+[Epoch 17 Batch 200/2983] loss 3.97, ppl 52.88, throughput 83.93 samples/s, lr 0.02
+[Epoch 17 Batch 400/2983] loss 4.00, ppl 54.38, throughput 84.47 samples/s, lr 0.02
+[Epoch 17 Batch 600/2983] loss 3.83, ppl 46.01, throughput 84.84 samples/s, lr 0.02
+[Epoch 17 Batch 800/2983] loss 3.88, ppl 48.60, throughput 84.62 samples/s, lr 0.02
+[Epoch 17 Batch 1000/2983] loss 3.93, ppl 51.05, throughput 84.43 samples/s, lr 0.02
+[Epoch 17 Batch 1200/2983] loss 3.95, ppl 51.80, throughput 90.08 samples/s, lr 0.02
+[Epoch 17 Batch 1400/2983] loss 3.97, ppl 53.07, throughput 92.23 samples/s, lr 0.02
+[Epoch 17 Batch 1600/2983] loss 4.05, ppl 57.48, throughput 89.62 samples/s, lr 0.02
+[Epoch 17 Batch 1800/2983] loss 3.97, ppl 52.99, throughput 84.17 samples/s, lr 0.02
+[Epoch 17 Batch 2000/2983] loss 4.00, ppl 54.48, throughput 84.42 samples/s, lr 0.02
+[Epoch 17 Batch 2200/2983] loss 3.89, ppl 48.75, throughput 84.19 samples/s, lr 0.02
+[Epoch 17 Batch 2400/2983] loss 3.91, ppl 50.08, throughput 84.53 samples/s, lr 0.02
+[Epoch 17 Batch 2600/2983] loss 3.95, ppl 52.19, throughput 85.04 samples/s, lr 0.02
+[Epoch 17 Batch 2800/2983] loss 3.92, ppl 50.18, throughput 84.27 samples/s, lr 0.02
+[Epoch 17] throughput 2997.96 samples/s
+[Epoch 17] time cost 722.75s, valid loss 4.88, valid ppl 132.07
+[Epoch 18 Batch 200/2983] loss 3.94, ppl 51.50, throughput 84.04 samples/s, lr 0.02
+[Epoch 18 Batch 400/2983] loss 3.97, ppl 52.93, throughput 84.84 samples/s, lr 0.02
+[Epoch 18 Batch 600/2983] loss 3.81, ppl 45.02, throughput 83.97 samples/s, lr 0.02
+[Epoch 18 Batch 800/2983] loss 3.86, ppl 47.33, throughput 86.05 samples/s, lr 0.02
+[Epoch 18 Batch 1000/2983] loss 3.91, ppl 49.92, throughput 92.01 samples/s, lr 0.02
+[Epoch 18 Batch 1200/2983] loss 3.92, ppl 50.63, throughput 92.20 samples/s, lr 0.02
+[Epoch 18 Batch 1400/2983] loss 3.95, ppl 51.82, throughput 85.29 samples/s, lr 0.02
+[Epoch 18 Batch 1600/2983] loss 4.02, ppl 55.92, throughput 84.72 samples/s, lr 0.02
+[Epoch 18 Batch 1800/2983] loss 3.95, ppl 51.79, throughput 83.76 samples/s, lr 0.02
+[Epoch 18 Batch 2000/2983] loss 3.97, ppl 52.97, throughput 84.97 samples/s, lr 0.02
+[Epoch 18 Batch 2200/2983] loss 3.86, ppl 47.52, throughput 83.81 samples/s, lr 0.02
+[Epoch 18 Batch 2400/2983] loss 3.88, ppl 48.49, throughput 84.82 samples/s, lr 0.02
+[Epoch 18 Batch 2600/2983] loss 3.93, ppl 50.78, throughput 84.07 samples/s, lr 0.02
+[Epoch 18 Batch 2800/2983] loss 3.89, ppl 49.07, throughput 84.19 samples/s, lr 0.02
+[Epoch 18] throughput 2992.18 samples/s
+[Epoch 18] time cost 724.09s, valid loss 4.89, valid ppl 132.79
+[Epoch 19 Batch 200/2983] loss 3.92, ppl 50.19, throughput 84.52 samples/s, lr 0.02
+[Epoch 19 Batch 400/2983] loss 3.94, ppl 51.46, throughput 84.38 samples/s, lr 0.02
+[Epoch 19 Batch 600/2983] loss 3.78, ppl 43.89, throughput 88.60 samples/s, lr 0.02
+[Epoch 19 Batch 800/2983] loss 3.83, ppl 46.01, throughput 89.78 samples/s, lr 0.02
+[Epoch 19 Batch 1000/2983] loss 3.88, ppl 48.59, throughput 91.77 samples/s, lr 0.02
+[Epoch 19 Batch 1200/2983] loss 3.90, ppl 49.53, throughput 84.27 samples/s, lr 0.02
+[Epoch 19 Batch 1400/2983] loss 3.92, ppl 50.58, throughput 84.75 samples/s, lr 0.02
+[Epoch 19 Batch 1600/2983] loss 4.00, ppl 54.65, throughput 84.88 samples/s, lr 0.02
+[Epoch 19 Batch 1800/2983] loss 3.92, ppl 50.52, throughput 84.52 samples/s, lr 0.02
+[Epoch 19 Batch 2000/2983] loss 3.95, ppl 51.89, throughput 85.14 samples/s, lr 0.02
+[Epoch 19 Batch 2200/2983] loss 3.84, ppl 46.40, throughput 84.57 samples/s, lr 0.02
+[Epoch 19 Batch 2400/2983] loss 3.86, ppl 47.37, throughput 84.07 samples/s, lr 0.02
+[Epoch 19 Batch 2600/2983] loss 3.90, ppl 49.52, throughput 84.15 samples/s, lr 0.02
+[Epoch 19 Batch 2800/2983] loss 3.87, ppl 47.73, throughput 84.23 samples/s, lr 0.02
+[Epoch 19] throughput 2994.36 samples/s
+[Epoch 19] time cost 723.65s, valid loss 4.89, valid ppl 133.11
+[Epoch 20 Batch 200/2983] loss 3.90, ppl 49.21, throughput 83.78 samples/s, lr 0.02
+[Epoch 20 Batch 400/2983] loss 3.92, ppl 50.50, throughput 91.94 samples/s, lr 0.02
+[Epoch 20 Batch 600/2983] loss 3.76, ppl 42.94, throughput 91.92 samples/s, lr 0.02
+[Epoch 20 Batch 800/2983] loss 3.81, ppl 45.20, throughput 88.18 samples/s, lr 0.02
+[Epoch 20 Batch 1000/2983] loss 3.86, ppl 47.58, throughput 84.19 samples/s, lr 0.02
+[Epoch 20 Batch 1200/2983] loss 3.88, ppl 48.27, throughput 83.81 samples/s, lr 0.02
+[Epoch 20 Batch 1400/2983] loss 3.90, ppl 49.55, throughput 84.55 samples/s, lr 0.02
+[Epoch 20 Batch 1600/2983] loss 3.98, ppl 53.54, throughput 84.32 samples/s, lr 0.02
+[Epoch 20 Batch 1800/2983] loss 3.90, ppl 49.41, throughput 84.44 samples/s, lr 0.02
+[Epoch 20 Batch 2000/2983] loss 3.93, ppl 50.79, throughput 84.32 samples/s, lr 0.02
+[Epoch 20 Batch 2200/2983] loss 3.81, ppl 45.35, throughput 84.65 samples/s, lr 0.02
+[Epoch 20 Batch 2400/2983] loss 3.84, ppl 46.37, throughput 84.52 samples/s, lr 0.02
+[Epoch 20 Batch 2600/2983] loss 3.88, ppl 48.28, throughput 84.45 samples/s, lr 0.02
+[Epoch 20 Batch 2800/2983] loss 3.85, ppl 46.93, throughput 84.76 samples/s, lr 0.02
+[Epoch 20] throughput 2995.21 samples/s
+[Epoch 20] time cost 721.87s, valid loss 4.91, valid ppl 135.75
+[Epoch 21 Batch 200/2983] loss 3.87, ppl 47.97, throughput 90.48 samples/s, lr 0.02
+[Epoch 21 Batch 400/2983] loss 3.90, ppl 49.31, throughput 94.05 samples/s, lr 0.02
+[Epoch 21 Batch 600/2983] loss 3.74, ppl 41.96, throughput 85.95 samples/s, lr 0.02
+[Epoch 21 Batch 800/2983] loss 3.78, ppl 44.01, throughput 84.25 samples/s, lr 0.02
+[Epoch 21 Batch 1000/2983] loss 3.84, ppl 46.50, throughput 84.16 samples/s, lr 0.02
+[Epoch 21 Batch 1200/2983] loss 3.85, ppl 47.15, throughput 83.85 samples/s, lr 0.02
+[Epoch 21 Batch 1400/2983] loss 3.88, ppl 48.25, throughput 84.59 samples/s, lr 0.02
+[Epoch 21 Batch 1600/2983] loss 3.95, ppl 52.17, throughput 84.80 samples/s, lr 0.02
+[Epoch 21 Batch 1800/2983] loss 3.88, ppl 48.44, throughput 84.68 samples/s, lr 0.02
+[Epoch 21 Batch 2000/2983] loss 3.90, ppl 49.42, throughput 84.18 samples/s, lr 0.02
+[Epoch 21 Batch 2200/2983] loss 3.79, ppl 44.32, throughput 83.84 samples/s, lr 0.02
+[Epoch 21 Batch 2400/2983] loss 3.81, ppl 45.31, throughput 84.27 samples/s, lr 0.02
+[Epoch 21 Batch 2600/2983] loss 3.86, ppl 47.27, throughput 84.07 samples/s, lr 0.02
+[Epoch 21 Batch 2800/2983] loss 3.82, ppl 45.71, throughput 86.20 samples/s, lr 0.02
+[Epoch 21] throughput 3008.55 samples/s
+[Epoch 21] time cost 718.40s, valid loss 4.89, valid ppl 132.68
+[Epoch 22 Batch 200/2983] loss 3.85, ppl 47.10, throughput 90.58 samples/s, lr 0.02
+[Epoch 22 Batch 400/2983] loss 3.88, ppl 48.33, throughput 84.03 samples/s, lr 0.02
+[Epoch 22 Batch 600/2983] loss 3.71, ppl 41.03, throughput 84.11 samples/s, lr 0.02
+[Epoch 22 Batch 800/2983] loss 3.76, ppl 43.06, throughput 84.41 samples/s, lr 0.02
+[Epoch 22 Batch 1000/2983] loss 3.82, ppl 45.52, throughput 84.19 samples/s, lr 0.02
+[Epoch 22 Batch 1200/2983] loss 3.84, ppl 46.45, throughput 84.28 samples/s, lr 0.02
+[Epoch 22 Batch 1400/2983] loss 3.86, ppl 47.31, throughput 84.40 samples/s, lr 0.02
+[Epoch 22 Batch 1600/2983] loss 3.93, ppl 50.93, throughput 84.14 samples/s, lr 0.02
+[Epoch 22 Batch 1800/2983] loss 3.86, ppl 47.35, throughput 84.23 samples/s, lr 0.02
+[Epoch 22 Batch 2000/2983] loss 3.89, ppl 48.71, throughput 84.63 samples/s, lr 0.02
+[Epoch 22 Batch 2200/2983] loss 3.77, ppl 43.40, throughput 84.86 samples/s, lr 0.02
+[Epoch 22 Batch 2400/2983] loss 3.79, ppl 44.27, throughput 84.05 samples/s, lr 0.02
+[Epoch 22 Batch 2600/2983] loss 3.83, ppl 46.25, throughput 89.06 samples/s, lr 0.02
+[Epoch 22 Batch 2800/2983] loss 3.80, ppl 44.83, throughput 90.36 samples/s, lr 0.02
+[Epoch 22] throughput 3007.66 samples/s
+[Epoch 22] time cost 720.34s, valid loss 4.89, valid ppl 132.66
+[Epoch 23 Batch 200/2983] loss 3.83, ppl 45.92, throughput 84.05 samples/s, lr 0.02
+[Epoch 23 Batch 400/2983] loss 3.86, ppl 47.30, throughput 84.00 samples/s, lr 0.02
+[Epoch 23 Batch 600/2983] loss 3.69, ppl 40.24, throughput 84.05 samples/s, lr 0.02
+[Epoch 23 Batch 800/2983] loss 3.75, ppl 42.41, throughput 84.61 samples/s, lr 0.02
+[Epoch 23 Batch 1000/2983] loss 3.81, ppl 44.99, throughput 85.00 samples/s, lr 0.02
+[Epoch 23 Batch 1200/2983] loss 3.81, ppl 45.31, throughput 84.48 samples/s, lr 0.02
+[Epoch 23 Batch 1400/2983] loss 3.84, ppl 46.38, throughput 84.09 samples/s, lr 0.02
+[Epoch 23 Batch 1600/2983] loss 3.91, ppl 50.05, throughput 84.03 samples/s, lr 0.02
+[Epoch 23 Batch 1800/2983] loss 3.84, ppl 46.40, throughput 84.65 samples/s, lr 0.02
+[Epoch 23 Batch 2000/2983] loss 3.87, ppl 47.72, throughput 84.18 samples/s, lr 0.02
+[Epoch 23 Batch 2200/2983] loss 3.75, ppl 42.60, throughput 83.83 samples/s, lr 0.02
+[Epoch 23 Batch 2400/2983] loss 3.78, ppl 43.60, throughput 90.98 samples/s, lr 0.02
+[Epoch 23 Batch 2600/2983] loss 3.82, ppl 45.45, throughput 92.54 samples/s, lr 0.02
+[Epoch 23 Batch 2800/2983] loss 3.78, ppl 43.93, throughput 89.69 samples/s, lr 0.02
+[Epoch 23] throughput 2995.78 samples/s
+[Epoch 23] time cost 723.12s, valid loss 4.91, valid ppl 135.20
+[Epoch 24 Batch 200/2983] loss 3.81, ppl 45.19, throughput 83.93 samples/s, lr 0.02
+[Epoch 24 Batch 400/2983] loss 3.84, ppl 46.36, throughput 84.52 samples/s, lr 0.02
+[Epoch 24 Batch 600/2983] loss 3.68, ppl 39.60, throughput 83.71 samples/s, lr 0.02
+[Epoch 24 Batch 800/2983] loss 3.73, ppl 41.65, throughput 84.97 samples/s, lr 0.02
+[Epoch 24 Batch 1000/2983] loss 3.78, ppl 43.85, throughput 84.82 samples/s, lr 0.02
+[Epoch 24 Batch 1200/2983] loss 3.80, ppl 44.50, throughput 84.76 samples/s, lr 0.02
+[Epoch 24 Batch 1400/2983] loss 3.82, ppl 45.59, throughput 84.88 samples/s, lr 0.02
+[Epoch 24 Batch 1600/2983] loss 3.89, ppl 48.98, throughput 84.67 samples/s, lr 0.02
+[Epoch 24 Batch 1800/2983] loss 3.82, ppl 45.60, throughput 85.33 samples/s, lr 0.02
+[Epoch 24 Batch 2000/2983] loss 3.85, ppl 46.85, throughput 84.19 samples/s, lr 0.02
+[Epoch 24 Batch 2200/2983] loss 3.73, ppl 41.75, throughput 89.34 samples/s, lr 0.02
+[Epoch 24 Batch 2400/2983] loss 3.76, ppl 42.78, throughput 90.11 samples/s, lr 0.02
+[Epoch 24 Batch 2600/2983] loss 3.80, ppl 44.58, throughput 88.31 samples/s, lr 0.02
+[Epoch 24 Batch 2800/2983] loss 3.77, ppl 43.24, throughput 84.42 samples/s, lr 0.02
+[Epoch 24] throughput 2991.11 samples/s
+[Epoch 24] time cost 724.26s, valid loss 4.90, valid ppl 134.11
+[Epoch 25 Batch 200/2983] loss 3.79, ppl 44.41, throughput 83.86 samples/s, lr 0.02
+[Epoch 25 Batch 400/2983] loss 3.81, ppl 45.36, throughput 84.45 samples/s, lr 0.02
+[Epoch 25 Batch 600/2983] loss 3.66, ppl 38.95, throughput 84.35 samples/s, lr 0.02
+[Epoch 25 Batch 800/2983] loss 3.71, ppl 40.86, throughput 84.10 samples/s, lr 0.02
+[Epoch 25 Batch 1000/2983] loss 3.77, ppl 43.24, throughput 84.41 samples/s, lr 0.02
+[Epoch 25 Batch 1200/2983] loss 3.78, ppl 43.68, throughput 84.19 samples/s, lr 0.02
+[Epoch 25 Batch 1400/2983] loss 3.80, ppl 44.82, throughput 84.24 samples/s, lr 0.02
+[Epoch 25 Batch 1600/2983] loss 3.87, ppl 48.05, throughput 83.82 samples/s, lr 0.02
+[Epoch 25 Batch 1800/2983] loss 3.80, ppl 44.55, throughput 87.15 samples/s, lr 0.02
+[Epoch 25 Batch 2000/2983] loss 3.83, ppl 45.95, throughput 89.95 samples/s, lr 0.02
+[Epoch 25 Batch 2200/2983] loss 3.72, ppl 41.11, throughput 92.30 samples/s, lr 0.02
+[Epoch 25 Batch 2400/2983] loss 3.73, ppl 41.79, throughput 85.53 samples/s, lr 0.02
+[Epoch 25 Batch 2600/2983] loss 3.78, ppl 43.81, throughput 84.55 samples/s, lr 0.02
+[Epoch 25 Batch 2800/2983] loss 3.75, ppl 42.53, throughput 83.86 samples/s, lr 0.02
+[Epoch 25] throughput 2988.11 samples/s
+[Epoch 25] time cost 724.94s, valid loss 4.91, valid ppl 135.50
+[Epoch 26 Batch 200/2983] loss 3.77, ppl 43.57, throughput 85.08 samples/s, lr 0.02
+[Epoch 26 Batch 400/2983] loss 3.80, ppl 44.60, throughput 84.34 samples/s, lr 0.02
+[Epoch 26 Batch 600/2983] loss 3.64, ppl 38.19, throughput 84.72 samples/s, lr 0.02
+[Epoch 26 Batch 800/2983] loss 3.69, ppl 40.12, throughput 84.53 samples/s, lr 0.02
+[Epoch 26 Batch 1000/2983] loss 3.75, ppl 42.53, throughput 84.33 samples/s, lr 0.02
+[Epoch 26 Batch 1200/2983] loss 3.76, ppl 43.08, throughput 85.44 samples/s, lr 0.02
+[Epoch 26 Batch 1400/2983] loss 3.79, ppl 44.09, throughput 83.90 samples/s, lr 0.02
+[Epoch 26 Batch 1600/2983] loss 3.86, ppl 47.31, throughput 88.81 samples/s, lr 0.02
+[Epoch 26 Batch 1800/2983] loss 3.78, ppl 43.82, throughput 90.62 samples/s, lr 0.02
+[Epoch 26 Batch 2000/2983] loss 3.81, ppl 45.23, throughput 90.84 samples/s, lr 0.02
+[Epoch 26 Batch 2200/2983] loss 3.70, ppl 40.38, throughput 84.25 samples/s, lr 0.02
+[Epoch 26 Batch 2400/2983] loss 3.72, ppl 41.15, throughput 84.66 samples/s, lr 0.02
+[Epoch 26 Batch 2600/2983] loss 3.76, ppl 43.12, throughput 84.53 samples/s, lr 0.02
+[Epoch 26 Batch 2800/2983] loss 3.73, ppl 41.70, throughput 84.33 samples/s, lr 0.02
+[Epoch 26] throughput 2998.23 samples/s
+[Epoch 26] time cost 722.59s, valid loss 4.91, valid ppl 135.09
+[Epoch 27 Batch 200/2983] loss 3.75, ppl 42.73, throughput 84.05 samples/s, lr 0.02
+[Epoch 27 Batch 400/2983] loss 3.78, ppl 43.83, throughput 83.47 samples/s, lr 0.02
+[Epoch 27 Batch 600/2983] loss 3.63, ppl 37.53, throughput 84.88 samples/s, lr 0.02
+[Epoch 27 Batch 800/2983] loss 3.68, ppl 39.61, throughput 83.83 samples/s, lr 0.02
+[Epoch 27 Batch 1000/2983] loss 3.73, ppl 41.87, throughput 84.50 samples/s, lr 0.02
+[Epoch 27 Batch 1200/2983] loss 3.75, ppl 42.41, throughput 85.01 samples/s, lr 0.02
+[Epoch 27 Batch 1400/2983] loss 3.77, ppl 43.25, throughput 90.72 samples/s, lr 0.02
+[Epoch 27 Batch 1600/2983] loss 3.84, ppl 46.51, throughput 90.81 samples/s, lr 0.02
+[Epoch 27 Batch 1800/2983] loss 3.77, ppl 43.26, throughput 89.30 samples/s, lr 0.02
+[Epoch 27 Batch 2000/2983] loss 3.79, ppl 44.40, throughput 84.43 samples/s, lr 0.02
+[Epoch 27 Batch 2200/2983] loss 3.68, ppl 39.69, throughput 84.14 samples/s, lr 0.02
+[Epoch 27 Batch 2400/2983] loss 3.70, ppl 40.40, throughput 84.51 samples/s, lr 0.02
+[Epoch 27 Batch 2600/2983] loss 3.75, ppl 42.37, throughput 84.16 samples/s, lr 0.02
+[Epoch 27 Batch 2800/2983] loss 3.71, ppl 40.86, throughput 85.34 samples/s, lr 0.02
+[Epoch 27] throughput 2993.62 samples/s
+[Epoch 27] time cost 723.66s, valid loss 4.93, valid ppl 138.66
+[Epoch 28 Batch 200/2983] loss 3.74, ppl 42.00, throughput 84.35 samples/s, lr 0.02
+[Epoch 28 Batch 400/2983] loss 3.77, ppl 43.24, throughput 84.53 samples/s, lr 0.02
+[Epoch 28 Batch 600/2983] loss 3.61, ppl 37.05, throughput 84.03 samples/s, lr 0.02
+[Epoch 28 Batch 800/2983] loss 3.66, ppl 38.80, throughput 84.42 samples/s, lr 0.02
+[Epoch 28 Batch 1000/2983] loss 3.72, ppl 41.10, throughput 87.99 samples/s, lr 0.02
+[Epoch 28 Batch 1200/2983] loss 3.73, ppl 41.64, throughput 90.99 samples/s, lr 0.02
+[Epoch 28 Batch 1400/2983] loss 3.75, ppl 42.47, throughput 93.18 samples/s, lr 0.02
+[Epoch 28 Batch 1600/2983] loss 3.82, ppl 45.79, throughput 84.50 samples/s, lr 0.02
+[Epoch 28 Batch 1800/2983] loss 3.75, ppl 42.72, throughput 84.65 samples/s, lr 0.02
+[Epoch 28 Batch 2000/2983] loss 3.78, ppl 43.72, throughput 84.55 samples/s, lr 0.02
+[Epoch 28 Batch 2200/2983] loss 3.67, ppl 39.11, throughput 84.54 samples/s, lr 0.02
+[Epoch 28 Batch 2400/2983] loss 3.69, ppl 39.98, throughput 84.67 samples/s, lr 0.02
+[Epoch 28 Batch 2600/2983] loss 3.74, ppl 41.89, throughput 84.49 samples/s, lr 0.02
+[Epoch 28 Batch 2800/2983] loss 3.70, ppl 40.37, throughput 84.81 samples/s, lr 0.02
+[Epoch 28] throughput 2999.51 samples/s
+[Epoch 28] time cost 722.39s, valid loss 4.92, valid ppl 136.50
+[Epoch 29 Batch 200/2983] loss 3.73, ppl 41.56, throughput 84.06 samples/s, lr 0.02
+[Epoch 29 Batch 400/2983] loss 3.75, ppl 42.56, throughput 84.74 samples/s, lr 0.02
+[Epoch 29 Batch 600/2983] loss 3.60, ppl 36.64, throughput 84.77 samples/s, lr 0.02
+[Epoch 29 Batch 800/2983] loss 3.65, ppl 38.39, throughput 89.31 samples/s, lr 0.02
+[Epoch 29 Batch 1000/2983] loss 3.71, ppl 40.68, throughput 91.34 samples/s, lr 0.02
+[Epoch 29 Batch 1200/2983] loss 3.71, ppl 41.02, throughput 91.77 samples/s, lr 0.02
+[Epoch 29 Batch 1400/2983] loss 3.73, ppl 41.67, throughput 84.83 samples/s, lr 0.02
+[Epoch 29 Batch 1600/2983] loss 3.81, ppl 44.99, throughput 84.12 samples/s, lr 0.02
+[Epoch 29 Batch 1800/2983] loss 3.74, ppl 41.92, throughput 84.06 samples/s, lr 0.02
+[Epoch 29 Batch 2000/2983] loss 3.76, ppl 43.10, throughput 84.43 samples/s, lr 0.02
+[Epoch 29 Batch 2200/2983] loss 3.65, ppl 38.57, throughput 85.07 samples/s, lr 0.02
+[Epoch 29 Batch 2400/2983] loss 3.67, ppl 39.20, throughput 84.48 samples/s, lr 0.02
+[Epoch 29 Batch 2600/2983] loss 3.71, ppl 41.02, throughput 84.44 samples/s, lr 0.02
+[Epoch 29 Batch 2800/2983] loss 3.68, ppl 39.73, throughput 84.38 samples/s, lr 0.02
+[Epoch 29] throughput 2999.35 samples/s
+[Epoch 29] time cost 722.43s, valid loss 4.92, valid ppl 137.37
+[Epoch 30 Batch 200/2983] loss 3.71, ppl 40.86, throughput 83.64 samples/s, lr 0.02
+[Epoch 30 Batch 400/2983] loss 3.74, ppl 41.94, throughput 84.68 samples/s, lr 0.02
+[Epoch 30 Batch 600/2983] loss 3.58, ppl 35.93, throughput 90.23 samples/s, lr 0.02
+[Epoch 30 Batch 800/2983] loss 3.63, ppl 37.88, throughput 90.58 samples/s, lr 0.02
+[Epoch 30 Batch 1000/2983] loss 3.69, ppl 40.08, throughput 87.80 samples/s, lr 0.02
+[Epoch 30 Batch 1200/2983] loss 3.70, ppl 40.47, throughput 84.47 samples/s, lr 0.02
+[Epoch 30 Batch 1400/2983] loss 3.72, ppl 41.17, throughput 84.51 samples/s, lr 0.02
+[Epoch 30 Batch 1600/2983] loss 3.79, ppl 44.24, throughput 84.32 samples/s, lr 0.02
+[Epoch 30 Batch 1800/2983] loss 3.72, ppl 41.41, throughput 84.68 samples/s, lr 0.02
+[Epoch 30 Batch 2000/2983] loss 3.75, ppl 42.44, throughput 85.22 samples/s, lr 0.02
+[Epoch 30 Batch 2200/2983] loss 3.64, ppl 37.97, throughput 84.31 samples/s, lr 0.02
+[Epoch 30 Batch 2400/2983] loss 3.66, ppl 38.68, throughput 84.40 samples/s, lr 0.02
+[Epoch 30 Batch 2600/2983] loss 3.70, ppl 40.58, throughput 84.08 samples/s, lr 0.02
+[Epoch 30 Batch 2800/2983] loss 3.66, ppl 39.04, throughput 84.72 samples/s, lr 0.02
+[Epoch 30] throughput 2992.01 samples/s
+[Epoch 30] time cost 724.11s, valid loss 4.93, valid ppl 139.07
+[Epoch 31 Batch 200/2983] loss 3.70, ppl 40.31, throughput 85.79 samples/s, lr 0.02
+[Epoch 31 Batch 400/2983] loss 3.72, ppl 41.32, throughput 91.31 samples/s, lr 0.02
+[Epoch 31 Batch 600/2983] loss 3.57, ppl 35.61, throughput 92.80 samples/s, lr 0.02
+[Epoch 31 Batch 800/2983] loss 3.62, ppl 37.36, throughput 85.41 samples/s, lr 0.02
+[Epoch 31 Batch 1000/2983] loss 3.68, ppl 39.45, throughput 84.04 samples/s, lr 0.02
+[Epoch 31 Batch 1200/2983] loss 3.69, ppl 39.92, throughput 83.87 samples/s, lr 0.02
+[Epoch 31 Batch 1400/2983] loss 3.71, ppl 40.71, throughput 84.33 samples/s, lr 0.02
+[Epoch 31 Batch 1600/2983] loss 3.77, ppl 43.57, throughput 84.45 samples/s, lr 0.02
+[Epoch 31 Batch 1800/2983] loss 3.71, ppl 40.83, throughput 84.90 samples/s, lr 0.02
+[Epoch 31 Batch 2000/2983] loss 3.73, ppl 41.88, throughput 84.19 samples/s, lr 0.02
+[Epoch 31 Batch 2200/2983] loss 3.62, ppl 37.41, throughput 84.46 samples/s, lr 0.02
+[Epoch 31 Batch 2400/2983] loss 3.64, ppl 38.17, throughput 84.36 samples/s, lr 0.02
+[Epoch 31 Batch 2600/2983] loss 3.69, ppl 39.94, throughput 84.73 samples/s, lr 0.02
+[Epoch 31 Batch 2800/2983] loss 3.65, ppl 38.57, throughput 84.53 samples/s, lr 0.02
+[Epoch 31] throughput 2993.39 samples/s
+[Epoch 31] time cost 721.94s, valid loss 4.94, valid ppl 139.76
+[Epoch 32 Batch 200/2983] loss 3.68, ppl 39.83, throughput 88.00 samples/s, lr 0.02
+[Epoch 32 Batch 400/2983] loss 3.71, ppl 40.94, throughput 88.32 samples/s, lr 0.02
+[Epoch 32 Batch 600/2983] loss 3.56, ppl 35.02, throughput 84.10 samples/s, lr 0.02
+[Epoch 32 Batch 800/2983] loss 3.60, ppl 36.73, throughput 84.19 samples/s, lr 0.02
+[Epoch 32 Batch 1000/2983] loss 3.66, ppl 38.98, throughput 84.78 samples/s, lr 0.02
+[Epoch 32 Batch 1200/2983] loss 3.67, ppl 39.40, throughput 84.21 samples/s, lr 0.02
+[Epoch 32 Batch 1400/2983] loss 3.69, ppl 40.12, throughput 85.26 samples/s, lr 0.02
+[Epoch 32 Batch 1600/2983] loss 3.77, ppl 43.22, throughput 84.69 samples/s, lr 0.02
+[Epoch 32 Batch 1800/2983] loss 3.69, ppl 40.21, throughput 84.68 samples/s, lr 0.02
+[Epoch 32 Batch 2000/2983] loss 3.72, ppl 41.27, throughput 83.92 samples/s, lr 0.02
+[Epoch 32 Batch 2200/2983] loss 3.61, ppl 37.01, throughput 84.16 samples/s, lr 0.02
+[Epoch 32 Batch 2400/2983] loss 3.63, ppl 37.63, throughput 85.07 samples/s, lr 0.02
+[Epoch 32 Batch 2600/2983] loss 3.68, ppl 39.59, throughput 84.48 samples/s, lr 0.02
+[Epoch 32 Batch 2800/2983] loss 3.64, ppl 38.15, throughput 88.74 samples/s, lr 0.02
+[Epoch 32] throughput 2998.06 samples/s
+[Epoch 32] time cost 721.47s, valid loss 4.93, valid ppl 138.51
+[Epoch 33 Batch 200/2983] loss 3.67, ppl 39.13, throughput 87.19 samples/s, lr 0.02
+[Epoch 33 Batch 400/2983] loss 3.70, ppl 40.35, throughput 84.63 samples/s, lr 0.02
+[Epoch 33 Batch 600/2983] loss 3.54, ppl 34.51, throughput 83.99 samples/s, lr 0.02
+[Epoch 33 Batch 800/2983] loss 3.59, ppl 36.23, throughput 84.31 samples/s, lr 0.02
+[Epoch 33 Batch 1000/2983] loss 3.65, ppl 38.37, throughput 84.81 samples/s, lr 0.02
+[Epoch 33 Batch 1200/2983] loss 3.66, ppl 38.88, throughput 85.24 samples/s, lr 0.02
+[Epoch 33 Batch 1400/2983] loss 3.67, ppl 39.43, throughput 84.89 samples/s, lr 0.02
+[Epoch 33 Batch 1600/2983] loss 3.75, ppl 42.41, throughput 84.73 samples/s, lr 0.02
+[Epoch 33 Batch 1800/2983] loss 3.68, ppl 39.71, throughput 84.01 samples/s, lr 0.02
+[Epoch 33 Batch 2000/2983] loss 3.71, ppl 40.66, throughput 84.82 samples/s, lr 0.02
+[Epoch 33 Batch 2200/2983] loss 3.60, ppl 36.52, throughput 84.85 samples/s, lr 0.02
+[Epoch 33 Batch 2400/2983] loss 3.62, ppl 37.19, throughput 84.59 samples/s, lr 0.02
+[Epoch 33 Batch 2600/2983] loss 3.66, ppl 38.93, throughput 90.38 samples/s, lr 0.02
+[Epoch 33 Batch 2800/2983] loss 3.63, ppl 37.54, throughput 90.78 samples/s, lr 0.02
+[Epoch 33] throughput 3001.72 samples/s
+[Epoch 33] time cost 721.87s, valid loss 4.97, valid ppl 143.48
+[Epoch 34 Batch 200/2983] loss 3.65, ppl 38.64, throughput 84.13 samples/s, lr 0.02
+[Epoch 34 Batch 400/2983] loss 3.68, ppl 39.68, throughput 84.47 samples/s, lr 0.02
+[Epoch 34 Batch 600/2983] loss 3.53, ppl 34.24, throughput 84.48 samples/s, lr 0.02
+[Epoch 34 Batch 800/2983] loss 3.58, ppl 35.80, throughput 84.63 samples/s, lr 0.02
+[Epoch 34 Batch 1000/2983] loss 3.63, ppl 37.74, throughput 84.81 samples/s, lr 0.02
+[Epoch 34 Batch 1200/2983] loss 3.65, ppl 38.38, throughput 84.60 samples/s, lr 0.02
+[Epoch 34 Batch 1400/2983] loss 3.66, ppl 38.97, throughput 84.29 samples/s, lr 0.02
+[Epoch 34 Batch 1600/2983] loss 3.74, ppl 41.97, throughput 84.63 samples/s, lr 0.02
+[Epoch 34 Batch 1800/2983] loss 3.67, ppl 39.35, throughput 85.38 samples/s, lr 0.02
+[Epoch 34 Batch 2000/2983] loss 3.70, ppl 40.39, throughput 84.57 samples/s, lr 0.02
+[Epoch 34 Batch 2200/2983] loss 3.58, ppl 36.02, throughput 85.41 samples/s, lr 0.02
+[Epoch 34 Batch 2400/2983] loss 3.60, ppl 36.69, throughput 90.61 samples/s, lr 0.02
+[Epoch 34 Batch 2600/2983] loss 3.65, ppl 38.35, throughput 93.00 samples/s, lr 0.02
+[Epoch 34 Batch 2800/2983] loss 3.61, ppl 37.14, throughput 86.12 samples/s, lr 0.02
+[Epoch 34] throughput 2997.90 samples/s
+[Epoch 34] time cost 722.65s, valid loss 4.94, valid ppl 140.40
+[Epoch 35 Batch 200/2983] loss 3.64, ppl 38.18, throughput 83.86 samples/s, lr 0.02
+[Epoch 35 Batch 400/2983] loss 3.67, ppl 39.19, throughput 83.68 samples/s, lr 0.02
+[Epoch 35 Batch 600/2983] loss 3.52, ppl 33.64, throughput 84.73 samples/s, lr 0.02
+[Epoch 35 Batch 800/2983] loss 3.56, ppl 35.23, throughput 84.10 samples/s, lr 0.02
+[Epoch 35 Batch 1000/2983] loss 3.62, ppl 37.46, throughput 84.43 samples/s, lr 0.02
+[Epoch 35 Batch 1200/2983] loss 3.64, ppl 37.98, throughput 84.53 samples/s, lr 0.02
+[Epoch 35 Batch 1400/2983] loss 3.65, ppl 38.49, throughput 84.66 samples/s, lr 0.02
+[Epoch 35 Batch 1600/2983] loss 3.72, ppl 41.38, throughput 84.65 samples/s, lr 0.02
+[Epoch 35 Batch 1800/2983] loss 3.66, ppl 38.89, throughput 84.13 samples/s, lr 0.02
+[Epoch 35 Batch 2000/2983] loss 3.68, ppl 39.77, throughput 87.36 samples/s, lr 0.02
+[Epoch 35 Batch 2200/2983] loss 3.58, ppl 35.70, throughput 89.59 samples/s, lr 0.02
+[Epoch 35 Batch 2400/2983] loss 3.59, ppl 36.31, throughput 90.63 samples/s, lr 0.02
+[Epoch 35 Batch 2600/2983] loss 3.64, ppl 37.95, throughput 84.21 samples/s, lr 0.02
+[Epoch 35 Batch 2800/2983] loss 3.60, ppl 36.57, throughput 84.06 samples/s, lr 0.02
+[Epoch 35] throughput 2983.75 samples/s
+[Epoch 35] time cost 725.98s, valid loss 4.95, valid ppl 141.65
+[Epoch 36 Batch 200/2983] loss 3.63, ppl 37.74, throughput 83.90 samples/s, lr 0.02
+[Epoch 36 Batch 400/2983] loss 3.66, ppl 38.84, throughput 84.37 samples/s, lr 0.02
+[Epoch 36 Batch 600/2983] loss 3.50, ppl 33.24, throughput 83.65 samples/s, lr 0.02
+[Epoch 36 Batch 800/2983] loss 3.55, ppl 34.92, throughput 83.89 samples/s, lr 0.02
+[Epoch 36 Batch 1000/2983] loss 3.61, ppl 36.92, throughput 84.41 samples/s, lr 0.02
+[Epoch 36 Batch 1200/2983] loss 3.62, ppl 37.47, throughput 83.97 samples/s, lr 0.02
+[Epoch 36 Batch 1400/2983] loss 3.64, ppl 38.01, throughput 84.36 samples/s, lr 0.02
+[Epoch 36 Batch 1600/2983] loss 3.71, ppl 40.92, throughput 85.26 samples/s, lr 0.02
+[Epoch 36 Batch 1800/2983] loss 3.65, ppl 38.33, throughput 92.03 samples/s, lr 0.02
+[Epoch 36 Batch 2000/2983] loss 3.67, ppl 39.42, throughput 92.12 samples/s, lr 0.02
+[Epoch 36 Batch 2200/2983] loss 3.56, ppl 35.24, throughput 86.62 samples/s, lr 0.02
+[Epoch 36 Batch 2400/2983] loss 3.58, ppl 35.77, throughput 84.70 samples/s, lr 0.02
+[Epoch 36 Batch 2600/2983] loss 3.62, ppl 37.52, throughput 83.76 samples/s, lr 0.02
+[Epoch 36 Batch 2800/2983] loss 3.59, ppl 36.30, throughput 84.16 samples/s, lr 0.02
+[Epoch 36] throughput 2988.63 samples/s
+[Epoch 36] time cost 724.49s, valid loss 4.94, valid ppl 139.78
+[Epoch 37 Batch 200/2983] loss 3.62, ppl 37.22, throughput 83.99 samples/s, lr 0.02
+[Epoch 37 Batch 400/2983] loss 3.64, ppl 38.25, throughput 84.45 samples/s, lr 0.02
+[Epoch 37 Batch 600/2983] loss 3.49, ppl 32.95, throughput 84.29 samples/s, lr 0.02
+[Epoch 37 Batch 800/2983] loss 3.54, ppl 34.54, throughput 84.48 samples/s, lr 0.02
+[Epoch 37 Batch 1000/2983] loss 3.60, ppl 36.55, throughput 85.18 samples/s, lr 0.02
+[Epoch 37 Batch 1200/2983] loss 3.62, ppl 37.17, throughput 84.51 samples/s, lr 0.02
+[Epoch 37 Batch 1400/2983] loss 3.63, ppl 37.58, throughput 86.94 samples/s, lr 0.02
+[Epoch 37 Batch 1600/2983] loss 3.70, ppl 40.41, throughput 90.20 samples/s, lr 0.02
+[Epoch 37 Batch 1800/2983] loss 3.63, ppl 37.78, throughput 93.30 samples/s, lr 0.02
+[Epoch 37 Batch 2000/2983] loss 3.66, ppl 39.01, throughput 84.54 samples/s, lr 0.02
+[Epoch 37 Batch 2200/2983] loss 3.55, ppl 34.73, throughput 84.81 samples/s, lr 0.02
+[Epoch 37 Batch 2400/2983] loss 3.56, ppl 35.27, throughput 84.66 samples/s, lr 0.02
+[Epoch 37 Batch 2600/2983] loss 3.61, ppl 36.95, throughput 84.21 samples/s, lr 0.02
+[Epoch 37 Batch 2800/2983] loss 3.58, ppl 35.81, throughput 84.46 samples/s, lr 0.02
+[Epoch 37] throughput 2993.73 samples/s
+[Epoch 37] time cost 723.50s, valid loss 4.94, valid ppl 139.72
+[Epoch 38 Batch 200/2983] loss 3.60, ppl 36.69, throughput 84.34 samples/s, lr 0.02
+[Epoch 38 Batch 400/2983] loss 3.64, ppl 37.99, throughput 83.89 samples/s, lr 0.02
+[Epoch 38 Batch 600/2983] loss 3.48, ppl 32.58, throughput 84.58 samples/s, lr 0.02
+[Epoch 38 Batch 800/2983] loss 3.53, ppl 34.18, throughput 85.31 samples/s, lr 0.02
+[Epoch 38 Batch 1000/2983] loss 3.59, ppl 36.10, throughput 84.14 samples/s, lr 0.02
+[Epoch 38 Batch 1200/2983] loss 3.60, ppl 36.68, throughput 90.19 samples/s, lr 0.02
+[Epoch 38 Batch 1400/2983] loss 3.62, ppl 37.42, throughput 89.09 samples/s, lr 0.02
+[Epoch 38 Batch 1600/2983] loss 3.69, ppl 39.85, throughput 87.81 samples/s, lr 0.02
+[Epoch 38 Batch 1800/2983] loss 3.62, ppl 37.29, throughput 84.02 samples/s, lr 0.02
+[Epoch 38 Batch 2000/2983] loss 3.65, ppl 38.41, throughput 84.85 samples/s, lr 0.02
+[Epoch 38 Batch 2200/2983] loss 3.54, ppl 34.35, throughput 84.49 samples/s, lr 0.02
+[Epoch 38 Batch 2400/2983] loss 3.56, ppl 34.99, throughput 84.25 samples/s, lr 0.02
+[Epoch 38 Batch 2600/2983] loss 3.60, ppl 36.42, throughput 85.02 samples/s, lr 0.02
+[Epoch 38 Batch 2800/2983] loss 3.57, ppl 35.45, throughput 84.54 samples/s, lr 0.02
+[Epoch 38] throughput 2988.70 samples/s
+[Epoch 38] time cost 724.89s, valid loss 4.95, valid ppl 141.68
+[Epoch 39 Batch 200/2983] loss 3.60, ppl 36.47, throughput 84.00 samples/s, lr 0.02
+[Epoch 39 Batch 400/2983] loss 3.62, ppl 37.52, throughput 84.50 samples/s, lr 0.02
+[Epoch 39 Batch 600/2983] loss 3.47, ppl 32.14, throughput 84.36 samples/s, lr 0.02
+[Epoch 39 Batch 800/2983] loss 3.52, ppl 33.95, throughput 84.47 samples/s, lr 0.02
+[Epoch 39 Batch 1000/2983] loss 3.58, ppl 35.81, throughput 91.46 samples/s, lr 0.02
+[Epoch 39 Batch 1200/2983] loss 3.59, ppl 36.37, throughput 92.02 samples/s, lr 0.02
+[Epoch 39 Batch 1400/2983] loss 3.60, ppl 36.72, throughput 88.09 samples/s, lr 0.02
+[Epoch 39 Batch 1600/2983] loss 3.67, ppl 39.23, throughput 84.52 samples/s, lr 0.02
+[Epoch 39 Batch 1800/2983] loss 3.62, ppl 37.19, throughput 84.45 samples/s, lr 0.02
+[Epoch 39 Batch 2000/2983] loss 3.64, ppl 38.10, throughput 84.40 samples/s, lr 0.02
+[Epoch 39 Batch 2200/2983] loss 3.53, ppl 34.01, throughput 84.73 samples/s, lr 0.02
+[Epoch 39 Batch 2400/2983] loss 3.55, ppl 34.66, throughput 84.37 samples/s, lr 0.02
+[Epoch 39 Batch 2600/2983] loss 3.59, ppl 36.29, throughput 84.59 samples/s, lr 0.02
+[Epoch 39 Batch 2800/2983] loss 3.56, ppl 35.05, throughput 84.38 samples/s, lr 0.02
+[Epoch 39] throughput 2996.67 samples/s
+[Epoch 39] time cost 722.95s, valid loss 4.98, valid ppl 145.03
+[Epoch 40 Batch 200/2983] loss 3.58, ppl 36.01, throughput 84.10 samples/s, lr 0.02
+[Epoch 40 Batch 400/2983] loss 3.61, ppl 37.02, throughput 84.15 samples/s, lr 0.02
+[Epoch 40 Batch 600/2983] loss 3.46, ppl 31.83, throughput 85.74 samples/s, lr 0.02
+[Epoch 40 Batch 800/2983] loss 3.51, ppl 33.48, throughput 91.76 samples/s, lr 0.02
+[Epoch 40 Batch 1000/2983] loss 3.57, ppl 35.48, throughput 93.12 samples/s, lr 0.02
+[Epoch 40 Batch 1200/2983] loss 3.58, ppl 35.77, throughput 85.90 samples/s, lr 0.02
+[Epoch 40 Batch 1400/2983] loss 3.60, ppl 36.45, throughput 83.84 samples/s, lr 0.02
+[Epoch 40 Batch 1600/2983] loss 3.66, ppl 39.00, throughput 84.20 samples/s, lr 0.02
+[Epoch 40 Batch 1800/2983] loss 3.59, ppl 36.39, throughput 83.90 samples/s, lr 0.02
+[Epoch 40 Batch 2000/2983] loss 3.63, ppl 37.68, throughput 84.62 samples/s, lr 0.02
+[Epoch 40 Batch 2200/2983] loss 3.52, ppl 33.62, throughput 85.33 samples/s, lr 0.02
+[Epoch 40 Batch 2400/2983] loss 3.53, ppl 34.08, throughput 84.36 samples/s, lr 0.02
+[Epoch 40 Batch 2600/2983] loss 3.58, ppl 35.87, throughput 84.15 samples/s, lr 0.02
+[Epoch 40 Batch 2800/2983] loss 3.55, ppl 34.77, throughput 83.99 samples/s, lr 0.02
+[Epoch 40] throughput 2992.22 samples/s
+[Epoch 40] time cost 723.89s, valid loss 4.97, valid ppl 144.33
+[Epoch 41 Batch 200/2983] loss 3.58, ppl 35.73, throughput 83.71 samples/s, lr 0.02
+[Epoch 41 Batch 400/2983] loss 3.60, ppl 36.67, throughput 89.33 samples/s, lr 0.02
+[Epoch 41 Batch 600/2983] loss 3.45, ppl 31.46, throughput 90.96 samples/s, lr 0.02
+[Epoch 41 Batch 800/2983] loss 3.50, ppl 33.15, throughput 92.29 samples/s, lr 0.02
+[Epoch 41 Batch 1000/2983] loss 3.56, ppl 35.18, throughput 84.22 samples/s, lr 0.02
+[Epoch 41 Batch 1200/2983] loss 3.57, ppl 35.58, throughput 84.44 samples/s, lr 0.02
+[Epoch 41 Batch 1400/2983] loss 3.58, ppl 36.04, throughput 84.53 samples/s, lr 0.02
+[Epoch 41 Batch 1600/2983] loss 3.65, ppl 38.59, throughput 84.29 samples/s, lr 0.02
+[Epoch 41 Batch 1800/2983] loss 3.59, ppl 36.25, throughput 84.73 samples/s, lr 0.02
+[Epoch 41 Batch 2000/2983] loss 3.62, ppl 37.21, throughput 84.40 samples/s, lr 0.02
+[Epoch 41 Batch 2200/2983] loss 3.50, ppl 33.20, throughput 83.99 samples/s, lr 0.02
+[Epoch 41 Batch 2400/2983] loss 3.53, ppl 33.97, throughput 83.97 samples/s, lr 0.02
+[Epoch 41 Batch 2600/2983] loss 3.57, ppl 35.58, throughput 84.37 samples/s, lr 0.02
+[Epoch 41 Batch 2800/2983] loss 3.54, ppl 34.42, throughput 84.71 samples/s, lr 0.02
+[Epoch 41] throughput 2994.51 samples/s
+[Epoch 41] time cost 723.25s, valid loss 4.98, valid ppl 145.23
+[Epoch 42 Batch 200/2983] loss 3.56, ppl 35.30, throughput 89.39 samples/s, lr 0.02
+[Epoch 42 Batch 400/2983] loss 3.59, ppl 36.22, throughput 92.08 samples/s, lr 0.02
+[Epoch 42 Batch 600/2983] loss 3.44, ppl 31.25, throughput 87.36 samples/s, lr 0.02
+[Epoch 42 Batch 800/2983] loss 3.49, ppl 32.84, throughput 84.06 samples/s, lr 0.02
+[Epoch 42 Batch 1000/2983] loss 3.55, ppl 34.78, throughput 84.17 samples/s, lr 0.02
+[Epoch 42 Batch 1200/2983] loss 3.56, ppl 35.19, throughput 83.85 samples/s, lr 0.02
+[Epoch 42 Batch 1400/2983] loss 3.57, ppl 35.55, throughput 84.39 samples/s, lr 0.02
+[Epoch 42 Batch 1600/2983] loss 3.64, ppl 38.23, throughput 84.00 samples/s, lr 0.02
+[Epoch 42 Batch 1800/2983] loss 3.58, ppl 35.78, throughput 84.19 samples/s, lr 0.02
+[Epoch 42 Batch 2000/2983] loss 3.61, ppl 36.79, throughput 84.30 samples/s, lr 0.02
+[Epoch 42 Batch 2200/2983] loss 3.49, ppl 32.92, throughput 84.26 samples/s, lr 0.02
+[Epoch 42 Batch 2400/2983] loss 3.51, ppl 33.52, throughput 84.45 samples/s, lr 0.02
+[Epoch 42 Batch 2600/2983] loss 3.56, ppl 35.24, throughput 84.44 samples/s, lr 0.02
+[Epoch 42 Batch 2800/2983] loss 3.53, ppl 34.03, throughput 84.25 samples/s, lr 0.02
+[Epoch 42] throughput 2997.91 samples/s
+[Epoch 42] time cost 721.13s, valid loss 4.97, valid ppl 144.23
+[Epoch 43 Batch 200/2983] loss 3.55, ppl 34.97, throughput 91.65 samples/s, lr 0.02
+[Epoch 43 Batch 400/2983] loss 3.58, ppl 35.89, throughput 84.49 samples/s, lr 0.02
+[Epoch 43 Batch 600/2983] loss 3.43, ppl 31.01, throughput 84.18 samples/s, lr 0.02
+[Epoch 43 Batch 800/2983] loss 3.48, ppl 32.52, throughput 84.36 samples/s, lr 0.02
+[Epoch 43 Batch 1000/2983] loss 3.54, ppl 34.39, throughput 84.49 samples/s, lr 0.02
+[Epoch 43 Batch 1200/2983] loss 3.55, ppl 34.87, throughput 84.63 samples/s, lr 0.02
+[Epoch 43 Batch 1400/2983] loss 3.56, ppl 35.31, throughput 84.02 samples/s, lr 0.02
+[Epoch 43 Batch 1600/2983] loss 3.63, ppl 37.63, throughput 84.45 samples/s, lr 0.02
+[Epoch 43 Batch 1800/2983] loss 3.57, ppl 35.35, throughput 84.07 samples/s, lr 0.02
+[Epoch 43 Batch 2000/2983] loss 3.60, ppl 36.50, throughput 84.09 samples/s, lr 0.02
+[Epoch 43 Batch 2200/2983] loss 3.48, ppl 32.52, throughput 84.24 samples/s, lr 0.02
+[Epoch 43 Batch 2400/2983] loss 3.50, ppl 33.25, throughput 83.82 samples/s, lr 0.02
+[Epoch 43 Batch 2600/2983] loss 3.55, ppl 34.72, throughput 87.32 samples/s, lr 0.02
+[Epoch 43 Batch 2800/2983] loss 3.52, ppl 33.75, throughput 90.22 samples/s, lr 0.02
+[Epoch 43] throughput 3004.69 samples/s
+[Epoch 43] time cost 721.23s, valid loss 4.97, valid ppl 143.85
+[Epoch 44 Batch 200/2983] loss 3.55, ppl 34.69, throughput 83.55 samples/s, lr 0.02
+[Epoch 44 Batch 400/2983] loss 3.57, ppl 35.62, throughput 84.28 samples/s, lr 0.02
+[Epoch 44 Batch 600/2983] loss 3.42, ppl 30.51, throughput 84.31 samples/s, lr 0.02
+[Epoch 44 Batch 800/2983] loss 3.47, ppl 32.17, throughput 84.49 samples/s, lr 0.02
+[Epoch 44 Batch 1000/2983] loss 3.53, ppl 34.08, throughput 84.53 samples/s, lr 0.02
+[Epoch 44 Batch 1200/2983] loss 3.55, ppl 34.66, throughput 84.17 samples/s, lr 0.02
+[Epoch 44 Batch 1400/2983] loss 3.56, ppl 35.11, throughput 84.10 samples/s, lr 0.02
+[Epoch 44 Batch 1600/2983] loss 3.62, ppl 37.50, throughput 84.24 samples/s, lr 0.02
+[Epoch 44 Batch 1800/2983] loss 3.56, ppl 35.25, throughput 84.34 samples/s, lr 0.02
+[Epoch 44 Batch 2000/2983] loss 3.59, ppl 36.12, throughput 84.81 samples/s, lr 0.02
+[Epoch 44 Batch 2200/2983] loss 3.48, ppl 32.34, throughput 84.00 samples/s, lr 0.02
+[Epoch 44 Batch 2400/2983] loss 3.49, ppl 32.89, throughput 91.95 samples/s, lr 0.02
+[Epoch 44 Batch 2600/2983] loss 3.54, ppl 34.39, throughput 92.88 samples/s, lr 0.02
+[Epoch 44 Batch 2800/2983] loss 3.51, ppl 33.33, throughput 87.83 samples/s, lr 0.02
+[Epoch 44] throughput 2994.58 samples/s
+[Epoch 44] time cost 723.43s, valid loss 4.99, valid ppl 146.29
+[Epoch 45 Batch 200/2983] loss 3.53, ppl 34.23, throughput 84.07 samples/s, lr 0.02
+[Epoch 45 Batch 400/2983] loss 3.56, ppl 35.26, throughput 85.18 samples/s, lr 0.02
+[Epoch 45 Batch 600/2983] loss 3.42, ppl 30.49, throughput 84.52 samples/s, lr 0.02
+[Epoch 45 Batch 800/2983] loss 3.46, ppl 31.89, throughput 84.23 samples/s, lr 0.02
+[Epoch 45 Batch 1000/2983] loss 3.52, ppl 33.75, throughput 84.04 samples/s, lr 0.02
+[Epoch 45 Batch 1200/2983] loss 3.53, ppl 34.17, throughput 84.33 samples/s, lr 0.02
+[Epoch 45 Batch 1400/2983] loss 3.54, ppl 34.63, throughput 84.12 samples/s, lr 0.02
+[Epoch 45 Batch 1600/2983] loss 3.61, ppl 37.09, throughput 84.31 samples/s, lr 0.02
+[Epoch 45 Batch 1800/2983] loss 3.55, ppl 34.89, throughput 84.22 samples/s, lr 0.02
+[Epoch 45 Batch 2000/2983] loss 3.58, ppl 35.90, throughput 86.22 samples/s, lr 0.02
+[Epoch 45 Batch 2200/2983] loss 3.47, ppl 32.00, throughput 89.76 samples/s, lr 0.02
+[Epoch 45 Batch 2400/2983] loss 3.48, ppl 32.53, throughput 92.17 samples/s, lr 0.02
+[Epoch 45 Batch 2600/2983] loss 3.53, ppl 34.19, throughput 84.72 samples/s, lr 0.02
+[Epoch 45 Batch 2800/2983] loss 3.50, ppl 32.99, throughput 84.65 samples/s, lr 0.02
+[Epoch 45] throughput 2987.47 samples/s
+[Epoch 45] time cost 724.99s, valid loss 4.99, valid ppl 146.37
+Learning rate after interval update 0.002000
+[Epoch 46 Batch 200/2983] loss 3.64, ppl 38.17, throughput 83.66 samples/s, lr 0.00
+[Epoch 46 Batch 400/2983] loss 3.68, ppl 39.50, throughput 85.49 samples/s, lr 0.00
+[Epoch 46 Batch 600/2983] loss 3.58, ppl 35.88, throughput 84.19 samples/s, lr 0.00
+[Epoch 46 Batch 800/2983] loss 3.58, ppl 36.01, throughput 84.11 samples/s, lr 0.00
+[Epoch 46 Batch 1000/2983] loss 3.62, ppl 37.18, throughput 84.78 samples/s, lr 0.00
+[Epoch 46 Batch 1200/2983] loss 3.66, ppl 38.72, throughput 84.34 samples/s, lr 0.00
+[Epoch 46 Batch 1400/2983] loss 3.60, ppl 36.65, throughput 84.62 samples/s, lr 0.00
+[Epoch 46 Batch 1600/2983] loss 3.71, ppl 40.79, throughput 84.36 samples/s, lr 0.00
+[Epoch 46 Batch 1800/2983] loss 3.62, ppl 37.41, throughput 89.36 samples/s, lr 0.00
+[Epoch 46 Batch 2000/2983] loss 3.62, ppl 37.50, throughput 90.51 samples/s, lr 0.00
+[Epoch 46 Batch 2200/2983] loss 3.53, ppl 34.05, throughput 89.66 samples/s, lr 0.00
+[Epoch 46 Batch 2400/2983] loss 3.58, ppl 35.71, throughput 83.94 samples/s, lr 0.00
+[Epoch 46 Batch 2600/2983] loss 3.56, ppl 34.99, throughput 84.57 samples/s, lr 0.00
+[Epoch 46 Batch 2800/2983] loss 3.53, ppl 34.13, throughput 83.88 samples/s, lr 0.00
+[Epoch 46] throughput 2991.62 samples/s
+[Epoch 46] time cost 724.24s, valid loss 4.93, valid ppl 138.93
+[Epoch 47 Batch 200/2983] loss 3.67, ppl 39.39, throughput 84.59 samples/s, lr 0.00
+[Epoch 47 Batch 400/2983] loss 3.65, ppl 38.65, throughput 84.63 samples/s, lr 0.00
+[Epoch 47 Batch 600/2983] loss 3.53, ppl 34.25, throughput 84.06 samples/s, lr 0.00
+[Epoch 47 Batch 800/2983] loss 3.55, ppl 34.96, throughput 83.94 samples/s, lr 0.00
+[Epoch 47 Batch 1000/2983] loss 3.60, ppl 36.55, throughput 84.53 samples/s, lr 0.00
+[Epoch 47 Batch 1200/2983] loss 3.64, ppl 38.09, throughput 84.03 samples/s, lr 0.00
+[Epoch 47 Batch 1400/2983] loss 3.58, ppl 36.01, throughput 85.55 samples/s, lr 0.00
+[Epoch 47 Batch 1600/2983] loss 3.71, ppl 40.66, throughput 90.88 samples/s, lr 0.00
+[Epoch 47 Batch 1800/2983] loss 3.60, ppl 36.74, throughput 88.50 samples/s, lr 0.00
+[Epoch 47 Batch 2000/2983] loss 3.63, ppl 37.56, throughput 85.50 samples/s, lr 0.00
+[Epoch 47 Batch 2200/2983] loss 3.53, ppl 34.14, throughput 84.56 samples/s, lr 0.00
+[Epoch 47 Batch 2400/2983] loss 3.55, ppl 34.80, throughput 84.32 samples/s, lr 0.00
+[Epoch 47 Batch 2600/2983] loss 3.56, ppl 35.13, throughput 84.00 samples/s, lr 0.00
+[Epoch 47 Batch 2800/2983] loss 3.52, ppl 33.73, throughput 84.31 samples/s, lr 0.00
+[Epoch 47] throughput 2982.98 samples/s
+[Epoch 47] time cost 726.26s, valid loss 4.92, valid ppl 137.04
+[Epoch 48 Batch 200/2983] loss 3.65, ppl 38.41, throughput 83.47 samples/s, lr 0.00
+[Epoch 48 Batch 400/2983] loss 3.66, ppl 38.73, throughput 84.48 samples/s, lr 0.00
+[Epoch 48 Batch 600/2983] loss 3.54, ppl 34.33, throughput 84.42 samples/s, lr 0.00
+[Epoch 48 Batch 800/2983] loss 3.55, ppl 34.87, throughput 84.42 samples/s, lr 0.00
+[Epoch 48 Batch 1000/2983] loss 3.58, ppl 35.94, throughput 83.86 samples/s, lr 0.00
+[Epoch 48 Batch 1200/2983] loss 3.64, ppl 38.06, throughput 89.53 samples/s, lr 0.00
+[Epoch 48 Batch 1400/2983] loss 3.57, ppl 35.49, throughput 89.92 samples/s, lr 0.00
+[Epoch 48 Batch 1600/2983] loss 3.70, ppl 40.57, throughput 89.16 samples/s, lr 0.00
+[Epoch 48 Batch 1800/2983] loss 3.59, ppl 36.36, throughput 84.21 samples/s, lr 0.00
+[Epoch 48 Batch 2000/2983] loss 3.60, ppl 36.51, throughput 83.82 samples/s, lr 0.00
+[Epoch 48 Batch 2200/2983] loss 3.52, ppl 33.75, throughput 84.46 samples/s, lr 0.00
+[Epoch 48 Batch 2400/2983] loss 3.53, ppl 34.28, throughput 84.54 samples/s, lr 0.00
+[Epoch 48 Batch 2600/2983] loss 3.54, ppl 34.52, throughput 85.24 samples/s, lr 0.00
+[Epoch 48 Batch 2800/2983] loss 3.51, ppl 33.51, throughput 84.87 samples/s, lr 0.00
+[Epoch 48] throughput 2988.31 samples/s
+[Epoch 48] time cost 724.93s, valid loss 4.92, valid ppl 137.39
+[Epoch 49 Batch 200/2983] loss 3.63, ppl 37.88, throughput 83.51 samples/s, lr 0.00
+[Epoch 49 Batch 400/2983] loss 3.65, ppl 38.37, throughput 84.00 samples/s, lr 0.00
+[Epoch 49 Batch 600/2983] loss 3.52, ppl 33.74, throughput 85.14 samples/s, lr 0.00
+[Epoch 49 Batch 800/2983] loss 3.54, ppl 34.63, throughput 84.23 samples/s, lr 0.00
+[Epoch 49 Batch 1000/2983] loss 3.59, ppl 36.20, throughput 90.75 samples/s, lr 0.00
+[Epoch 49 Batch 1200/2983] loss 3.61, ppl 37.03, throughput 91.37 samples/s, lr 0.00
+[Epoch 49 Batch 1400/2983] loss 3.57, ppl 35.62, throughput 89.89 samples/s, lr 0.00
+[Epoch 49 Batch 1600/2983] loss 3.69, ppl 40.23, throughput 84.22 samples/s, lr 0.00
+[Epoch 49 Batch 1800/2983] loss 3.60, ppl 36.55, throughput 84.11 samples/s, lr 0.00
+[Epoch 49 Batch 2000/2983] loss 3.60, ppl 36.73, throughput 84.09 samples/s, lr 0.00
+[Epoch 49 Batch 2200/2983] loss 3.52, ppl 33.89, throughput 84.37 samples/s, lr 0.00
+[Epoch 49 Batch 2400/2983] loss 3.54, ppl 34.53, throughput 85.32 samples/s, lr 0.00
+[Epoch 49 Batch 2600/2983] loss 3.52, ppl 33.93, throughput 84.43 samples/s, lr 0.00
+[Epoch 49 Batch 2800/2983] loss 3.52, ppl 33.63, throughput 83.94 samples/s, lr 0.00
+[Epoch 49] throughput 2994.91 samples/s
+[Epoch 49] time cost 723.50s, valid loss 4.92, valid ppl 137.00
+[Epoch 50 Batch 200/2983] loss 3.63, ppl 37.80, throughput 83.96 samples/s, lr 0.00
+[Epoch 50 Batch 400/2983] loss 3.64, ppl 38.19, throughput 84.37 samples/s, lr 0.00
+[Epoch 50 Batch 600/2983] loss 3.50, ppl 33.16, throughput 84.72 samples/s, lr 0.00
+[Epoch 50 Batch 800/2983] loss 3.55, ppl 34.70, throughput 88.25 samples/s, lr 0.00
+[Epoch 50 Batch 1000/2983] loss 3.58, ppl 36.05, throughput 91.52 samples/s, lr 0.00
+[Epoch 50 Batch 1200/2983] loss 3.61, ppl 37.01, throughput 84.92 samples/s, lr 0.00
+[Epoch 50 Batch 1400/2983] loss 3.58, ppl 35.78, throughput 84.72 samples/s, lr 0.00
+[Epoch 50 Batch 1600/2983] loss 3.70, ppl 40.56, throughput 84.18 samples/s, lr 0.00
+[Epoch 50 Batch 1800/2983] loss 3.60, ppl 36.54, throughput 84.18 samples/s, lr 0.00
+[Epoch 50 Batch 2000/2983] loss 3.60, ppl 36.56, throughput 84.06 samples/s, lr 0.00
+[Epoch 50 Batch 2200/2983] loss 3.52, ppl 33.67, throughput 85.24 samples/s, lr 0.00
+[Epoch 50 Batch 2400/2983] loss 3.53, ppl 34.11, throughput 84.89 samples/s, lr 0.00
+[Epoch 50 Batch 2600/2983] loss 3.53, ppl 33.97, throughput 83.70 samples/s, lr 0.00
+[Epoch 50 Batch 2800/2983] loss 3.50, ppl 33.07, throughput 84.06 samples/s, lr 0.00
+[Epoch 50] throughput 2978.81 samples/s
+[Epoch 50] time cost 726.88s, valid loss 4.91, valid ppl 136.20
+[Epoch 51 Batch 200/2983] loss 3.63, ppl 37.63, throughput 84.19 samples/s, lr 0.00
+[Epoch 51 Batch 400/2983] loss 3.63, ppl 37.75, throughput 86.85 samples/s, lr 0.00
+[Epoch 51 Batch 600/2983] loss 3.49, ppl 32.82, throughput 91.01 samples/s, lr 0.00
+[Epoch 51 Batch 800/2983] loss 3.53, ppl 34.09, throughput 93.41 samples/s, lr 0.00
+[Epoch 51 Batch 1000/2983] loss 3.59, ppl 36.16, throughput 84.27 samples/s, lr 0.00
+[Epoch 51 Batch 1200/2983] loss 3.61, ppl 36.80, throughput 84.53 samples/s, lr 0.00
+[Epoch 51 Batch 1400/2983] loss 3.57, ppl 35.51, throughput 84.13 samples/s, lr 0.00
+[Epoch 51 Batch 1600/2983] loss 3.68, ppl 39.50, throughput 84.16 samples/s, lr 0.00
+[Epoch 51 Batch 1800/2983] loss 3.59, ppl 36.05, throughput 85.05 samples/s, lr 0.00
+[Epoch 51 Batch 2000/2983] loss 3.58, ppl 35.79, throughput 84.36 samples/s, lr 0.00
+[Epoch 51 Batch 2200/2983] loss 3.50, ppl 33.17, throughput 84.37 samples/s, lr 0.00
+[Epoch 51 Batch 2400/2983] loss 3.54, ppl 34.50, throughput 83.91 samples/s, lr 0.00
+[Epoch 51 Batch 2600/2983] loss 3.53, ppl 34.02, throughput 83.80 samples/s, lr 0.00
+[Epoch 51 Batch 2800/2983] loss 3.51, ppl 33.38, throughput 85.03 samples/s, lr 0.00
+[Epoch 51] throughput 2992.59 samples/s
+[Epoch 51] time cost 723.97s, valid loss 4.92, valid ppl 136.59
+[Epoch 52 Batch 200/2983] loss 3.62, ppl 37.40, throughput 89.31 samples/s, lr 0.00
+[Epoch 52 Batch 400/2983] loss 3.63, ppl 37.73, throughput 91.91 samples/s, lr 0.00
+[Epoch 52 Batch 600/2983] loss 3.49, ppl 32.90, throughput 88.93 samples/s, lr 0.00
+[Epoch 52 Batch 800/2983] loss 3.52, ppl 33.77, throughput 84.51 samples/s, lr 0.00
+[Epoch 52 Batch 1000/2983] loss 3.58, ppl 35.74, throughput 84.43 samples/s, lr 0.00
+[Epoch 52 Batch 1200/2983] loss 3.58, ppl 35.88, throughput 84.48 samples/s, lr 0.00
+[Epoch 52 Batch 1400/2983] loss 3.58, ppl 35.87, throughput 84.40 samples/s, lr 0.00
+[Epoch 52 Batch 1600/2983] loss 3.69, ppl 39.89, throughput 84.69 samples/s, lr 0.00
+[Epoch 52 Batch 1800/2983] loss 3.59, ppl 36.16, throughput 83.60 samples/s, lr 0.00
+[Epoch 52 Batch 2000/2983] loss 3.59, ppl 36.21, throughput 84.99 samples/s, lr 0.00
+[Epoch 52 Batch 2200/2983] loss 3.50, ppl 32.96, throughput 84.44 samples/s, lr 0.00
+[Epoch 52 Batch 2400/2983] loss 3.54, ppl 34.45, throughput 84.09 samples/s, lr 0.00
+[Epoch 52 Batch 2600/2983] loss 3.51, ppl 33.60, throughput 84.75 samples/s, lr 0.00
+[Epoch 52 Batch 2800/2983] loss 3.52, ppl 33.80, throughput 84.52 samples/s, lr 0.00
+[Epoch 52] throughput 3005.48 samples/s
+[Epoch 52] time cost 719.56s, valid loss 4.91, valid ppl 136.30
+[Epoch 53 Batch 200/2983] loss 3.62, ppl 37.30, throughput 92.95 samples/s, lr 0.00
+[Epoch 53 Batch 400/2983] loss 3.63, ppl 37.70, throughput 85.12 samples/s, lr 0.00
+[Epoch 53 Batch 600/2983] loss 3.48, ppl 32.39, throughput 84.70 samples/s, lr 0.00
+[Epoch 53 Batch 800/2983] loss 3.52, ppl 33.66, throughput 84.59 samples/s, lr 0.00
+[Epoch 53 Batch 1000/2983] loss 3.58, ppl 35.86, throughput 84.79 samples/s, lr 0.00
+[Epoch 53 Batch 1200/2983] loss 3.59, ppl 36.23, throughput 85.46 samples/s, lr 0.00
+[Epoch 53 Batch 1400/2983] loss 3.58, ppl 35.70, throughput 84.61 samples/s, lr 0.00
+[Epoch 53 Batch 1600/2983] loss 3.67, ppl 39.28, throughput 84.36 samples/s, lr 0.00
+[Epoch 53 Batch 1800/2983] loss 3.58, ppl 35.94, throughput 84.29 samples/s, lr 0.00
+[Epoch 53 Batch 2000/2983] loss 3.58, ppl 36.01, throughput 84.37 samples/s, lr 0.00
+[Epoch 53 Batch 2200/2983] loss 3.49, ppl 32.85, throughput 84.40 samples/s, lr 0.00
+[Epoch 53 Batch 2400/2983] loss 3.53, ppl 34.19, throughput 84.39 samples/s, lr 0.00
+[Epoch 53 Batch 2600/2983] loss 3.51, ppl 33.61, throughput 84.94 samples/s, lr 0.00
+[Epoch 53 Batch 2800/2983] loss 3.50, ppl 33.01, throughput 91.74 samples/s, lr 0.00
+[Epoch 53] throughput 3018.28 samples/s
+[Epoch 53] time cost 715.45s, valid loss 4.92, valid ppl 136.55
+[Epoch 54 Batch 200/2983] loss 3.64, ppl 38.16, throughput 94.42 samples/s, lr 0.00
+[Epoch 54 Batch 400/2983] loss 3.62, ppl 37.23, throughput 92.99 samples/s, lr 0.00
+[Epoch 54 Batch 600/2983] loss 3.49, ppl 32.88, throughput 92.73 samples/s, lr 0.00
+[Epoch 54 Batch 800/2983] loss 3.50, ppl 33.00, throughput 95.37 samples/s, lr 0.00
+[Epoch 54 Batch 1000/2983] loss 3.58, ppl 35.74, throughput 95.41 samples/s, lr 0.00
+[Epoch 54 Batch 1200/2983] loss 3.58, ppl 35.91, throughput 95.39 samples/s, lr 0.00
+[Epoch 54 Batch 1400/2983] loss 3.55, ppl 34.97, throughput 91.99 samples/s, lr 0.00
+[Epoch 54 Batch 1600/2983] loss 3.68, ppl 39.52, throughput 93.08 samples/s, lr 0.00
+[Epoch 54 Batch 1800/2983] loss 3.59, ppl 36.11, throughput 95.10 samples/s, lr 0.00
+[Epoch 54 Batch 2000/2983] loss 3.58, ppl 35.89, throughput 91.79 samples/s, lr 0.00
+[Epoch 54 Batch 2200/2983] loss 3.50, ppl 33.18, throughput 93.88 samples/s, lr 0.00
+[Epoch 54 Batch 2400/2983] loss 3.52, ppl 33.73, throughput 95.03 samples/s, lr 0.00
+[Epoch 54 Batch 2600/2983] loss 3.52, ppl 33.92, throughput 95.20 samples/s, lr 0.00
+[Epoch 54 Batch 2800/2983] loss 3.50, ppl 33.07, throughput 95.47 samples/s, lr 0.00
+[Epoch 54] throughput 3297.77 samples/s
+[Epoch 54] time cost 656.78s, valid loss 4.92, valid ppl 136.75
+[Epoch 55 Batch 200/2983] loss 3.62, ppl 37.52, throughput 92.54 samples/s, lr 0.00
+[Epoch 55 Batch 400/2983] loss 3.62, ppl 37.35, throughput 93.23 samples/s, lr 0.00
+[Epoch 55 Batch 600/2983] loss 3.48, ppl 32.56, throughput 84.74 samples/s, lr 0.00
+[Epoch 55 Batch 800/2983] loss 3.50, ppl 33.05, throughput 84.60 samples/s, lr 0.00
+[Epoch 55 Batch 1000/2983] loss 3.57, ppl 35.65, throughput 83.94 samples/s, lr 0.00
+[Epoch 55 Batch 1200/2983] loss 3.58, ppl 35.76, throughput 85.10 samples/s, lr 0.00
+[Epoch 55 Batch 1400/2983] loss 3.56, ppl 35.06, throughput 84.13 samples/s, lr 0.00
+[Epoch 55 Batch 1600/2983] loss 3.67, ppl 39.39, throughput 85.26 samples/s, lr 0.00
+[Epoch 55 Batch 1800/2983] loss 3.58, ppl 36.01, throughput 84.75 samples/s, lr 0.00
+[Epoch 55 Batch 2000/2983] loss 3.59, ppl 36.22, throughput 84.51 samples/s, lr 0.00
+[Epoch 55 Batch 2200/2983] loss 3.50, ppl 33.13, throughput 84.21 samples/s, lr 0.00
+[Epoch 55 Batch 2400/2983] loss 3.52, ppl 33.80, throughput 84.20 samples/s, lr 0.00
+[Epoch 55 Batch 2600/2983] loss 3.52, ppl 33.66, throughput 84.90 samples/s, lr 0.00
+[Epoch 55 Batch 2800/2983] loss 3.49, ppl 32.94, throughput 85.05 samples/s, lr 0.00
+[Epoch 55] throughput 3012.01 samples/s
+[Epoch 55] time cost 717.66s, valid loss 4.91, valid ppl 135.34
+[Epoch 56 Batch 200/2983] loss 3.61, ppl 37.08, throughput 90.06 samples/s, lr 0.00
+[Epoch 56 Batch 400/2983] loss 3.62, ppl 37.17, throughput 83.74 samples/s, lr 0.00
+[Epoch 56 Batch 600/2983] loss 3.48, ppl 32.34, throughput 83.75 samples/s, lr 0.00
+[Epoch 56 Batch 800/2983] loss 3.51, ppl 33.29, throughput 84.38 samples/s, lr 0.00
+[Epoch 56 Batch 1000/2983] loss 3.58, ppl 35.70, throughput 84.31 samples/s, lr 0.00
+[Epoch 56 Batch 1200/2983] loss 3.57, ppl 35.58, throughput 84.98 samples/s, lr 0.00
+[Epoch 56 Batch 1400/2983] loss 3.55, ppl 34.78, throughput 84.24 samples/s, lr 0.00
+[Epoch 56 Batch 1600/2983] loss 3.69, ppl 39.93, throughput 83.70 samples/s, lr 0.00
+[Epoch 56 Batch 1800/2983] loss 3.58, ppl 35.70, throughput 84.43 samples/s, lr 0.00
+[Epoch 56 Batch 2000/2983] loss 3.58, ppl 35.92, throughput 84.21 samples/s, lr 0.00
+[Epoch 56 Batch 2200/2983] loss 3.48, ppl 32.62, throughput 85.25 samples/s, lr 0.00
+[Epoch 56 Batch 2400/2983] loss 3.52, ppl 33.70, throughput 84.29 samples/s, lr 0.00
+[Epoch 56 Batch 2600/2983] loss 3.51, ppl 33.40, throughput 89.97 samples/s, lr 0.00
+[Epoch 56 Batch 2800/2983] loss 3.48, ppl 32.54, throughput 90.17 samples/s, lr 0.00
+[Epoch 56] throughput 3005.31 samples/s
+[Epoch 56] time cost 720.93s, valid loss 4.92, valid ppl 136.68
+[Epoch 57 Batch 200/2983] loss 3.61, ppl 36.80, throughput 84.26 samples/s, lr 0.00
+[Epoch 57 Batch 400/2983] loss 3.61, ppl 36.90, throughput 84.42 samples/s, lr 0.00
+[Epoch 57 Batch 600/2983] loss 3.46, ppl 31.94, throughput 84.86 samples/s, lr 0.00
+[Epoch 57 Batch 800/2983] loss 3.49, ppl 32.64, throughput 84.38 samples/s, lr 0.00
+[Epoch 57 Batch 1000/2983] loss 3.56, ppl 35.32, throughput 84.55 samples/s, lr 0.00
+[Epoch 57 Batch 1200/2983] loss 3.56, ppl 35.26, throughput 84.12 samples/s, lr 0.00
+[Epoch 57 Batch 1400/2983] loss 3.57, ppl 35.68, throughput 84.34 samples/s, lr 0.00
+[Epoch 57 Batch 1600/2983] loss 3.67, ppl 39.39, throughput 83.81 samples/s, lr 0.00
+[Epoch 57 Batch 1800/2983] loss 3.57, ppl 35.55, throughput 84.41 samples/s, lr 0.00
+[Epoch 57 Batch 2000/2983] loss 3.58, ppl 35.77, throughput 84.60 samples/s, lr 0.00
+[Epoch 57 Batch 2200/2983] loss 3.48, ppl 32.55, throughput 84.86 samples/s, lr 0.00
+[Epoch 57 Batch 2400/2983] loss 3.52, ppl 33.80, throughput 91.20 samples/s, lr 0.00
+[Epoch 57 Batch 2600/2983] loss 3.51, ppl 33.33, throughput 92.02 samples/s, lr 0.00
+[Epoch 57 Batch 2800/2983] loss 3.51, ppl 33.54, throughput 87.01 samples/s, lr 0.00
+[Epoch 57] throughput 2993.01 samples/s
+[Epoch 57] time cost 723.83s, valid loss 4.92, valid ppl 136.38
+[Epoch 58 Batch 200/2983] loss 3.62, ppl 37.30, throughput 84.20 samples/s, lr 0.00
+[Epoch 58 Batch 400/2983] loss 3.62, ppl 37.38, throughput 84.05 samples/s, lr 0.00
+[Epoch 58 Batch 600/2983] loss 3.47, ppl 32.25, throughput 84.87 samples/s, lr 0.00
+[Epoch 58 Batch 800/2983] loss 3.50, ppl 33.07, throughput 84.53 samples/s, lr 0.00
+[Epoch 58 Batch 1000/2983] loss 3.57, ppl 35.50, throughput 84.48 samples/s, lr 0.00
+[Epoch 58 Batch 1200/2983] loss 3.57, ppl 35.68, throughput 84.46 samples/s, lr 0.00
+[Epoch 58 Batch 1400/2983] loss 3.54, ppl 34.36, throughput 83.85 samples/s, lr 0.00
+[Epoch 58 Batch 1600/2983] loss 3.66, ppl 38.85, throughput 84.02 samples/s, lr 0.00
+[Epoch 58 Batch 1800/2983] loss 3.56, ppl 35.26, throughput 84.37 samples/s, lr 0.00
+[Epoch 58 Batch 2000/2983] loss 3.58, ppl 35.90, throughput 87.45 samples/s, lr 0.00
+[Epoch 58 Batch 2200/2983] loss 3.50, ppl 32.99, throughput 89.00 samples/s, lr 0.00
+[Epoch 58 Batch 2400/2983] loss 3.53, ppl 34.08, throughput 93.64 samples/s, lr 0.00
+[Epoch 58 Batch 2600/2983] loss 3.51, ppl 33.58, throughput 84.89 samples/s, lr 0.00
+[Epoch 58 Batch 2800/2983] loss 3.50, ppl 33.14, throughput 84.58 samples/s, lr 0.00
+[Epoch 58] throughput 2992.47 samples/s
+[Epoch 58] time cost 724.00s, valid loss 4.91, valid ppl 135.60
+[Epoch 59 Batch 200/2983] loss 3.61, ppl 37.01, throughput 83.47 samples/s, lr 0.00
+[Epoch 59 Batch 400/2983] loss 3.60, ppl 36.60, throughput 85.11 samples/s, lr 0.00
+[Epoch 59 Batch 600/2983] loss 3.45, ppl 31.38, throughput 84.19 samples/s, lr 0.00
+[Epoch 59 Batch 800/2983] loss 3.49, ppl 32.67, throughput 84.43 samples/s, lr 0.00
+[Epoch 59 Batch 1000/2983] loss 3.57, ppl 35.41, throughput 84.09 samples/s, lr 0.00
+[Epoch 59 Batch 1200/2983] loss 3.57, ppl 35.41, throughput 84.10 samples/s, lr 0.00
+[Epoch 59 Batch 1400/2983] loss 3.55, ppl 34.65, throughput 84.88 samples/s, lr 0.00
+[Epoch 59 Batch 1600/2983] loss 3.68, ppl 39.63, throughput 84.59 samples/s, lr 0.00
+[Epoch 59 Batch 1800/2983] loss 3.56, ppl 35.08, throughput 90.46 samples/s, lr 0.00
+[Epoch 59 Batch 2000/2983] loss 3.58, ppl 35.81, throughput 91.47 samples/s, lr 0.00
+[Epoch 59 Batch 2200/2983] loss 3.47, ppl 32.02, throughput 89.61 samples/s, lr 0.00
+[Epoch 59 Batch 2400/2983] loss 3.51, ppl 33.35, throughput 84.15 samples/s, lr 0.00
+[Epoch 59 Batch 2600/2983] loss 3.50, ppl 33.09, throughput 84.36 samples/s, lr 0.00
+[Epoch 59 Batch 2800/2983] loss 3.50, ppl 33.01, throughput 84.44 samples/s, lr 0.00
+[Epoch 59] throughput 2994.86 samples/s
+[Epoch 59] time cost 723.24s, valid loss 4.92, valid ppl 136.77
+[Epoch 60 Batch 200/2983] loss 3.63, ppl 37.77, throughput 84.76 samples/s, lr 0.00
+[Epoch 60 Batch 400/2983] loss 3.60, ppl 36.69, throughput 84.83 samples/s, lr 0.00
+[Epoch 60 Batch 600/2983] loss 3.44, ppl 31.07, throughput 84.37 samples/s, lr 0.00
+[Epoch 60 Batch 800/2983] loss 3.49, ppl 32.94, throughput 84.41 samples/s, lr 0.00
+[Epoch 60 Batch 1000/2983] loss 3.56, ppl 35.06, throughput 84.48 samples/s, lr 0.00
+[Epoch 60 Batch 1200/2983] loss 3.58, ppl 35.82, throughput 84.49 samples/s, lr 0.00
+[Epoch 60 Batch 1400/2983] loss 3.54, ppl 34.40, throughput 85.20 samples/s, lr 0.00
+[Epoch 60 Batch 1600/2983] loss 3.66, ppl 39.04, throughput 91.38 samples/s, lr 0.00
+[Epoch 60 Batch 1800/2983] loss 3.55, ppl 34.84, throughput 89.97 samples/s, lr 0.00
+[Epoch 60 Batch 2000/2983] loss 3.59, ppl 36.24, throughput 86.42 samples/s, lr 0.00
+[Epoch 60 Batch 2200/2983] loss 3.47, ppl 32.22, throughput 84.54 samples/s, lr 0.00
+[Epoch 60 Batch 2400/2983] loss 3.51, ppl 33.40, throughput 84.21 samples/s, lr 0.00
+[Epoch 60 Batch 2600/2983] loss 3.51, ppl 33.30, throughput 83.87 samples/s, lr 0.00
+[Epoch 60 Batch 2800/2983] loss 3.49, ppl 32.71, throughput 84.06 samples/s, lr 0.00
+[Epoch 60] throughput 2991.63 samples/s
+[Epoch 60] time cost 724.18s, valid loss 4.91, valid ppl 135.98
+[Epoch 61 Batch 200/2983] loss 3.60, ppl 36.77, throughput 84.47 samples/s, lr 0.00
+[Epoch 61 Batch 400/2983] loss 3.60, ppl 36.48, throughput 83.93 samples/s, lr 0.00
+[Epoch 61 Batch 600/2983] loss 3.45, ppl 31.40, throughput 84.57 samples/s, lr 0.00
+[Epoch 61 Batch 800/2983] loss 3.49, ppl 32.79, throughput 85.06 samples/s, lr 0.00
+[Epoch 61 Batch 1000/2983] loss 3.55, ppl 34.89, throughput 83.51 samples/s, lr 0.00
+[Epoch 61 Batch 1200/2983] loss 3.56, ppl 35.13, throughput 87.64 samples/s, lr 0.00
+[Epoch 61 Batch 1400/2983] loss 3.54, ppl 34.39, throughput 90.52 samples/s, lr 0.00
+[Epoch 61 Batch 1600/2983] loss 3.66, ppl 38.81, throughput 90.81 samples/s, lr 0.00
+[Epoch 61 Batch 1800/2983] loss 3.55, ppl 34.87, throughput 83.92 samples/s, lr 0.00
+[Epoch 61 Batch 2000/2983] loss 3.57, ppl 35.39, throughput 84.02 samples/s, lr 0.00
+[Epoch 61 Batch 2200/2983] loss 3.47, ppl 32.17, throughput 84.81 samples/s, lr 0.00
+[Epoch 61 Batch 2400/2983] loss 3.51, ppl 33.43, throughput 84.73 samples/s, lr 0.00
+[Epoch 61 Batch 2600/2983] loss 3.49, ppl 32.91, throughput 85.14 samples/s, lr 0.00
+[Epoch 61 Batch 2800/2983] loss 3.49, ppl 32.77, throughput 83.75 samples/s, lr 0.00
+[Epoch 61] throughput 2988.76 samples/s
+[Epoch 61] time cost 724.93s, valid loss 4.91, valid ppl 135.12
+[Epoch 62 Batch 200/2983] loss 3.61, ppl 36.95, throughput 83.55 samples/s, lr 0.00
+[Epoch 62 Batch 400/2983] loss 3.60, ppl 36.46, throughput 83.90 samples/s, lr 0.00
+[Epoch 62 Batch 600/2983] loss 3.44, ppl 31.29, throughput 84.78 samples/s, lr 0.00
+[Epoch 62 Batch 800/2983] loss 3.49, ppl 32.62, throughput 84.27 samples/s, lr 0.00
+[Epoch 62 Batch 1000/2983] loss 3.55, ppl 34.81, throughput 88.24 samples/s, lr 0.00
+[Epoch 62 Batch 1200/2983] loss 3.57, ppl 35.50, throughput 89.41 samples/s, lr 0.00
+[Epoch 62 Batch 1400/2983] loss 3.54, ppl 34.36, throughput 87.03 samples/s, lr 0.00
+[Epoch 62 Batch 1600/2983] loss 3.65, ppl 38.58, throughput 85.05 samples/s, lr 0.00
+[Epoch 62 Batch 1800/2983] loss 3.56, ppl 35.01, throughput 84.84 samples/s, lr 0.00
+[Epoch 62 Batch 2000/2983] loss 3.57, ppl 35.63, throughput 84.63 samples/s, lr 0.00
+[Epoch 62 Batch 2200/2983] loss 3.46, ppl 31.96, throughput 84.16 samples/s, lr 0.00
+[Epoch 62 Batch 2400/2983] loss 3.52, ppl 33.78, throughput 84.66 samples/s, lr 0.00
+[Epoch 62 Batch 2600/2983] loss 3.49, ppl 32.88, throughput 84.42 samples/s, lr 0.00
+[Epoch 62 Batch 2800/2983] loss 3.49, ppl 32.65, throughput 84.16 samples/s, lr 0.00
+[Epoch 62] throughput 2981.49 samples/s
+[Epoch 62] time cost 726.63s, valid loss 4.92, valid ppl 136.62
+[Epoch 63 Batch 200/2983] loss 3.59, ppl 36.39, throughput 84.22 samples/s, lr 0.00
+[Epoch 63 Batch 400/2983] loss 3.59, ppl 36.28, throughput 85.11 samples/s, lr 0.00
+[Epoch 63 Batch 600/2983] loss 3.44, ppl 31.22, throughput 84.06 samples/s, lr 0.00
+[Epoch 63 Batch 800/2983] loss 3.49, ppl 32.67, throughput 90.18 samples/s, lr 0.00
+[Epoch 63 Batch 1000/2983] loss 3.56, ppl 35.09, throughput 90.68 samples/s, lr 0.00
+[Epoch 63 Batch 1200/2983] loss 3.57, ppl 35.35, throughput 88.20 samples/s, lr 0.00
+[Epoch 63 Batch 1400/2983] loss 3.54, ppl 34.44, throughput 83.80 samples/s, lr 0.00
+[Epoch 63 Batch 1600/2983] loss 3.63, ppl 37.88, throughput 84.34 samples/s, lr 0.00
+[Epoch 63 Batch 1800/2983] loss 3.55, ppl 34.95, throughput 84.45 samples/s, lr 0.00
+[Epoch 63 Batch 2000/2983] loss 3.57, ppl 35.55, throughput 84.37 samples/s, lr 0.00
+[Epoch 63 Batch 2200/2983] loss 3.46, ppl 31.96, throughput 84.90 samples/s, lr 0.00
+[Epoch 63 Batch 2400/2983] loss 3.52, ppl 33.65, throughput 84.07 samples/s, lr 0.00
+[Epoch 63 Batch 2600/2983] loss 3.49, ppl 32.91, throughput 84.46 samples/s, lr 0.00
+[Epoch 63 Batch 2800/2983] loss 3.49, ppl 32.91, throughput 84.29 samples/s, lr 0.00
+[Epoch 63] throughput 2988.66 samples/s
+[Epoch 63] time cost 724.70s, valid loss 4.91, valid ppl 136.20
+[Epoch 64 Batch 200/2983] loss 3.61, ppl 36.94, throughput 83.79 samples/s, lr 0.00
+[Epoch 64 Batch 400/2983] loss 3.59, ppl 36.39, throughput 86.50 samples/s, lr 0.00
+[Epoch 64 Batch 600/2983] loss 3.44, ppl 31.21, throughput 90.33 samples/s, lr 0.00
+[Epoch 64 Batch 800/2983] loss 3.48, ppl 32.30, throughput 91.35 samples/s, lr 0.00
+[Epoch 64 Batch 1000/2983] loss 3.55, ppl 34.89, throughput 84.86 samples/s, lr 0.00
+[Epoch 64 Batch 1200/2983] loss 3.56, ppl 35.14, throughput 84.41 samples/s, lr 0.00
+[Epoch 64 Batch 1400/2983] loss 3.52, ppl 33.89, throughput 84.22 samples/s, lr 0.00
+[Epoch 64 Batch 1600/2983] loss 3.66, ppl 38.89, throughput 83.67 samples/s, lr 0.00
+[Epoch 64 Batch 1800/2983] loss 3.55, ppl 34.96, throughput 85.38 samples/s, lr 0.00
+[Epoch 64 Batch 2000/2983] loss 3.57, ppl 35.43, throughput 84.56 samples/s, lr 0.00
+[Epoch 64 Batch 2200/2983] loss 3.48, ppl 32.36, throughput 83.97 samples/s, lr 0.00
+[Epoch 64 Batch 2400/2983] loss 3.49, ppl 32.70, throughput 84.21 samples/s, lr 0.00
+[Epoch 64 Batch 2600/2983] loss 3.51, ppl 33.31, throughput 84.34 samples/s, lr 0.00
+[Epoch 64 Batch 2800/2983] loss 3.49, ppl 32.79, throughput 85.09 samples/s, lr 0.00
+[Epoch 64] throughput 2987.54 samples/s
+[Epoch 64] time cost 725.07s, valid loss 4.91, valid ppl 136.29
+[Epoch 65 Batch 200/2983] loss 3.60, ppl 36.58, throughput 90.05 samples/s, lr 0.00
+[Epoch 65 Batch 400/2983] loss 3.58, ppl 35.72, throughput 88.89 samples/s, lr 0.00
+[Epoch 65 Batch 600/2983] loss 3.44, ppl 31.16, throughput 89.01 samples/s, lr 0.00
+[Epoch 65 Batch 800/2983] loss 3.49, ppl 32.73, throughput 83.91 samples/s, lr 0.00
+[Epoch 65 Batch 1000/2983] loss 3.55, ppl 34.91, throughput 84.32 samples/s, lr 0.00
+[Epoch 65 Batch 1200/2983] loss 3.56, ppl 35.18, throughput 84.31 samples/s, lr 0.00
+[Epoch 65 Batch 1400/2983] loss 3.54, ppl 34.54, throughput 84.36 samples/s, lr 0.00
+[Epoch 65 Batch 1600/2983] loss 3.65, ppl 38.44, throughput 84.82 samples/s, lr 0.00
+[Epoch 65 Batch 1800/2983] loss 3.56, ppl 35.11, throughput 84.49 samples/s, lr 0.00
+[Epoch 65 Batch 2000/2983] loss 3.57, ppl 35.42, throughput 84.25 samples/s, lr 0.00
+[Epoch 65 Batch 2200/2983] loss 3.47, ppl 32.07, throughput 84.36 samples/s, lr 0.00
+[Epoch 65 Batch 2400/2983] loss 3.51, ppl 33.28, throughput 84.30 samples/s, lr 0.00
+[Epoch 65 Batch 2600/2983] loss 3.49, ppl 32.73, throughput 85.21 samples/s, lr 0.00
+[Epoch 65 Batch 2800/2983] loss 3.49, ppl 32.79, throughput 84.36 samples/s, lr 0.00
+[Epoch 65] throughput 2999.28 samples/s
+[Epoch 65] time cost 720.57s, valid loss 4.91, valid ppl 135.99
+[Epoch 66 Batch 200/2983] loss 3.59, ppl 36.36, throughput 89.40 samples/s, lr 0.00
+[Epoch 66 Batch 400/2983] loss 3.59, ppl 36.09, throughput 85.63 samples/s, lr 0.00
+[Epoch 66 Batch 600/2983] loss 3.43, ppl 30.93, throughput 84.18 samples/s, lr 0.00
+[Epoch 66 Batch 800/2983] loss 3.48, ppl 32.51, throughput 84.04 samples/s, lr 0.00
+[Epoch 66 Batch 1000/2983] loss 3.56, ppl 35.32, throughput 83.97 samples/s, lr 0.00
+[Epoch 66 Batch 1200/2983] loss 3.55, ppl 34.98, throughput 84.24 samples/s, lr 0.00
+[Epoch 66 Batch 1400/2983] loss 3.53, ppl 34.04, throughput 84.69 samples/s, lr 0.00
+[Epoch 66 Batch 1600/2983] loss 3.64, ppl 38.22, throughput 84.47 samples/s, lr 0.00
+[Epoch 66 Batch 1800/2983] loss 3.56, ppl 35.17, throughput 83.65 samples/s, lr 0.00
+[Epoch 66 Batch 2000/2983] loss 3.56, ppl 35.19, throughput 84.35 samples/s, lr 0.00
+[Epoch 66 Batch 2200/2983] loss 3.45, ppl 31.61, throughput 84.11 samples/s, lr 0.00
+[Epoch 66 Batch 2400/2983] loss 3.49, ppl 32.77, throughput 84.44 samples/s, lr 0.00
+[Epoch 66 Batch 2600/2983] loss 3.49, ppl 32.79, throughput 84.75 samples/s, lr 0.00
+[Epoch 66 Batch 2800/2983] loss 3.48, ppl 32.38, throughput 91.63 samples/s, lr 0.00
+[Epoch 66] throughput 2997.20 samples/s
+[Epoch 66] time cost 720.97s, valid loss 4.92, valid ppl 137.35
+[Epoch 67 Batch 200/2983] loss 3.61, ppl 36.99, throughput 83.45 samples/s, lr 0.00
+[Epoch 67 Batch 400/2983] loss 3.59, ppl 36.36, throughput 84.30 samples/s, lr 0.00
+[Epoch 67 Batch 600/2983] loss 3.42, ppl 30.65, throughput 84.33 samples/s, lr 0.00
+[Epoch 67 Batch 800/2983] loss 3.47, ppl 32.28, throughput 84.50 samples/s, lr 0.00
+[Epoch 67 Batch 1000/2983] loss 3.54, ppl 34.41, throughput 84.96 samples/s, lr 0.00
+[Epoch 67 Batch 1200/2983] loss 3.55, ppl 34.85, throughput 84.47 samples/s, lr 0.00
+[Epoch 67 Batch 1400/2983] loss 3.54, ppl 34.52, throughput 84.82 samples/s, lr 0.00
+[Epoch 67 Batch 1600/2983] loss 3.65, ppl 38.29, throughput 84.25 samples/s, lr 0.00
+[Epoch 67 Batch 1800/2983] loss 3.58, ppl 35.71, throughput 84.20 samples/s, lr 0.00
+[Epoch 67 Batch 2000/2983] loss 3.56, ppl 35.21, throughput 84.67 samples/s, lr 0.00
+[Epoch 67 Batch 2200/2983] loss 3.45, ppl 31.60, throughput 83.89 samples/s, lr 0.00
+[Epoch 67 Batch 2400/2983] loss 3.50, ppl 33.27, throughput 87.34 samples/s, lr 0.00
+[Epoch 67 Batch 2600/2983] loss 3.49, ppl 32.77, throughput 89.99 samples/s, lr 0.00
+[Epoch 67 Batch 2800/2983] loss 3.48, ppl 32.54, throughput 90.32 samples/s, lr 0.00
+[Epoch 67] throughput 2984.63 samples/s
+[Epoch 67] time cost 725.73s, valid loss 4.92, valid ppl 136.41
+[Epoch 68 Batch 200/2983] loss 3.59, ppl 36.33, throughput 84.25 samples/s, lr 0.00
+[Epoch 68 Batch 400/2983] loss 3.58, ppl 35.94, throughput 84.05 samples/s, lr 0.00
+[Epoch 68 Batch 600/2983] loss 3.44, ppl 31.04, throughput 83.84 samples/s, lr 0.00
+[Epoch 68 Batch 800/2983] loss 3.47, ppl 32.17, throughput 85.17 samples/s, lr 0.00
+[Epoch 68 Batch 1000/2983] loss 3.55, ppl 34.78, throughput 84.36 samples/s, lr 0.00
+[Epoch 68 Batch 1200/2983] loss 3.54, ppl 34.55, throughput 84.28 samples/s, lr 0.00
+[Epoch 68 Batch 1400/2983] loss 3.55, ppl 34.64, throughput 84.08 samples/s, lr 0.00
+[Epoch 68 Batch 1600/2983] loss 3.63, ppl 37.70, throughput 84.15 samples/s, lr 0.00
+[Epoch 68 Batch 1800/2983] loss 3.53, ppl 34.26, throughput 84.26 samples/s, lr 0.00
+[Epoch 68 Batch 2000/2983] loss 3.55, ppl 34.94, throughput 84.26 samples/s, lr 0.00
+[Epoch 68 Batch 2200/2983] loss 3.47, ppl 32.07, throughput 91.14 samples/s, lr 0.00
+[Epoch 68 Batch 2400/2983] loss 3.49, ppl 32.78, throughput 91.08 samples/s, lr 0.00
+[Epoch 68 Batch 2600/2983] loss 3.49, ppl 32.74, throughput 88.66 samples/s, lr 0.00
+[Epoch 68 Batch 2800/2983] loss 3.47, ppl 32.29, throughput 83.52 samples/s, lr 0.00
+[Epoch 68] throughput 2988.85 samples/s
+[Epoch 68] time cost 724.96s, valid loss 4.92, valid ppl 136.47
+[Epoch 69 Batch 200/2983] loss 3.60, ppl 36.58, throughput 83.58 samples/s, lr 0.00
+[Epoch 69 Batch 400/2983] loss 3.59, ppl 36.08, throughput 84.67 samples/s, lr 0.00
+[Epoch 69 Batch 600/2983] loss 3.44, ppl 31.23, throughput 84.33 samples/s, lr 0.00
+[Epoch 69 Batch 800/2983] loss 3.47, ppl 32.18, throughput 84.17 samples/s, lr 0.00
+[Epoch 69 Batch 1000/2983] loss 3.54, ppl 34.36, throughput 84.02 samples/s, lr 0.00
+[Epoch 69 Batch 1200/2983] loss 3.54, ppl 34.57, throughput 84.04 samples/s, lr 0.00
+[Epoch 69 Batch 1400/2983] loss 3.53, ppl 34.20, throughput 84.07 samples/s, lr 0.00
+[Epoch 69 Batch 1600/2983] loss 3.64, ppl 38.20, throughput 83.82 samples/s, lr 0.00
+[Epoch 69 Batch 1800/2983] loss 3.54, ppl 34.63, throughput 87.01 samples/s, lr 0.00
+[Epoch 69 Batch 2000/2983] loss 3.56, ppl 35.03, throughput 90.41 samples/s, lr 0.00
+[Epoch 69 Batch 2200/2983] loss 3.45, ppl 31.65, throughput 92.00 samples/s, lr 0.00
+[Epoch 69 Batch 2400/2983] loss 3.51, ppl 33.56, throughput 85.78 samples/s, lr 0.00
+[Epoch 69 Batch 2600/2983] loss 3.48, ppl 32.52, throughput 84.34 samples/s, lr 0.00
+[Epoch 69 Batch 2800/2983] loss 3.47, ppl 32.20, throughput 84.31 samples/s, lr 0.00
+[Epoch 69] throughput 2987.39 samples/s
+[Epoch 69] time cost 725.15s, valid loss 4.92, valid ppl 137.12
+[Epoch 70 Batch 200/2983] loss 3.60, ppl 36.42, throughput 84.17 samples/s, lr 0.00
+[Epoch 70 Batch 400/2983] loss 3.58, ppl 35.73, throughput 84.68 samples/s, lr 0.00
+[Epoch 70 Batch 600/2983] loss 3.47, ppl 32.04, throughput 84.65 samples/s, lr 0.00
+[Epoch 70 Batch 800/2983] loss 3.49, ppl 32.79, throughput 84.77 samples/s, lr 0.00
+[Epoch 70 Batch 1000/2983] loss 3.54, ppl 34.62, throughput 83.98 samples/s, lr 0.00
+[Epoch 70 Batch 1200/2983] loss 3.54, ppl 34.63, throughput 83.96 samples/s, lr 0.00
+[Epoch 70 Batch 1400/2983] loss 3.51, ppl 33.44, throughput 84.16 samples/s, lr 0.00
+[Epoch 70 Batch 1600/2983] loss 3.64, ppl 38.20, throughput 89.93 samples/s, lr 0.00
+[Epoch 70 Batch 1800/2983] loss 3.55, ppl 34.75, throughput 90.46 samples/s, lr 0.00
+[Epoch 70 Batch 2000/2983] loss 3.56, ppl 35.02, throughput 88.65 samples/s, lr 0.00
+[Epoch 70 Batch 2200/2983] loss 3.46, ppl 31.72, throughput 84.15 samples/s, lr 0.00
+[Epoch 70 Batch 2400/2983] loss 3.50, ppl 33.23, throughput 84.36 samples/s, lr 0.00
+[Epoch 70 Batch 2600/2983] loss 3.49, ppl 32.72, throughput 84.58 samples/s, lr 0.00
+[Epoch 70 Batch 2800/2983] loss 3.47, ppl 32.18, throughput 84.40 samples/s, lr 0.00
+[Epoch 70] throughput 2991.45 samples/s
+[Epoch 70] time cost 724.18s, valid loss 4.92, valid ppl 137.68
+[Epoch 71 Batch 200/2983] loss 3.59, ppl 36.24, throughput 83.75 samples/s, lr 0.00
+[Epoch 71 Batch 400/2983] loss 3.59, ppl 36.21, throughput 84.30 samples/s, lr 0.00
+[Epoch 71 Batch 600/2983] loss 3.44, ppl 31.29, throughput 83.81 samples/s, lr 0.00
+[Epoch 71 Batch 800/2983] loss 3.46, ppl 31.87, throughput 84.65 samples/s, lr 0.00
+[Epoch 71 Batch 1000/2983] loss 3.53, ppl 34.11, throughput 84.41 samples/s, lr 0.00
+[Epoch 71 Batch 1200/2983] loss 3.54, ppl 34.60, throughput 86.09 samples/s, lr 0.00
+[Epoch 71 Batch 1400/2983] loss 3.53, ppl 34.11, throughput 91.77 samples/s, lr 0.00
+[Epoch 71 Batch 1600/2983] loss 3.64, ppl 37.91, throughput 92.91 samples/s, lr 0.00
+[Epoch 71 Batch 1800/2983] loss 3.54, ppl 34.61, throughput 85.88 samples/s, lr 0.00
+[Epoch 71 Batch 2000/2983] loss 3.54, ppl 34.60, throughput 84.59 samples/s, lr 0.00
+[Epoch 71 Batch 2200/2983] loss 3.45, ppl 31.47, throughput 84.23 samples/s, lr 0.00
+[Epoch 71 Batch 2400/2983] loss 3.48, ppl 32.61, throughput 83.79 samples/s, lr 0.00
+[Epoch 71 Batch 2600/2983] loss 3.49, ppl 32.86, throughput 83.87 samples/s, lr 0.00
+[Epoch 71 Batch 2800/2983] loss 3.47, ppl 32.21, throughput 84.54 samples/s, lr 0.00
+[Epoch 71] throughput 2992.43 samples/s
+[Epoch 71] time cost 724.00s, valid loss 4.91, valid ppl 136.22
+[Epoch 72 Batch 200/2983] loss 3.58, ppl 35.81, throughput 84.16 samples/s, lr 0.00
+[Epoch 72 Batch 400/2983] loss 3.59, ppl 36.33, throughput 84.16 samples/s, lr 0.00
+[Epoch 72 Batch 600/2983] loss 3.42, ppl 30.64, throughput 84.74 samples/s, lr 0.00
+[Epoch 72 Batch 800/2983] loss 3.47, ppl 32.20, throughput 84.57 samples/s, lr 0.00
+[Epoch 72 Batch 1000/2983] loss 3.54, ppl 34.37, throughput 89.88 samples/s, lr 0.00
+[Epoch 72 Batch 1200/2983] loss 3.55, ppl 34.85, throughput 89.55 samples/s, lr 0.00
+[Epoch 72 Batch 1400/2983] loss 3.52, ppl 33.70, throughput 91.72 samples/s, lr 0.00
+[Epoch 72 Batch 1600/2983] loss 3.64, ppl 38.09, throughput 84.90 samples/s, lr 0.00
+[Epoch 72 Batch 1800/2983] loss 3.54, ppl 34.59, throughput 83.87 samples/s, lr 0.00
+[Epoch 72 Batch 2000/2983] loss 3.59, ppl 36.19, throughput 83.76 samples/s, lr 0.00
+[Epoch 72 Batch 2200/2983] loss 3.46, ppl 31.94, throughput 84.22 samples/s, lr 0.00
+[Epoch 72 Batch 2400/2983] loss 3.50, ppl 33.19, throughput 85.68 samples/s, lr 0.00
+[Epoch 72 Batch 2600/2983] loss 3.50, ppl 32.97, throughput 84.65 samples/s, lr 0.00
+[Epoch 72 Batch 2800/2983] loss 3.47, ppl 32.16, throughput 84.60 samples/s, lr 0.00
+[Epoch 72] throughput 2997.74 samples/s
+[Epoch 72] time cost 722.80s, valid loss 4.92, valid ppl 136.79
+[Epoch 73 Batch 200/2983] loss 3.57, ppl 35.58, throughput 83.95 samples/s, lr 0.00
+[Epoch 73 Batch 400/2983] loss 3.60, ppl 36.49, throughput 84.65 samples/s, lr 0.00
+[Epoch 73 Batch 600/2983] loss 3.43, ppl 30.73, throughput 84.32 samples/s, lr 0.00
+[Epoch 73 Batch 800/2983] loss 3.46, ppl 31.83, throughput 90.95 samples/s, lr 0.00
+[Epoch 73 Batch 1000/2983] loss 3.53, ppl 34.19, throughput 88.87 samples/s, lr 0.00
+[Epoch 73 Batch 1200/2983] loss 3.54, ppl 34.37, throughput 89.52 samples/s, lr 0.00
+[Epoch 73 Batch 1400/2983] loss 3.52, ppl 33.91, throughput 84.51 samples/s, lr 0.00
+[Epoch 73 Batch 1600/2983] loss 3.63, ppl 37.75, throughput 84.09 samples/s, lr 0.00
+[Epoch 73 Batch 1800/2983] loss 3.55, ppl 34.71, throughput 84.12 samples/s, lr 0.00
+[Epoch 73 Batch 2000/2983] loss 3.56, ppl 35.07, throughput 84.07 samples/s, lr 0.00
+[Epoch 73 Batch 2200/2983] loss 3.47, ppl 31.98, throughput 84.80 samples/s, lr 0.00
+[Epoch 73 Batch 2400/2983] loss 3.50, ppl 33.10, throughput 83.91 samples/s, lr 0.00
+[Epoch 73 Batch 2600/2983] loss 3.48, ppl 32.61, throughput 83.81 samples/s, lr 0.00
+[Epoch 73 Batch 2800/2983] loss 3.46, ppl 31.88, throughput 84.10 samples/s, lr 0.00
+[Epoch 73] throughput 2985.91 samples/s
+[Epoch 73] time cost 725.25s, valid loss 4.92, valid ppl 137.13
+[Epoch 74 Batch 200/2983] loss 3.59, ppl 36.08, throughput 83.47 samples/s, lr 0.00
+[Epoch 74 Batch 400/2983] loss 3.57, ppl 35.47, throughput 87.00 samples/s, lr 0.00
+[Epoch 74 Batch 600/2983] loss 3.42, ppl 30.63, throughput 91.78 samples/s, lr 0.00
+[Epoch 74 Batch 800/2983] loss 3.47, ppl 32.16, throughput 92.69 samples/s, lr 0.00
+[Epoch 74 Batch 1000/2983] loss 3.52, ppl 33.84, throughput 84.81 samples/s, lr 0.00
+[Epoch 74 Batch 1200/2983] loss 3.53, ppl 34.27, throughput 84.66 samples/s, lr 0.00
+[Epoch 74 Batch 1400/2983] loss 3.52, ppl 33.71, throughput 84.77 samples/s, lr 0.00
+[Epoch 74 Batch 1600/2983] loss 3.63, ppl 37.56, throughput 84.51 samples/s, lr 0.00
+[Epoch 74 Batch 1800/2983] loss 3.54, ppl 34.63, throughput 84.08 samples/s, lr 0.00
+[Epoch 74 Batch 2000/2983] loss 3.55, ppl 34.84, throughput 83.87 samples/s, lr 0.00
+[Epoch 74 Batch 2200/2983] loss 3.45, ppl 31.59, throughput 84.57 samples/s, lr 0.00
+[Epoch 74 Batch 2400/2983] loss 3.51, ppl 33.33, throughput 83.88 samples/s, lr 0.00
+[Epoch 74 Batch 2600/2983] loss 3.49, ppl 32.65, throughput 84.84 samples/s, lr 0.00
+[Epoch 74 Batch 2800/2983] loss 3.46, ppl 31.95, throughput 85.09 samples/s, lr 0.00
+[Epoch 74] throughput 2994.71 samples/s
+[Epoch 74] time cost 723.50s, valid loss 4.92, valid ppl 137.00
+[Epoch 75 Batch 200/2983] loss 3.59, ppl 36.11, throughput 88.41 samples/s, lr 0.00
+[Epoch 75 Batch 400/2983] loss 3.58, ppl 35.69, throughput 89.56 samples/s, lr 0.00
+[Epoch 75 Batch 600/2983] loss 3.43, ppl 30.77, throughput 92.53 samples/s, lr 0.00
+[Epoch 75 Batch 800/2983] loss 3.46, ppl 31.73, throughput 84.29 samples/s, lr 0.00
+[Epoch 75 Batch 1000/2983] loss 3.53, ppl 34.24, throughput 84.47 samples/s, lr 0.00
+[Epoch 75 Batch 1200/2983] loss 3.54, ppl 34.51, throughput 84.58 samples/s, lr 0.00
+[Epoch 75 Batch 1400/2983] loss 3.52, ppl 33.86, throughput 84.40 samples/s, lr 0.00
+[Epoch 75 Batch 1600/2983] loss 3.64, ppl 37.95, throughput 84.94 samples/s, lr 0.00
+[Epoch 75 Batch 1800/2983] loss 3.53, ppl 34.04, throughput 83.75 samples/s, lr 0.00
+[Epoch 75 Batch 2000/2983] loss 3.55, ppl 34.79, throughput 84.66 samples/s, lr 0.00
+[Epoch 75 Batch 2200/2983] loss 3.45, ppl 31.38, throughput 84.60 samples/s, lr 0.00
+[Epoch 75 Batch 2400/2983] loss 3.50, ppl 32.98, throughput 84.35 samples/s, lr 0.00
+[Epoch 75 Batch 2600/2983] loss 3.47, ppl 32.17, throughput 84.93 samples/s, lr 0.00
+[Epoch 75 Batch 2800/2983] loss 3.47, ppl 32.11, throughput 83.72 samples/s, lr 0.00
+[Epoch 75] throughput 2994.81 samples/s
+[Epoch 75] time cost 721.55s, valid loss 4.93, valid ppl 138.08
+Learning rate after interval update 0.000200
+[Epoch 76 Batch 200/2983] loss 3.84, ppl 46.56, throughput 90.02 samples/s, lr 0.00
+[Epoch 76 Batch 400/2983] loss 4.00, ppl 54.51, throughput 88.95 samples/s, lr 0.00
+[Epoch 76 Batch 600/2983] loss 3.82, ppl 45.46, throughput 84.52 samples/s, lr 0.00
+[Epoch 76 Batch 800/2983] loss 3.92, ppl 50.45, throughput 83.60 samples/s, lr 0.00
+[Epoch 76 Batch 1000/2983] loss 3.88, ppl 48.22, throughput 84.58 samples/s, lr 0.00
+[Epoch 76 Batch 1200/2983] loss 3.82, ppl 45.66, throughput 84.05 samples/s, lr 0.00
+[Epoch 76 Batch 1400/2983] loss 3.87, ppl 48.08, throughput 84.33 samples/s, lr 0.00
+[Epoch 76 Batch 1600/2983] loss 3.88, ppl 48.29, throughput 84.46 samples/s, lr 0.00
+[Epoch 76 Batch 1800/2983] loss 3.79, ppl 44.06, throughput 84.50 samples/s, lr 0.00
+[Epoch 76 Batch 2000/2983] loss 3.84, ppl 46.50, throughput 84.58 samples/s, lr 0.00
+[Epoch 76 Batch 2200/2983] loss 3.66, ppl 38.84, throughput 83.97 samples/s, lr 0.00
+[Epoch 76 Batch 2400/2983] loss 3.66, ppl 38.84, throughput 84.74 samples/s, lr 0.00
+[Epoch 76 Batch 2600/2983] loss 3.76, ppl 43.09, throughput 84.52 samples/s, lr 0.00
+[Epoch 76 Batch 2800/2983] loss 3.71, ppl 41.04, throughput 88.61 samples/s, lr 0.00
+[Epoch 76] throughput 2998.00 samples/s
+[Epoch 76] time cost 720.99s, valid loss 4.87, valid ppl 130.48
+[Epoch 77 Batch 200/2983] loss 3.85, ppl 46.93, throughput 83.99 samples/s, lr 0.00
+[Epoch 77 Batch 400/2983] loss 3.92, ppl 50.43, throughput 84.55 samples/s, lr 0.00
+[Epoch 77 Batch 600/2983] loss 3.74, ppl 42.06, throughput 84.64 samples/s, lr 0.00
+[Epoch 77 Batch 800/2983] loss 3.79, ppl 44.07, throughput 84.53 samples/s, lr 0.00
+[Epoch 77 Batch 1000/2983] loss 3.71, ppl 40.99, throughput 85.10 samples/s, lr 0.00
+[Epoch 77 Batch 1200/2983] loss 3.72, ppl 41.27, throughput 84.92 samples/s, lr 0.00
+[Epoch 77 Batch 1400/2983] loss 3.81, ppl 45.29, throughput 84.45 samples/s, lr 0.00
+[Epoch 77 Batch 1600/2983] loss 3.83, ppl 46.18, throughput 84.33 samples/s, lr 0.00
+[Epoch 77 Batch 1800/2983] loss 3.74, ppl 42.17, throughput 84.41 samples/s, lr 0.00
+[Epoch 77 Batch 2000/2983] loss 3.82, ppl 45.75, throughput 84.05 samples/s, lr 0.00
+[Epoch 77 Batch 2200/2983] loss 3.63, ppl 37.69, throughput 84.56 samples/s, lr 0.00
+[Epoch 77 Batch 2400/2983] loss 3.68, ppl 39.49, throughput 84.84 samples/s, lr 0.00
+[Epoch 77 Batch 2600/2983] loss 3.78, ppl 43.84, throughput 91.82 samples/s, lr 0.00
+[Epoch 77 Batch 2800/2983] loss 3.70, ppl 40.42, throughput 92.27 samples/s, lr 0.00
+[Epoch 77] throughput 2998.47 samples/s
+[Epoch 77] time cost 722.68s, valid loss 4.86, valid ppl 128.47
+test loss 4.81, test ppl 122.23
+[Epoch 78 Batch 200/2983] loss 3.82, ppl 45.47, throughput 84.22 samples/s, lr 0.00
+[Epoch 78 Batch 400/2983] loss 3.89, ppl 48.81, throughput 84.01 samples/s, lr 0.00
+[Epoch 78 Batch 600/2983] loss 3.67, ppl 39.42, throughput 83.92 samples/s, lr 0.00
+[Epoch 78 Batch 800/2983] loss 3.72, ppl 41.27, throughput 84.76 samples/s, lr 0.00
+[Epoch 78 Batch 1000/2983] loss 3.73, ppl 41.59, throughput 84.34 samples/s, lr 0.00
+[Epoch 78 Batch 1200/2983] loss 3.72, ppl 41.44, throughput 84.03 samples/s, lr 0.00
+[Epoch 78 Batch 1400/2983] loss 3.79, ppl 44.35, throughput 84.35 samples/s, lr 0.00
+[Epoch 78 Batch 1600/2983] loss 3.84, ppl 46.37, throughput 84.44 samples/s, lr 0.00
+[Epoch 78 Batch 1800/2983] loss 3.74, ppl 42.30, throughput 83.86 samples/s, lr 0.00
+[Epoch 78 Batch 2000/2983] loss 3.82, ppl 45.47, throughput 85.25 samples/s, lr 0.00
+[Epoch 78 Batch 2200/2983] loss 3.64, ppl 38.12, throughput 91.32 samples/s, lr 0.00
+[Epoch 78 Batch 2400/2983] loss 3.68, ppl 39.71, throughput 93.32 samples/s, lr 0.00
+[Epoch 78 Batch 2600/2983] loss 3.76, ppl 42.92, throughput 85.19 samples/s, lr 0.00
+[Epoch 78 Batch 2800/2983] loss 3.68, ppl 39.77, throughput 84.19 samples/s, lr 0.00
+[Epoch 78] throughput 2987.58 samples/s
+[Epoch 78] time cost 724.97s, valid loss 4.85, valid ppl 127.72
+test loss 4.80, test ppl 121.62
+[Epoch 79 Batch 200/2983] loss 3.80, ppl 44.82, throughput 84.90 samples/s, lr 0.00
+[Epoch 79 Batch 400/2983] loss 3.85, ppl 46.99, throughput 84.49 samples/s, lr 0.00
+[Epoch 79 Batch 600/2983] loss 3.67, ppl 39.21, throughput 84.61 samples/s, lr 0.00
+[Epoch 79 Batch 800/2983] loss 3.73, ppl 41.74, throughput 84.02 samples/s, lr 0.00
+[Epoch 79 Batch 1000/2983] loss 3.73, ppl 41.80, throughput 83.72 samples/s, lr 0.00
+[Epoch 79 Batch 1200/2983] loss 3.71, ppl 40.67, throughput 84.42 samples/s, lr 0.00
+[Epoch 79 Batch 1400/2983] loss 3.77, ppl 43.30, throughput 84.17 samples/s, lr 0.00
+[Epoch 79 Batch 1600/2983] loss 3.84, ppl 46.54, throughput 84.86 samples/s, lr 0.00
+[Epoch 79 Batch 1800/2983] loss 3.74, ppl 41.91, throughput 90.77 samples/s, lr 0.00
+[Epoch 79 Batch 2000/2983] loss 3.80, ppl 44.92, throughput 91.82 samples/s, lr 0.00
+[Epoch 79 Batch 2200/2983] loss 3.66, ppl 38.90, throughput 84.31 samples/s, lr 0.00
+[Epoch 79 Batch 2400/2983] loss 3.68, ppl 39.83, throughput 84.55 samples/s, lr 0.00
+[Epoch 79 Batch 2600/2983] loss 3.75, ppl 42.61, throughput 84.36 samples/s, lr 0.00
+[Epoch 79 Batch 2800/2983] loss 3.68, ppl 39.46, throughput 84.34 samples/s, lr 0.00
+[Epoch 79] throughput 2985.71 samples/s
+[Epoch 79] time cost 725.10s, valid loss 4.85, valid ppl 127.15
+test loss 4.80, test ppl 121.46
+[Epoch 80 Batch 200/2983] loss 3.78, ppl 43.83, throughput 84.19 samples/s, lr 0.00
+[Epoch 80 Batch 400/2983] loss 3.85, ppl 46.99, throughput 84.13 samples/s, lr 0.00
+[Epoch 80 Batch 600/2983] loss 3.68, ppl 39.56, throughput 84.34 samples/s, lr 0.00
+[Epoch 80 Batch 800/2983] loss 3.75, ppl 42.58, throughput 84.30 samples/s, lr 0.00
+[Epoch 80 Batch 1000/2983] loss 3.71, ppl 41.02, throughput 84.31 samples/s, lr 0.00
+[Epoch 80 Batch 1200/2983] loss 3.72, ppl 41.10, throughput 87.12 samples/s, lr 0.00
+[Epoch 80 Batch 1400/2983] loss 3.78, ppl 43.64, throughput 90.96 samples/s, lr 0.00
+[Epoch 80 Batch 1600/2983] loss 3.84, ppl 46.39, throughput 93.38 samples/s, lr 0.00
+[Epoch 80 Batch 1800/2983] loss 3.73, ppl 41.78, throughput 85.36 samples/s, lr 0.00
+[Epoch 80 Batch 2000/2983] loss 3.80, ppl 44.74, throughput 84.38 samples/s, lr 0.00
+[Epoch 80 Batch 2200/2983] loss 3.65, ppl 38.56, throughput 84.16 samples/s, lr 0.00
+[Epoch 80 Batch 2400/2983] loss 3.68, ppl 39.45, throughput 84.03 samples/s, lr 0.00
+[Epoch 80 Batch 2600/2983] loss 3.75, ppl 42.48, throughput 85.23 samples/s, lr 0.00
+[Epoch 80 Batch 2800/2983] loss 3.67, ppl 39.43, throughput 84.73 samples/s, lr 0.00
+[Epoch 80] throughput 2996.41 samples/s
+[Epoch 80] time cost 723.04s, valid loss 4.84, valid ppl 126.70
+test loss 4.80, test ppl 121.53
+[Epoch 81 Batch 200/2983] loss 3.78, ppl 43.61, throughput 84.02 samples/s, lr 0.00
+[Epoch 81 Batch 400/2983] loss 3.85, ppl 46.94, throughput 84.37 samples/s, lr 0.00
+[Epoch 81 Batch 600/2983] loss 3.66, ppl 38.89, throughput 84.46 samples/s, lr 0.00
+[Epoch 81 Batch 800/2983] loss 3.71, ppl 41.04, throughput 87.48 samples/s, lr 0.00
+[Epoch 81 Batch 1000/2983] loss 3.72, ppl 41.07, throughput 90.73 samples/s, lr 0.00
+[Epoch 81 Batch 1200/2983] loss 3.71, ppl 40.96, throughput 93.64 samples/s, lr 0.00
+[Epoch 81 Batch 1400/2983] loss 3.77, ppl 43.37, throughput 85.16 samples/s, lr 0.00
+[Epoch 81 Batch 1600/2983] loss 3.83, ppl 46.06, throughput 84.18 samples/s, lr 0.00
+[Epoch 81 Batch 1800/2983] loss 3.74, ppl 42.08, throughput 84.44 samples/s, lr 0.00
+[Epoch 81 Batch 2000/2983] loss 3.78, ppl 43.78, throughput 84.24 samples/s, lr 0.00
+[Epoch 81 Batch 2200/2983] loss 3.63, ppl 37.68, throughput 84.28 samples/s, lr 0.00
+[Epoch 81 Batch 2400/2983] loss 3.66, ppl 38.94, throughput 85.32 samples/s, lr 0.00
+[Epoch 81 Batch 2600/2983] loss 3.73, ppl 41.85, throughput 84.85 samples/s, lr 0.00
+[Epoch 81 Batch 2800/2983] loss 3.69, ppl 40.13, throughput 84.08 samples/s, lr 0.00
+[Epoch 81] throughput 2998.13 samples/s
+[Epoch 81] time cost 722.67s, valid loss 4.84, valid ppl 126.50
+test loss 4.80, test ppl 121.22
+[Epoch 82 Batch 200/2983] loss 3.78, ppl 43.96, throughput 84.03 samples/s, lr 0.00
+[Epoch 82 Batch 400/2983] loss 3.85, ppl 46.79, throughput 85.84 samples/s, lr 0.00
+[Epoch 82 Batch 600/2983] loss 3.67, ppl 39.12, throughput 91.48 samples/s, lr 0.00
+[Epoch 82 Batch 800/2983] loss 3.69, ppl 40.16, throughput 93.35 samples/s, lr 0.00
+[Epoch 82 Batch 1000/2983] loss 3.70, ppl 40.60, throughput 86.77 samples/s, lr 0.00
+[Epoch 82 Batch 1200/2983] loss 3.72, ppl 41.15, throughput 84.35 samples/s, lr 0.00
+[Epoch 82 Batch 1400/2983] loss 3.78, ppl 43.83, throughput 84.38 samples/s, lr 0.00
+[Epoch 82 Batch 1600/2983] loss 3.82, ppl 45.70, throughput 84.72 samples/s, lr 0.00
+[Epoch 82 Batch 1800/2983] loss 3.73, ppl 41.65, throughput 84.52 samples/s, lr 0.00
+[Epoch 82 Batch 2000/2983] loss 3.79, ppl 44.38, throughput 85.22 samples/s, lr 0.00
+[Epoch 82 Batch 2200/2983] loss 3.63, ppl 37.76, throughput 84.30 samples/s, lr 0.00
+[Epoch 82 Batch 2400/2983] loss 3.68, ppl 39.55, throughput 83.68 samples/s, lr 0.00
+[Epoch 82 Batch 2600/2983] loss 3.73, ppl 41.68, throughput 84.37 samples/s, lr 0.00
+[Epoch 82 Batch 2800/2983] loss 3.67, ppl 39.19, throughput 84.19 samples/s, lr 0.00
+[Epoch 82] throughput 2999.75 samples/s
+[Epoch 82] time cost 722.24s, valid loss 4.84, valid ppl 126.32
+test loss 4.80, test ppl 121.24
+[Epoch 83 Batch 200/2983] loss 3.78, ppl 43.83, throughput 89.68 samples/s, lr 0.00
+[Epoch 83 Batch 400/2983] loss 3.83, ppl 46.17, throughput 92.46 samples/s, lr 0.00
+[Epoch 83 Batch 600/2983] loss 3.66, ppl 38.88, throughput 87.74 samples/s, lr 0.00
+[Epoch 83 Batch 800/2983] loss 3.69, ppl 39.99, throughput 84.52 samples/s, lr 0.00
+[Epoch 83 Batch 1000/2983] loss 3.71, ppl 40.88, throughput 84.39 samples/s, lr 0.00
+[Epoch 83 Batch 1200/2983] loss 3.71, ppl 40.85, throughput 84.59 samples/s, lr 0.00
+[Epoch 83 Batch 1400/2983] loss 3.76, ppl 42.95, throughput 84.63 samples/s, lr 0.00
+[Epoch 83 Batch 1600/2983] loss 3.82, ppl 45.63, throughput 84.89 samples/s, lr 0.00
+[Epoch 83 Batch 1800/2983] loss 3.72, ppl 41.41, throughput 83.94 samples/s, lr 0.00
+[Epoch 83 Batch 2000/2983] loss 3.78, ppl 44.03, throughput 84.57 samples/s, lr 0.00
+[Epoch 83 Batch 2200/2983] loss 3.64, ppl 38.07, throughput 84.19 samples/s, lr 0.00
+[Epoch 83 Batch 2400/2983] loss 3.69, ppl 39.94, throughput 84.51 samples/s, lr 0.00
+[Epoch 83 Batch 2600/2983] loss 3.73, ppl 41.63, throughput 83.81 samples/s, lr 0.00
+[Epoch 83 Batch 2800/2983] loss 3.67, ppl 39.09, throughput 84.09 samples/s, lr 0.00
+[Epoch 83] throughput 3005.43 samples/s
+[Epoch 83] time cost 719.24s, valid loss 4.84, valid ppl 126.34
+[Epoch 84 Batch 200/2983] loss 3.77, ppl 43.48, throughput 91.57 samples/s, lr 0.00
+[Epoch 84 Batch 400/2983] loss 3.85, ppl 46.78, throughput 84.65 samples/s, lr 0.00
+[Epoch 84 Batch 600/2983] loss 3.64, ppl 38.25, throughput 84.22 samples/s, lr 0.00
+[Epoch 84 Batch 800/2983] loss 3.70, ppl 40.43, throughput 84.57 samples/s, lr 0.00
+[Epoch 84 Batch 1000/2983] loss 3.70, ppl 40.47, throughput 84.66 samples/s, lr 0.00
+[Epoch 84 Batch 1200/2983] loss 3.70, ppl 40.30, throughput 85.30 samples/s, lr 0.00
+[Epoch 84 Batch 1400/2983] loss 3.75, ppl 42.73, throughput 84.04 samples/s, lr 0.00
+[Epoch 84 Batch 1600/2983] loss 3.81, ppl 45.29, throughput 84.34 samples/s, lr 0.00
+[Epoch 84 Batch 1800/2983] loss 3.72, ppl 41.21, throughput 84.21 samples/s, lr 0.00
+[Epoch 84 Batch 2000/2983] loss 3.78, ppl 43.62, throughput 84.53 samples/s, lr 0.00
+[Epoch 84 Batch 2200/2983] loss 3.61, ppl 37.12, throughput 84.51 samples/s, lr 0.00
+[Epoch 84 Batch 2400/2983] loss 3.65, ppl 38.61, throughput 84.50 samples/s, lr 0.00
+[Epoch 84 Batch 2600/2983] loss 3.73, ppl 41.86, throughput 87.26 samples/s, lr 0.00
+[Epoch 84 Batch 2800/2983] loss 3.68, ppl 39.61, throughput 89.80 samples/s, lr 0.00
+[Epoch 84] throughput 3009.01 samples/s
+[Epoch 84] time cost 719.89s, valid loss 4.84, valid ppl 126.30
+test loss 4.79, test ppl 120.78
+[Epoch 85 Batch 200/2983] loss 3.77, ppl 43.22, throughput 83.46 samples/s, lr 0.00
+[Epoch 85 Batch 400/2983] loss 3.84, ppl 46.39, throughput 84.40 samples/s, lr 0.00
+[Epoch 85 Batch 600/2983] loss 3.66, ppl 38.81, throughput 84.80 samples/s, lr 0.00
+[Epoch 85 Batch 800/2983] loss 3.68, ppl 39.65, throughput 84.84 samples/s, lr 0.00
+[Epoch 85 Batch 1000/2983] loss 3.71, ppl 40.94, throughput 83.87 samples/s, lr 0.00
+[Epoch 85 Batch 1200/2983] loss 3.70, ppl 40.50, throughput 83.85 samples/s, lr 0.00
+[Epoch 85 Batch 1400/2983] loss 3.75, ppl 42.72, throughput 84.58 samples/s, lr 0.00
+[Epoch 85 Batch 1600/2983] loss 3.82, ppl 45.45, throughput 84.40 samples/s, lr 0.00
+[Epoch 85 Batch 1800/2983] loss 3.72, ppl 41.22, throughput 84.94 samples/s, lr 0.00
+[Epoch 85 Batch 2000/2983] loss 3.79, ppl 44.06, throughput 84.59 samples/s, lr 0.00
+[Epoch 85 Batch 2200/2983] loss 3.63, ppl 37.61, throughput 86.29 samples/s, lr 0.00
+[Epoch 85 Batch 2400/2983] loss 3.65, ppl 38.49, throughput 89.32 samples/s, lr 0.00
+[Epoch 85 Batch 2600/2983] loss 3.73, ppl 41.68, throughput 91.64 samples/s, lr 0.00
+[Epoch 85 Batch 2800/2983] loss 3.66, ppl 39.03, throughput 84.42 samples/s, lr 0.00
+[Epoch 85] throughput 2984.67 samples/s
+[Epoch 85] time cost 725.75s, valid loss 4.84, valid ppl 126.27
+test loss 4.79, test ppl 120.47
+[Epoch 86 Batch 200/2983] loss 3.77, ppl 43.28, throughput 83.79 samples/s, lr 0.00
+[Epoch 86 Batch 400/2983] loss 3.83, ppl 46.10, throughput 84.33 samples/s, lr 0.00
+[Epoch 86 Batch 600/2983] loss 3.67, ppl 39.28, throughput 83.78 samples/s, lr 0.00
+[Epoch 86 Batch 800/2983] loss 3.72, ppl 41.39, throughput 84.95 samples/s, lr 0.00
+[Epoch 86 Batch 1000/2983] loss 3.70, ppl 40.39, throughput 83.91 samples/s, lr 0.00
+[Epoch 86 Batch 1200/2983] loss 3.70, ppl 40.31, throughput 84.55 samples/s, lr 0.00
+[Epoch 86 Batch 1400/2983] loss 3.77, ppl 43.27, throughput 84.26 samples/s, lr 0.00
+[Epoch 86 Batch 1600/2983] loss 3.82, ppl 45.52, throughput 84.53 samples/s, lr 0.00
+[Epoch 86 Batch 1800/2983] loss 3.71, ppl 40.83, throughput 86.22 samples/s, lr 0.00
+[Epoch 86 Batch 2000/2983] loss 3.77, ppl 43.38, throughput 89.32 samples/s, lr 0.00
+[Epoch 86 Batch 2200/2983] loss 3.64, ppl 37.95, throughput 93.58 samples/s, lr 0.00
+[Epoch 86 Batch 2400/2983] loss 3.67, ppl 39.08, throughput 85.37 samples/s, lr 0.00
+[Epoch 86 Batch 2600/2983] loss 3.74, ppl 42.06, throughput 84.47 samples/s, lr 0.00
+[Epoch 86 Batch 2800/2983] loss 3.66, ppl 38.92, throughput 84.02 samples/s, lr 0.00
+[Epoch 86] throughput 2988.34 samples/s
+[Epoch 86] time cost 724.91s, valid loss 4.84, valid ppl 126.11
+test loss 4.79, test ppl 120.71
+[Epoch 87 Batch 200/2983] loss 3.76, ppl 43.05, throughput 84.32 samples/s, lr 0.00
+[Epoch 87 Batch 400/2983] loss 3.82, ppl 45.52, throughput 83.96 samples/s, lr 0.00
+[Epoch 87 Batch 600/2983] loss 3.64, ppl 38.07, throughput 84.03 samples/s, lr 0.00
+[Epoch 87 Batch 800/2983] loss 3.68, ppl 39.62, throughput 84.38 samples/s, lr 0.00
+[Epoch 87 Batch 1000/2983] loss 3.70, ppl 40.54, throughput 84.22 samples/s, lr 0.00
+[Epoch 87 Batch 1200/2983] loss 3.70, ppl 40.32, throughput 84.64 samples/s, lr 0.00
+[Epoch 87 Batch 1400/2983] loss 3.75, ppl 42.48, throughput 87.63 samples/s, lr 0.00
+[Epoch 87 Batch 1600/2983] loss 3.82, ppl 45.63, throughput 90.71 samples/s, lr 0.00
+[Epoch 87 Batch 1800/2983] loss 3.73, ppl 41.48, throughput 93.18 samples/s, lr 0.00
+[Epoch 87 Batch 2000/2983] loss 3.77, ppl 43.44, throughput 85.55 samples/s, lr 0.00
+[Epoch 87 Batch 2200/2983] loss 3.63, ppl 37.78, throughput 84.28 samples/s, lr 0.00
+[Epoch 87 Batch 2400/2983] loss 3.65, ppl 38.50, throughput 84.34 samples/s, lr 0.00
+[Epoch 87 Batch 2600/2983] loss 3.73, ppl 41.84, throughput 84.98 samples/s, lr 0.00
+[Epoch 87 Batch 2800/2983] loss 3.68, ppl 39.80, throughput 85.19 samples/s, lr 0.00
+[Epoch 87] throughput 2998.71 samples/s
+[Epoch 87] time cost 722.67s, valid loss 4.84, valid ppl 126.17
+[Epoch 88 Batch 200/2983] loss 3.76, ppl 42.74, throughput 84.10 samples/s, lr 0.00
+[Epoch 88 Batch 400/2983] loss 3.84, ppl 46.33, throughput 84.46 samples/s, lr 0.00
+[Epoch 88 Batch 600/2983] loss 3.65, ppl 38.40, throughput 83.84 samples/s, lr 0.00
+[Epoch 88 Batch 800/2983] loss 3.69, ppl 40.17, throughput 84.42 samples/s, lr 0.00
+[Epoch 88 Batch 1000/2983] loss 3.70, ppl 40.46, throughput 84.22 samples/s, lr 0.00
+[Epoch 88 Batch 1200/2983] loss 3.71, ppl 40.73, throughput 90.99 samples/s, lr 0.00
+[Epoch 88 Batch 1400/2983] loss 3.75, ppl 42.62, throughput 91.21 samples/s, lr 0.00
+[Epoch 88 Batch 1600/2983] loss 3.81, ppl 45.26, throughput 89.95 samples/s, lr 0.00
+[Epoch 88 Batch 1800/2983] loss 3.71, ppl 40.95, throughput 84.68 samples/s, lr 0.00
+[Epoch 88 Batch 2000/2983] loss 3.78, ppl 44.01, throughput 84.52 samples/s, lr 0.00
+[Epoch 88 Batch 2200/2983] loss 3.63, ppl 37.75, throughput 84.20 samples/s, lr 0.00
+[Epoch 88 Batch 2400/2983] loss 3.65, ppl 38.42, throughput 84.04 samples/s, lr 0.00
+[Epoch 88 Batch 2600/2983] loss 3.72, ppl 41.22, throughput 85.21 samples/s, lr 0.00
+[Epoch 88 Batch 2800/2983] loss 3.67, ppl 39.39, throughput 84.72 samples/s, lr 0.00
+[Epoch 88] throughput 2995.89 samples/s
+[Epoch 88] time cost 723.26s, valid loss 4.84, valid ppl 125.84
+test loss 4.79, test ppl 120.82
+[Epoch 89 Batch 200/2983] loss 3.76, ppl 43.06, throughput 84.05 samples/s, lr 0.00
+[Epoch 89 Batch 400/2983] loss 3.83, ppl 46.18, throughput 84.73 samples/s, lr 0.00
+[Epoch 89 Batch 600/2983] loss 3.63, ppl 37.87, throughput 84.06 samples/s, lr 0.00
+[Epoch 89 Batch 800/2983] loss 3.66, ppl 38.98, throughput 89.73 samples/s, lr 0.00
+[Epoch 89 Batch 1000/2983] loss 3.69, ppl 39.89, throughput 91.26 samples/s, lr 0.00
+[Epoch 89 Batch 1200/2983] loss 3.69, ppl 39.98, throughput 88.16 samples/s, lr 0.00
+[Epoch 89 Batch 1400/2983] loss 3.76, ppl 42.89, throughput 84.45 samples/s, lr 0.00
+[Epoch 89 Batch 1600/2983] loss 3.81, ppl 44.99, throughput 84.65 samples/s, lr 0.00
+[Epoch 89 Batch 1800/2983] loss 3.71, ppl 40.67, throughput 84.24 samples/s, lr 0.00
+[Epoch 89 Batch 2000/2983] loss 3.76, ppl 42.92, throughput 83.82 samples/s, lr 0.00
+[Epoch 89 Batch 2200/2983] loss 3.62, ppl 37.24, throughput 85.00 samples/s, lr 0.00
+[Epoch 89 Batch 2400/2983] loss 3.67, ppl 39.08, throughput 84.63 samples/s, lr 0.00
+[Epoch 89 Batch 2600/2983] loss 3.71, ppl 40.95, throughput 84.26 samples/s, lr 0.00
+[Epoch 89 Batch 2800/2983] loss 3.65, ppl 38.59, throughput 84.10 samples/s, lr 0.00
+[Epoch 89] throughput 2989.38 samples/s
+[Epoch 89] time cost 724.57s, valid loss 4.84, valid ppl 125.99
+[Epoch 90 Batch 200/2983] loss 3.75, ppl 42.62, throughput 83.76 samples/s, lr 0.00
+[Epoch 90 Batch 400/2983] loss 3.83, ppl 46.02, throughput 86.75 samples/s, lr 0.00
+[Epoch 90 Batch 600/2983] loss 3.63, ppl 37.86, throughput 90.71 samples/s, lr 0.00
+[Epoch 90 Batch 800/2983] loss 3.69, ppl 39.85, throughput 91.34 samples/s, lr 0.00
+[Epoch 90 Batch 1000/2983] loss 3.70, ppl 40.49, throughput 86.05 samples/s, lr 0.00
+[Epoch 90 Batch 1200/2983] loss 3.70, ppl 40.28, throughput 84.63 samples/s, lr 0.00
+[Epoch 90 Batch 1400/2983] loss 3.73, ppl 41.56, throughput 84.30 samples/s, lr 0.00
+[Epoch 90 Batch 1600/2983] loss 3.82, ppl 45.75, throughput 84.43 samples/s, lr 0.00
+[Epoch 90 Batch 1800/2983] loss 3.72, ppl 41.15, throughput 85.15 samples/s, lr 0.00
+[Epoch 90 Batch 2000/2983] loss 3.75, ppl 42.43, throughput 85.38 samples/s, lr 0.00
+[Epoch 90 Batch 2200/2983] loss 3.61, ppl 37.06, throughput 84.37 samples/s, lr 0.00
+[Epoch 90 Batch 2400/2983] loss 3.66, ppl 38.94, throughput 84.69 samples/s, lr 0.00
+[Epoch 90 Batch 2600/2983] loss 3.71, ppl 40.69, throughput 84.95 samples/s, lr 0.00
+[Epoch 90 Batch 2800/2983] loss 3.65, ppl 38.33, throughput 84.04 samples/s, lr 0.00
+[Epoch 90] throughput 3000.21 samples/s
+[Epoch 90] time cost 722.03s, valid loss 4.84, valid ppl 125.94
+[Epoch 91 Batch 200/2983] loss 3.75, ppl 42.69, throughput 85.21 samples/s, lr 0.00
+[Epoch 91 Batch 400/2983] loss 3.81, ppl 45.30, throughput 91.94 samples/s, lr 0.00
+[Epoch 91 Batch 600/2983] loss 3.64, ppl 38.18, throughput 90.67 samples/s, lr 0.00
+[Epoch 91 Batch 800/2983] loss 3.65, ppl 38.58, throughput 85.29 samples/s, lr 0.00
+[Epoch 91 Batch 1000/2983] loss 3.69, ppl 39.92, throughput 84.73 samples/s, lr 0.00
+[Epoch 91 Batch 1200/2983] loss 3.68, ppl 39.74, throughput 83.84 samples/s, lr 0.00
+[Epoch 91 Batch 1400/2983] loss 3.74, ppl 42.25, throughput 84.14 samples/s, lr 0.00
+[Epoch 91 Batch 1600/2983] loss 3.81, ppl 45.20, throughput 84.53 samples/s, lr 0.00
+[Epoch 91 Batch 1800/2983] loss 3.72, ppl 41.11, throughput 85.06 samples/s, lr 0.00
+[Epoch 91 Batch 2000/2983] loss 3.76, ppl 42.92, throughput 83.79 samples/s, lr 0.00
+[Epoch 91 Batch 2200/2983] loss 3.61, ppl 37.07, throughput 84.34 samples/s, lr 0.00
+[Epoch 91 Batch 2400/2983] loss 3.66, ppl 38.78, throughput 84.29 samples/s, lr 0.00
+[Epoch 91 Batch 2600/2983] loss 3.72, ppl 41.27, throughput 85.04 samples/s, lr 0.00
+[Epoch 91 Batch 2800/2983] loss 3.66, ppl 38.99, throughput 84.32 samples/s, lr 0.00
+[Epoch 91] throughput 2988.10 samples/s
+[Epoch 91] time cost 723.06s, valid loss 4.84, valid ppl 125.92
+[Epoch 92 Batch 200/2983] loss 3.75, ppl 42.60, throughput 90.34 samples/s, lr 0.00
+[Epoch 92 Batch 400/2983] loss 3.82, ppl 45.73, throughput 89.86 samples/s, lr 0.00
+[Epoch 92 Batch 600/2983] loss 3.64, ppl 38.02, throughput 84.64 samples/s, lr 0.00
+[Epoch 92 Batch 800/2983] loss 3.68, ppl 39.54, throughput 84.48 samples/s, lr 0.00
+[Epoch 92 Batch 1000/2983] loss 3.70, ppl 40.38, throughput 84.22 samples/s, lr 0.00
+[Epoch 92 Batch 1200/2983] loss 3.69, ppl 39.89, throughput 84.46 samples/s, lr 0.00
+[Epoch 92 Batch 1400/2983] loss 3.74, ppl 42.14, throughput 84.80 samples/s, lr 0.00
+[Epoch 92 Batch 1600/2983] loss 3.82, ppl 45.38, throughput 84.40 samples/s, lr 0.00
