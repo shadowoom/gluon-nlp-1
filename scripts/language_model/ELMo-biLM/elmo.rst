@@ -5,7 +5,7 @@ Embeddings from Language Models (ELMo)
 
 .. code-block:: console
 
-   $ python word_language_model.py --gpus 0 --emsize 650 --nhid 650 --nlayers 2 --lr 20 --epochs 750 --batch_size 20 --bptt 35 --dropout 0.5 --dropout_h 0 --dropout_i 0 --dropout_e 0 --weight_dropout 0 --tied --wd 0 --alpha 0 --beta 0 --save elmo_lstm_dropout_wikitext-2.params
+   $ python word_language_model.py --gpus 0 --model lstm --emsize 650 --nhid 650 --nlayers 2 --lr 20 --epochs 750 --batch_size 20 --bptt 35 --dropout 0.5 --dropout_h 0 --dropout_i 0 --dropout_e 0 --weight_dropout 0 --tied --wd 0 --alpha 0 --beta 0 --save elmo_lstm_dropout_wikitext-2.params
 
 [2] elmo_dropout_proj_clip_residual_wikitext-2 (Val PPL 125.84 Test PPL 120.82)
 
