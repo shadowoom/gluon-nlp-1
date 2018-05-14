@@ -43,12 +43,17 @@ import time
 import math
 import os
 import sys
+import h5py
+import numpy as np
 import mxnet as mx
 from mxnet import gluon, autograd, init, nd
 from mxnet.gluon import nn, Block, rnn
 import gluonnlp as nlp
+from elmo_char_encoder import ElmoCharacterEncoder
+from gluonnlp import UnicodeCharsVocabulary
+from gluonnlp.data.language_model import WikiText2Character
 
-from LSTMPCellLSTMPCellWithClip import LSTMPCellWithClip
+from LSTMPCellWithClip import LSTMPCellWithClip
 
 curr_path = os.path.dirname(os.path.abspath(os.path.expanduser(__file__)))
 sys.path.append(os.path.join(curr_path, '..', '..'))
@@ -116,8 +121,34 @@ parser.add_argument('--beta', type=float, default=1,
                          '(beta = 0 means no regularization)')
 parser.add_argument('--test_mode', action='store_true',
                     help='Whether to run through the script with few examples')
+parser.add_argument('--hdf5_weight_file', type=str, help='File location for character embedding weights file')
+parser.add_argument('--load_hdf5_bilstm', action='store_true', help='Whether to use load bilstm weights for hdf5 file')
+parser.add_argument('--load_hdf5_word_embed', action='store_true', help='Whether to use load word embedding weights for hdf5 file')
+parser.add_argument('--load_hdf5_char_embed', action='store_true', help='Whether to use load character embedding weights for hdf5 file')
+parser.add_argument('--load_hdf5_decoder', action='store_true', help='Whether to use load decoder weights for hdf5 file')
 parser.add_argument('--load', action='store_true')
 args = parser.parse_args()
+
+elmo_options = {
+  "lstm": {
+    "use_skip_connections": True,
+    "projection_dim": 650,
+    "cell_clip": 3,
+    "proj_clip": 3,
+    "dim": 4096,
+    "n_layers": 2
+  },
+  "char_cnn": {
+    "activation": "relu",
+    "filters": [[1, 32], [2, 32], [3, 64], [4, 128], [5, 256], [6, 512], [7, 1024]],
+    "n_highway": 2,
+    "embedding": {
+      "dim": 16
+    },
+    "n_characters": 262,
+    "max_characters_per_token": 50
+  }
+}
 
 def _get_rnn_cell(mode, num_layers, input_size, hidden_size, dropout, skip_connection, proj_size=None, cell_clip=None, proj_clip=None):
     """create rnn cell given specs"""
@@ -190,7 +221,6 @@ class ElmoLSTM(gluon.Block):
                     output, states_forward[j] = getattr(self, 'forward_layer_{}'.format(j))(inputs[i] if self.char_embedding else inputs[0][i], states_forward[j])
                 else:
                     output, states_forward[j] = getattr(self, 'forward_layer_{}'.format(j))(outputs_forward[j-1][i], states_forward[j])
-                    # output = output + outputs_forward[j-1][i]
                 outputs_forward[j].append(output)
 
             outputs_backward.append([None] * seq_len)
@@ -199,7 +229,6 @@ class ElmoLSTM(gluon.Block):
                     output, states_backward[j] = getattr(self, 'backward_layer_{}'.format(j))(inputs[i] if self.char_embedding else inputs[1][i], states_backward[j])
                 else:
                     output, states_backward[j] = getattr(self, 'backward_layer_{}'.format(j))(outputs_backward[j-1][i], states_backward[j])
-                    # output = output + outputs_backward[j-1][i]
                 outputs_backward[j][i] = output
 
         for i in range(self.num_layers):
@@ -207,6 +236,64 @@ class ElmoLSTM(gluon.Block):
             outputs_backward[i] = mx.nd.stack(*outputs_backward[i])
 
         return (outputs_forward, outputs_backward), (states_forward, states_backward)
+
+    def load_weights(self):
+        """
+        Load the pre-trained weights from the file.
+        """
+        # requires_grad = self.requires_grad
+
+        with h5py.File(self.weight_file, 'r') as fin:
+            for layer_index in range(self.num_layers):
+                for i in range(2):
+                    # lstm is an instance of LSTMPCell
+                    lstm = getattr(self, 'forward_layer_{}'.format(layer_index) if i == 0 else 'backward_layer_{}'.format(layer_index))
+                    cell_size = lstm._cell_size
+
+                    dataset = fin['RNN_%s' % i]['RNN']['MultiRNNCell']['Cell%s' % layer_index]['LSTMCell']
+
+                    # tensorflow packs together both W and U matrices into one matrix,
+                    # but mxnet maintains individual matrices.  In addition, tensorflow
+                    # packs the gates as input, memory, forget, output but mxnet
+                    # uses input, forget, memory, output.  So we need to modify the weights.
+                    tf_weights = np.transpose(dataset['W_0'][...])
+                    torch_weights = tf_weights.copy()
+
+                    # split the W from U matrices
+                    input_size = lstm._input_size
+                    input_weights = torch_weights[:, :input_size]
+                    recurrent_weights = torch_weights[:, input_size:]
+                    tf_input_weights = tf_weights[:, :input_size]
+                    tf_recurrent_weights = tf_weights[:, input_size:]
+
+                    # handle the different gate order convention
+                    for torch_w, tf_w in [[input_weights, tf_input_weights],
+                                          [recurrent_weights, tf_recurrent_weights]]:
+                        torch_w[(1 * cell_size):(2 * cell_size), :] = tf_w[(2 * cell_size):(3 * cell_size), :]
+                        torch_w[(2 * cell_size):(3 * cell_size), :] = tf_w[(1 * cell_size):(2 * cell_size), :]
+
+                    lstm.i2h_weight.set_data(input_weights)
+                    lstm.h2h_weight.set_data(recurrent_weights)
+                    # lstm.input_linearity.weight.requires_grad = requires_grad
+                    # lstm.state_linearity.weight.requires_grad = requires_grad
+
+                    # the bias weights
+                    tf_bias = dataset['B'][...]
+                    # tensorflow adds 1.0 to forget gate bias instead of modifying the
+                    # parameters...
+                    tf_bias[(2 * cell_size):(3 * cell_size)] += 1
+                    torch_bias = tf_bias.copy()
+                    torch_bias[(1 * cell_size):(2 * cell_size)
+                              ] = tf_bias[(2 * cell_size):(3 * cell_size)]
+                    torch_bias[(2 * cell_size):(3 * cell_size)
+                              ] = tf_bias[(1 * cell_size):(2 * cell_size)]
+                    lstm.h2h_bias.set_data(torch_bias)
+                    # lstm.state_linearity.bias.requires_grad = requires_grad
+
+                    # the projection weights
+                    proj_weights = np.transpose(dataset['W_P_0'][...])
+                    lstm.h2proj_weight.set_data(proj_weights)
+                    # lstm.state_projection.weight.requires_grad = requires_grad
 
 class ElmoBiLM(Block):
     """Standard RNN language model.
@@ -229,7 +316,7 @@ class ElmoBiLM(Block):
         Whether to tie the weight matrices of output dense layer and input embedding layer.
     """
     def __init__(self, mode, vocab_size, embed_size, hidden_size, num_layers, dropout=0.5, tie_weights=False, char_embedding=False,
-                 skip_connection=False, proj_size=None, proj_clip=None, cell_clip=None, **kwargs):
+                 skip_connection=False, proj_size=None, proj_clip=None, cell_clip=None, options=elmo_options, weight_file=None, **kwargs):
         if tie_weights:
             assert embed_size == hidden_size, 'Embedding dimension must be equal to ' \
                                               'hidden dimension in order to tie weights. ' \
@@ -248,6 +335,8 @@ class ElmoBiLM(Block):
         self._tie_weights = tie_weights
         self._vocab_size = vocab_size
         self._char_embedding = char_embedding
+        self._options = options
+        self._weight_file = weight_file
 
         with self.name_scope():
             self.embedding = self._get_embedding()
@@ -255,13 +344,16 @@ class ElmoBiLM(Block):
             self.decoder = self._get_decoder()
 
     def _get_embedding(self):
-        embedding = nn.HybridSequential()
-        with embedding.name_scope():
-            embedding.add(nn.Embedding(self._vocab_size, self._embed_size,
-                                       weight_initializer=init.Uniform(0.1)))
-            if self._dropout:
-                embedding.add(nn.Dropout(self._dropout))
-        return embedding
+        if self._char_embedding:
+            return ElmoCharacterEncoder(self._options, self._weight_file)
+        else:
+            embedding = nn.HybridSequential()
+            with embedding.name_scope():
+                embedding.add(nn.Embedding(self._vocab_size, self._embed_size,
+                                           weight_initializer=init.Uniform(0.1)))
+                if self._dropout:
+                    embedding.add(nn.Dropout(self._dropout))
+            return embedding
 
     def _get_encoder(self):
         return ElmoLSTM(mode=self._mode, num_layers=self._num_layers, input_size=self._embed_size,
@@ -278,6 +370,25 @@ class ElmoBiLM(Block):
             else:
                 output.add(nn.Dense(self._vocab_size, flatten=False))
         return output
+
+    def set_highway_bias(self):
+        self.embedding.set_highway_bias()
+
+    def load_char_embedding_weights(self):
+        self.embedding.load_weights()
+
+    def load_word_embedding_weights(self):
+        with h5py.File(self._weight_file, 'r') as fin:
+            embedding_weights = fin['embedding'][...]
+            self.embedding._children['0'].weight.set_data(nd.array(embedding_weights))
+
+    def load_decoder(self):
+        with h5py.File(self._weight_file, 'r') as fin:
+            self.decoder._children['0'].weight.set_data(fin['softmax']['W'][...])
+            self.decoder._children['0'].bias.set_data(fin['softmax']['b'][...])
+
+    def load_lstm_weights(self):
+        self.encoder.load_weights()
 
     def begin_state(self, *args, **kwargs):
         return self.encoder.begin_state(*args, **kwargs)
@@ -320,18 +431,26 @@ assert args.batch_size % len(context) == 0, \
 assert args.weight_dropout > 0 or (args.weight_dropout == 0 and args.alpha == 0), \
     'The alpha L2 regularization cannot be used with standard RNN, please set alpha to 0'
 
-train_dataset, val_dataset, test_dataset = \
-    [nlp.data.WikiText2(segment=segment,
-                        skip_empty=False, bos=None, eos='<eos>')
-     for segment in ['train', 'val', 'test']]
+if args.char_embedding:
+    max_word_length = 50
+    train_dataset, val_dataset, test_dataset = [WikiText2Character(segment=segment,
+                                                                   bos='<bos>', eos='<eos>',
+                                                                   skip_empty=False)
+                                                for segment in ['train', 'val', 'test']]
+    vocab = UnicodeCharsVocabulary(nlp.data.Counter(train_dataset[0]), max_word_length)
 
-vocab = nlp.Vocab(counter=nlp.data.Counter(train_dataset[0]), padding_token=None, bos_token=None)
+    train_data, val_data, test_data = [x.batchify(vocab, args.batch_size, max_word_length, load='train_data' if x is train_dataset else None)
+        for x in [train_dataset, val_dataset, test_dataset]]
+else:
+    train_dataset, val_dataset, test_dataset = \
+        [nlp.data.WikiText2(segment=segment,
+                            skip_empty=False, bos='<bos>', eos='<eos>')
+         for segment in ['train', 'val', 'test']]
 
-train_data = train_dataset.batchify(vocab, args.batch_size)
-val_batch_size = args.batch_size
-val_data = val_dataset.batchify(vocab, val_batch_size)
-test_batch_size = args.batch_size
-test_data = test_dataset.batchify(vocab, test_batch_size)
+    vocab = nlp.Vocab(counter=nlp.data.Counter(train_dataset[0]), padding_token=None, bos_token=None)
+
+    train_data, val_data, test_data = [x.batchify(vocab, args.batch_size)
+        for x in [train_dataset, val_dataset, test_dataset]]
 
 if args.test_mode:
     args.emsize = 200
@@ -353,11 +472,28 @@ ntokens = len(vocab)
 
 model = ElmoBiLM(mode=args.model, vocab_size=len(vocab), embed_size=args.emsize, hidden_size=args.nhid, num_layers=args.nlayers,
                  tie_weights=args.tied, dropout=args.dropout, skip_connection=args.skip_connection, proj_size=args.projsize,
-                 proj_clip=args.projclip, cell_clip=args.cellclip, char_embedding=args.char_embedding)
+                 proj_clip=args.projclip, cell_clip=args.cellclip, char_embedding=args.char_embedding, weight_file=args.hdf5_weight_file)
 
 print(model)
 model.initialize(mx.init.Xavier(), ctx=context)
 model.hybridize()
+
+if args.hdf5_weight_file:
+    if args.load_hdf5_word_embed:
+        model.load_word_embedding_weights()
+    if args.load_hdf5_bilstm:
+        model.load_lstm_weights()
+        # model.encoder.collect_params().setattr('grad_req', 'null')
+    if args.load_hdf5_decoder:
+        model.load_decoder()
+
+if args.char_embedding:
+    model.set_highway_bias()
+
+    if args.hdf5_weight_file:
+        if args.load_hdf5_char_embed:
+            model.load_char_embedding_weights()
+            model.embedding.collect_params().setattr('grad_req', 'null')
 
 if args.optimizer == 'sgd':
     trainer_params = {'learning_rate': args.lr,
@@ -379,8 +515,15 @@ loss = gluon.loss.SoftmaxCrossEntropyLoss()
 ###############################################################################
 # Training code
 ###############################################################################
+def get_batch_char_embedding(data_source, index, seq_len=None):
+    i = index + 1
+    seq_len = min(seq_len if seq_len else 35, len(data_source[0]) - 1 - i)
+    data = data_source[0][i:i+seq_len]
+    forward_target = data_source[1][i+1:i+1+seq_len]
+    backward_target = data_source[1][i-1:i-1+seq_len]
+    return data, [forward_target, backward_target]
 
-def get_batch(data_source, i, seq_len=None):
+def get_batch_word_embedding(data_source, i, seq_len=None):
     seq_len = min(seq_len if seq_len else args.bptt, len(data_source) - 1 - i)
     data = data_source[i:i+seq_len]
     target = data_source[i+1:i+1+seq_len]
@@ -420,18 +563,24 @@ def evaluate(data_source, batch_size, ctx=None):
     total_L = 0.0
     ntotal = 0
     hidden = model.begin_state(batch_size=batch_size, func=mx.nd.zeros, ctx=context[0])
-    for i in range(0, len(data_source) - 1, args.bptt):
-        data, target = get_batch(data_source, i)
-        data = data.as_in_context(ctx)
-        target = target.as_in_context(ctx)
-        output, hidden = model((data, target), hidden)
+    for i in range(0, len(data_source[0] if args.char_embedding else data_source) - 2, args.bptt):
+        if args.char_embedding:
+            data, target = get_batch_char_embedding(data_source, i)
+            data = data.as_in_context(ctx)
+            target[0] = target[0].as_in_context(ctx)
+            target[1] = target[1].as_in_context(ctx)
+            output, hidden = model(data, hidden)
+        else:
+            data, target = get_batch_word_embedding(data_source, i)
+            data = data.as_in_context(ctx)
+            target = target.as_in_context(ctx)
+            output, hidden = model((data, target), hidden)
         hidden = detach(hidden)
-        L = loss(output[0].reshape(-3, -1),
-                 target.reshape(-1,))
+
+        L = loss(mx.nd.reshape(output[0], (-3, -1)), mx.nd.reshape(target[0] if args.char_embedding else target, (-1,)))
         total_L += mx.nd.sum(L).asscalar()
 
-        L = loss(output[1].reshape(-3, -1),
-                 data.reshape(-1,))
+        L = loss(mx.nd.reshape(output[1], (-3, -1)), mx.nd.reshape(target[1] if args.char_embedding else data, (-1,)))
         total_L += mx.nd.sum(L).asscalar()
 
         ntotal += 2 * L.size
@@ -518,6 +667,7 @@ def criterion(output, target, encoder_hs, dropped_encoder_hs):
         l = l + mx.nd.add_n(*means)
     return l
 
+
 def train():
     """Training loop for awd language model.
 
@@ -526,64 +676,26 @@ def train():
     start_train_time = time.time()
     parameters = model.collect_params().values()
     for epoch in range(args.epochs):
-        total_L = 0.0
+
         start_epoch_time = time.time()
-        start_log_interval_time = time.time()
-        hiddens = [model.begin_state(batch_size=args.batch_size//len(context),
-                                     func=mx.nd.zeros, ctx=ctx) for ctx in context]
-        batch_i, i = 0, 0
-        while i < len(train_data) - 1 - 1:
-            seq_len = args.bptt
 
-            data, target = get_batch(train_data, i, seq_len=seq_len)
-            data_list = gluon.utils.split_and_load(data, context, batch_axis=1, even_split=True)
-            target_list = gluon.utils.split_and_load(target, context, batch_axis=1, even_split=True)
-            hiddens = detach(hiddens)
-            Ls = []
-            L = 0
-            with autograd.record():
-                for j, (X, y, h) in enumerate(zip(data_list, target_list, hiddens)):
-                    output, h, encoder_hs, dropped_encoder_hs = forward((X, y), h)
-                    l = criterion(output[0], y, encoder_hs, dropped_encoder_hs)
-                    L = L + l.as_in_context(context[0]) / X.size
-                    Ls.append(l/X.size)
-
-                    l = criterion(output[1], X, encoder_hs, dropped_encoder_hs)
-                    L = L + l.as_in_context(context[0]) / X.size
-                    Ls.append(l/X.size)
-
-                    hiddens[j] = h
-            L.backward()
-            grads = [p.grad(d.context) for p in parameters for d in data_list]
-            gluon.utils.clip_global_norm(grads, args.clip)
-
-            trainer.step(1)
-
-            total_L += sum([mx.nd.sum(L).asscalar() for L in Ls]) / 2
-            if batch_i % args.log_interval == 0 and batch_i > 0:
-                cur_L = total_L / args.log_interval
-                print('[Epoch %d Batch %d/%d] loss %.2f, ppl %.2f, '
-                      'throughput %.2f samples/s, lr %.2f'
-                      %(epoch, batch_i, len(train_data)//args.bptt, cur_L, math.exp(cur_L),
-                        args.batch_size*args.log_interval/(time.time()-start_log_interval_time),
-                        trainer.learning_rate))
-                total_L = 0.0
-                start_log_interval_time = time.time()
-            i += seq_len
-            batch_i += 1
+        if args.char_embedding:
+            train_char(epoch, parameters)
+        else:
+            train_word(epoch, parameters)
 
         mx.nd.waitall()
 
         print('[Epoch %d] throughput %.2f samples/s'%(
             epoch, (args.batch_size * len(train_data)) / (time.time() - start_epoch_time)))
-        val_L = evaluate(val_data, val_batch_size, context[0])
+        val_L = evaluate(val_data, args.bptt, context[0])
         print('[Epoch %d] time cost %.2fs, valid loss %.2f, valid ppl %.2f'%(
             epoch, time.time()-start_epoch_time, val_L, math.exp(val_L)))
 
         if val_L < best_val:
             update_lr_epoch = 0
             best_val = val_L
-            test_L = evaluate(test_data, test_batch_size, context[0])
+            test_L = evaluate(test_data, args.bptt, context[0])
             model.save_params(args.save)
             print('test loss %.2f, test ppl %.2f'%(test_L, math.exp(test_L)))
         else:
@@ -597,6 +709,98 @@ def train():
     print('Total training throughput %.2f samples/s'
           %((args.batch_size * len(train_data) * args.epochs) / (time.time() - start_train_time)))
 
+def train_char(epoch, parameters):
+    total_L = 0.0
+    start_log_interval_time = time.time()
+    hiddens = [model.begin_state(batch_size=args.batch_size//len(context), func=mx.nd.zeros, ctx=ctx) for ctx in context]
+
+    batch_i, i = 0, 0
+    while i < len(train_data[0]) - 1 - 1:
+        data, target = get_batch_char_embedding(train_data, i, seq_len=args.bptt)
+
+        data_list = gluon.utils.split_and_load(data, context, batch_axis=1, even_split=True)
+        forward_target_list = gluon.utils.split_and_load(target[0], context, batch_axis=1, even_split=True)
+        backward_target_list = gluon.utils.split_and_load(target[1], context, batch_axis=1, even_split=True)
+        hiddens = detach(hiddens)
+
+        L = 0
+        Ls = []
+        with autograd.record():
+            for j, (X, y_forward, y_backward, h) in enumerate(
+                    zip(data_list, forward_target_list, backward_target_list, hiddens)):
+                output, h, encoder_hs, dropped_encoder_hs = forward(X, h)
+                batch_L = loss(mx.nd.reshape(output[0], (-3, -1)), mx.nd.reshape(y_forward, (-1,)))
+                L = L + batch_L.as_in_context(context[0]) / y_forward.size
+                Ls.append(batch_L / y_forward.size)
+
+                batch_L = loss(mx.nd.reshape(output[1], (-3, -1)), mx.nd.reshape(y_backward, (-1,)))
+                L = L + batch_L.as_in_context(context[0]) / y_backward.size
+                Ls.append(batch_L / y_backward.size)
+                hiddens[j] = h
+
+        L.backward()
+        grads = [p.grad(x.context) for p in parameters if p.grad_req != 'null' for x in data_list]
+        gluon.utils.clip_global_norm(grads, args.clip)
+
+        trainer.step(1)
+
+        total_L += sum([mx.nd.sum(l).asscalar() for l in Ls])
+
+        if batch_i % args.log_interval == 0 and batch_i > 0:
+            cur_L = total_L / (args.log_interval * 2)
+            print('[Epoch %d Batch %d/%d] loss %.2f, ppl %.2f, throughput %.2f samples/s, lr %.5f' % (
+                epoch, batch_i, len(train_data[0]) // args.bptt, cur_L, get_ppl(cur_L),
+                args.batch_size * args.log_interval / (time.time() - start_log_interval_time), trainer.learning_rate))
+            total_L = 0.0
+            start_log_interval_time = time.time()
+        i += args.bptt
+        batch_i += 1
+
+def train_word(epoch, parameters):
+    total_L = 0.0
+    start_log_interval_time = time.time()
+    hiddens = [model.begin_state(batch_size=args.batch_size // len(context),
+                                 func=mx.nd.zeros, ctx=ctx) for ctx in context]
+    batch_i, i = 0, 0
+    while i < len(train_data) - 1 - 1:
+        seq_len = args.bptt
+
+        data, target = get_batch_word_embedding(train_data, i, seq_len=seq_len)
+        data_list = gluon.utils.split_and_load(data, context, batch_axis=1, even_split=True)
+        target_list = gluon.utils.split_and_load(target, context, batch_axis=1, even_split=True)
+        hiddens = detach(hiddens)
+        Ls = []
+        L = 0
+        with autograd.record():
+            for j, (X, y, h) in enumerate(zip(data_list, target_list, hiddens)):
+                output, h, encoder_hs, dropped_encoder_hs = forward((X, y), h)
+                l = criterion(output[0], y, encoder_hs, dropped_encoder_hs)
+                L = L + l.as_in_context(context[0]) / X.size
+                Ls.append(l / X.size)
+
+                l = criterion(output[1], X, encoder_hs, dropped_encoder_hs)
+                L = L + l.as_in_context(context[0]) / X.size
+                Ls.append(l / X.size)
+
+                hiddens[j] = h
+        L.backward()
+        grads = [p.grad(d.context) for p in parameters for d in data_list]
+        gluon.utils.clip_global_norm(grads, args.clip)
+
+        trainer.step(1)
+
+        total_L += sum([mx.nd.sum(L).asscalar() for L in Ls]) / 2
+        if batch_i % args.log_interval == 0 and batch_i > 0:
+            cur_L = total_L / args.log_interval
+            print('[Epoch %d Batch %d/%d] loss %.2f, ppl %.2f, '
+                  'throughput %.2f samples/s, lr %.2f'
+                  % (epoch, batch_i, len(train_data) // args.bptt, cur_L, math.exp(cur_L),
+                     args.batch_size * args.log_interval / (time.time() - start_log_interval_time),
+                     trainer.learning_rate))
+            total_L = 0.0
+            start_log_interval_time = time.time()
+        i += seq_len
+        batch_i += 1
 
 if __name__ == '__main__':
     start_pipeline_time = time.time()
@@ -605,8 +809,8 @@ if __name__ == '__main__':
     if not args.eval_only:
         train()
     model.load_params(args.save, context)
-    final_val_L = evaluate(val_data, val_batch_size, context[0])
-    final_test_L = evaluate(test_data, test_batch_size, context[0])
+    final_val_L = evaluate(val_data, args.batch_size, context[0])
+    final_test_L = evaluate(test_data, args.batch_size, context[0])
     print('Best validation loss %.2f, val ppl %.2f'%(final_val_L, math.exp(final_val_L)))
     print('Best test loss %.2f, test ppl %.2f'%(final_test_L, math.exp(final_test_L)))
     print('Total time cost %.2fs'%(time.time()-start_pipeline_time))
