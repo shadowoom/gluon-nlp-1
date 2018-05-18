@@ -20,13 +20,14 @@
 # pylint: disable=
 """Language model datasets."""
 
-__all__ = ['WikiText2', 'WikiText103']
+__all__ = ['WikiText2', 'WikiText103', 'WikiText2Character']
 
 import os
 import zipfile
 import shutil
 
 from mxnet.gluon.utils import download, check_sha1, _get_repo_file_url
+import mxnet as mx
 
 from .. import _constants as C
 from .dataset import LanguageModelDataset
@@ -98,6 +99,53 @@ class WikiText2(_WikiText):
                            'test': ('wiki.test.tokens',
                                     'c7b8ce0aa086fb34dab808c5c49224211eb2b172')}
         super(WikiText2, self).__init__('wikitext-2', segment, bos, eos, skip_empty, root)
+
+@register(segment=['train', 'val', 'test'])
+class WikiText2Character(WikiText2):
+    """WikiText-2 word-level dataset for language modeling, from Salesforce research.
+
+    From
+    https://einstein.ai/research/the-wikitext-long-term-dependency-language-modeling-dataset
+
+    License: Creative Commons Attribution-ShareAlike
+
+    Parameters
+    ----------
+    segment : str, default 'train'
+        Dataset segment. Options are 'train', 'val', 'test'.
+    skip_empty : bool, default True
+        Whether to skip the empty samples produced from sample_splitters. If False, `bos` and `eos`
+        will be added in empty samples.
+    bos : str or None, default None
+        The token to add at the begining of each sentence. If None, nothing is added.
+    eos : str or None, default '<eos>'
+        The token to add at the end of each sentence. If None, nothing is added.
+    root : str, default '~/.mxnet/datasets/wikitext-2'
+        Path to temp folder for storing data.
+    """
+    def __init__(self, segment='train', skip_empty=True, bos='<bos>', eos='<eos>',
+                 root=os.path.join('~', '.mxnet', 'datasets', 'wikitext-2')):
+        super(WikiText2Character, self).__init__(segment, skip_empty, bos, eos, root)
+
+    def batchify(self, vocab, batch_size, max_word_length=50, load=None):
+        """Transform the dataset into N independent sequences, where N is the batch size.
+
+        Parameters
+        ----------
+        vocab : gluonnlp.Vocab
+            The vocabulary to use for numericalizing the dataset. Each token will be mapped to the
+            index according to the vocabulary.
+        batch_size : int
+            The number of samples in each batch.
+
+        Returns
+        -------
+        NDArray of shape (num_tokens // N, N). Excessive tokens that don't align along
+        the batches are discarded.
+        """
+        data = self._data[0]
+        sample_len = len(data) // batch_size
+        return vocab.dataset_to_char_ids(data[:sample_len*batch_size], batch_size, sample_len, max_word_length).swapaxes(0, 1), mx.nd.array(vocab[data[:sample_len*batch_size]]).reshape(batch_size, -1).T
 
 
 @register(segment=['train', 'val', 'test'])
