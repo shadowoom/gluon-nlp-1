@@ -23,6 +23,7 @@ import functools
 
 from mxnet.gluon import Block, HybridBlock, contrib, rnn
 from .parameter import WeightDropParameter
+from .lstmpcellwithclip import LSTMPCellWithClip
 
 def apply_weight_drop(block, local_param_name, rate, axes=(),
                       weight_dropout_mode='training'):
@@ -127,6 +128,34 @@ def _get_rnn_cell(mode, num_layers, input_size, hidden_size,
             if weight_dropout:
                 apply_weight_drop(rnn_cell, 'h2h_weight', rate=weight_dropout)
 
+    return rnn_cell
+
+def _get_rnn_cell_clip_residual(mode, num_layers, input_size, hidden_size, dropout,
+                                skip_connection, proj_size=None, cell_clip=None, proj_clip=None):
+    """create rnn cell given specs"""
+    rnn_cell = rnn.SequentialRNNCell()
+    with rnn_cell.name_scope():
+        for i in range(num_layers):
+            if mode == 'rnn_relu':
+                cell = rnn.RNNCell(hidden_size, 'relu', input_size=input_size)
+            elif mode == 'rnn_tanh':
+                cell = rnn.RNNCell(hidden_size, 'tanh', input_size=input_size)
+            elif mode == 'lstm':
+                cell = rnn.LSTMCell(hidden_size, input_size=input_size)
+            elif mode == 'gru':
+                cell = rnn.GRUCell(hidden_size, input_size=input_size)
+            elif mode == 'lstmp':
+                cell = LSTMPCellWithClip(hidden_size, proj_size, cell_clip=cell_clip, projection_clip=proj_clip, input_size=input_size)
+
+            ## TODO: check
+            if skip_connection:
+                cell = rnn.ResidualCell(cell)
+
+            rnn_cell.add(cell)
+
+            ## TODO: check
+            if dropout != 0:
+                rnn_cell.add(rnn.DropoutCell(dropout))
     return rnn_cell
 
 

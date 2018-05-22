@@ -18,7 +18,7 @@
 # under the License.
 """Language models."""
 __all__ = ['AWDRNN', 'StandardRNN', 'awd_lstm_lm_1150', 'awd_lstm_lm_600',
-           'standard_lstm_lm_200', 'standard_lstm_lm_650', 'standard_lstm_lm_1500']
+           'standard_lstm_lm_200', 'standard_lstm_lm_650', 'standard_lstm_lm_1500', 'BiRNN']
 
 import os
 import warnings
@@ -166,6 +166,103 @@ class StandardRNN(train.StandardRNN):
             encoded = nd.Dropout(encoded, p=self._dropout, axes=(0,))
         out = self.decoder(encoded)
         return out, state
+
+class BiRNN(train.BiRNN):
+    """Standard RNN language model.
+
+    Parameters
+    ----------
+    mode : str
+        The type of RNN to use. Options are 'lstm', 'gru', 'rnn_tanh', 'rnn_relu'.
+    vocab_size : int
+        Size of the input vocabulary.
+    embed_size : int
+        Dimension of embedding vectors.
+    hidden_size : int
+        Number of hidden units for RNN.
+    num_layers : int
+        Number of RNN layers.
+    dropout : float
+        Dropout rate to use for encoder output.
+    tie_weights : bool, default False
+        Whether to tie the weight matrices of output dense layer and input embedding layer.
+    """
+    def __init__(self, mode, vocab_size, embed_size, hidden_size, num_layers, dropout, tie_weights,
+                 skip_connection, proj_size, proj_clip, cell_clip, **kwargs):
+        if tie_weights:
+            assert embed_size == hidden_size, 'Embedding dimension must be equal to ' \
+                                              'hidden dimension in order to tie weights. ' \
+                                              'Got: emb: {}, hid: {}.'.format(embed_size,
+                                                                              hidden_size)
+        super(BiRNN, self).__init__(mode, vocab_size, embed_size, hidden_size, num_layers, dropout, tie_weights,
+                 skip_connection, proj_size, proj_clip, cell_clip, **kwargs)
+
+    def forward(self, inputs, begin_state=None): # pylint: disable=arguments-differ
+        """Defines the forward computation. Arguments can be either
+        :py:class:`NDArray` or :py:class:`Symbol`."""
+        # if self._char_embedding:
+        #     encoded = self.embedding(inputs)
+        # else:
+        #     encoded = self.embedding(inputs[0]), self.embedding(inputs[1])
+        #
+        # if not begin_state:
+        #     begin_state = self.begin_state(batch_size=inputs.shape[1] if self._char_embedding else inputs[0].shape[1])
+        #
+        # encoded, state = self.encoder(encoded, begin_state)
+        #
+        # if self._dropout:
+        #     encoded_forward = nd.Dropout(encoded[0][-1], p=self._dropout)
+        #     encoded_backward = nd.Dropout(encoded[1][-1], p=self._dropout)
+        # else:
+        #     encoded_forward = encoded[0][-1]
+        #     encoded_backward = encoded[1][-1]
+        #
+        # forward_out = self.decoder(encoded_forward)
+        # backward_out = self.decoder(encoded_backward)
+        #
+        # return (forward_out, backward_out), state
+        """Implement forward computation.
+
+        Parameters
+        ----------
+        inputs : NDArray
+            The training dataset.
+        begin_state : list
+            The initial hidden states.
+
+        Returns
+        -------
+        out: NDArray
+            The output of the model.
+        out_states: list
+            The list of output states of the model's encoder.
+        encoded_raw: list
+            The list of outputs of the model's encoder.
+        encoded_dropped: list
+            The list of outputs with dropout of the model's encoder.
+        """
+
+        encoded = self.embedding(inputs[0]), self.embedding(inputs[1])
+
+        if not begin_state:
+            ## TODO: check shape
+            begin_state = self.begin_state(inputs[0].shape[1])
+        ## TODO: check state output
+
+        encoded, state = self.encoder(encoded, begin_state)
+
+        if self._dropout:
+            encoded_forward = nd.Dropout(encoded[0][-1], p=self._dropout)
+            encoded_backward = nd.Dropout(encoded[1][-1], p=self._dropout)
+        else:
+            encoded_forward = encoded[0][-1]
+            encoded_backward = encoded[1][-1]
+
+        forward_out = self.decoder(encoded_forward)
+        backward_out = self.decoder(encoded_backward)
+
+        return (forward_out, backward_out), state
+
 
 def _load_vocab(dataset_name, vocab, root):
     if dataset_name:
