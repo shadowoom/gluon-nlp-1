@@ -40,23 +40,23 @@ parser = argparse.ArgumentParser(description=
                                  'MXNet Autograd RNN/LSTM Language Model on Wikitext-2.')
 parser.add_argument('--model', type=str, default='lstm',
                     help='type of recurrent net (rnn_tanh, rnn_relu, lstm, gru)')
-parser.add_argument('--emsize', type=int, default=400,
+parser.add_argument('--emsize', type=int, default=650,
                     help='size of word embeddings')
-parser.add_argument('--nhid', type=int, default=1150,
+parser.add_argument('--nhid', type=int, default=650,
                     help='number of hidden units per layer')
-parser.add_argument('--nlayers', type=int, default=3,
+parser.add_argument('--nlayers', type=int, default=2,
                     help='number of layers')
-parser.add_argument('--lr', type=float, default=30,
+parser.add_argument('--lr', type=float, default=20,
                     help='initial learning rate')
 parser.add_argument('--clip', type=float, default=0.25,
                     help='gradient clipping')
-parser.add_argument('--epochs', type=int, default=180,
+parser.add_argument('--epochs', type=int, default=750,
                     help='upper epoch limit')
-parser.add_argument('--batch_size', type=int, default=80, metavar='N',
+parser.add_argument('--batch_size', type=int, default=20, metavar='N',
                     help='batch size')
-parser.add_argument('--bptt', type=int, default=70,
+parser.add_argument('--bptt', type=int, default=35,
                     help='sequence length')
-parser.add_argument('--dropout', type=float, default=0.4,
+parser.add_argument('--dropout', type=float, default=0.5,
                     help='dropout applied to layers (0 = no dropout)')
 parser.add_argument('--tied', action='store_true',
                     help='tie the word embedding and softmax weights')
@@ -83,11 +83,11 @@ parser.add_argument('--alpha', type=float, default=0,
 parser.add_argument('--beta', type=float, default=0,
                     help='beta slowness regularization applied on RNN activiation '
                          '(beta = 0 means no regularization)')
-parser.add_argument('--cellclip', type=float,
+parser.add_argument('--cellclip', type=float, default=0,
                     help='clip cell state between [-cellclip, projclip] in LSTMPCellWithClip')
-parser.add_argument('--projsize', type=int,
+parser.add_argument('--projsize', type=int, default=0,
                     help='projection of nhid to projsize in LSTMPCellWithClip')
-parser.add_argument('--projclip', type=float,
+parser.add_argument('--projclip', type=float, default=0,
                     help='clip projection between [-projclip, projclip] in LSTMPCellWithClip')
 parser.add_argument('--skip_connection', action='store_true',
                     help='add skip connections (add cell input to output)')
