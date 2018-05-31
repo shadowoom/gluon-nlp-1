@@ -279,7 +279,6 @@ class StandardRNN(Block):
 
 class BiRNN(Block):
     """Bidirectional RNN language model.
-
     Parameters
     ----------
     mode : str
@@ -297,7 +296,7 @@ class BiRNN(Block):
     tie_weights : bool, default False
         Whether to tie the weight matrices of output dense layer and input embedding layer.
     """
-    def __init__(self, mode, vocab_size, embed_size, hidden_size, num_layers, dropout=0.5, tie_weights=False,
+    def __init__(self, mode, vocab_size, embed_size, hidden_size, num_layers, tie_weights=False, dropout=0.5,
                  skip_connection=False, proj_size=None, proj_clip=None, cell_clip=None, **kwargs):
         if tie_weights:
             assert embed_size == hidden_size, 'Embedding dimension must be equal to ' \
@@ -326,16 +325,15 @@ class BiRNN(Block):
         embedding = nn.HybridSequential()
         with embedding.name_scope():
             embedding.add(nn.Embedding(self._vocab_size, self._embed_size,
-                                       weight_initializer=init.Uniform(0.1)))
+                                       weight_initializer=init.Uniform(0.1), sparse_grad=True))## TODO check sparse_grad
             if self._dropout:
                 embedding.add(nn.Dropout(self._dropout))
         return embedding
 
     def _get_encoder(self):
         return BiLMEncoder(mode=self._mode, num_layers=self._num_layers, input_size=self._embed_size,
-                              hidden_size=self._hidden_size, proj_size=self._proj_size, dropout=self._dropout,
-                              skip_connection=self._skip_connection,
-                              cell_clip=self._cell_clip, proj_clip=self._proj_clip)
+                           hidden_size=self._hidden_size, dropout=self._dropout, skip_connection=self._skip_connection,
+                           proj_size=self._proj_size, cell_clip=self._cell_clip, proj_clip=self._proj_clip)
 
     def _get_decoder(self):
         output = nn.HybridSequential()
@@ -373,7 +371,7 @@ class BiRNN(Block):
         encoded_dropped: list
             The list of outputs with dropout of the model's encoder.
         """
-
+        ## TODO: the embedding and decoder of the forward and backward should be tied
         encoded = self.embedding(inputs[0]), self.embedding(inputs[1])
 
         if not begin_state:
