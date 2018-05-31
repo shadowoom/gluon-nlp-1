@@ -76,6 +76,7 @@ class LSTMPCellWithClip(LSTMPCell):
         - **next_states**: a list of two output recurrent state tensors. Each has
           the same shape as `states`.
     """
+    ##TODO: check writing style
     def __init__(self, hidden_size, projection_size,
                  i2h_weight_initializer=None, h2h_weight_initializer=None,
                  h2r_weight_initializer=None,

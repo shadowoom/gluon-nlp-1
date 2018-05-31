@@ -245,10 +245,8 @@ class BiRNN(train.BiRNN):
         encoded = self.embedding(inputs[0]), self.embedding(inputs[1])
 
         if not begin_state:
-            ## TODO: check shape
             begin_state = self.begin_state(inputs[0].shape[1])
         ## TODO: check state output
-
         encoded, state = self.encoder(encoded, begin_state)
 
         if self._dropout:

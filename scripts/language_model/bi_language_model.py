@@ -141,21 +141,12 @@ print(args)
 
 ntokens = len(vocab)
 
-# if args.weight_dropout > 0:
-#     print('Use AWDRNN')
-#     model = nlp.model.language_model.AWDRNN(args.model, len(vocab), args.emsize,
-#                                             args.nhid, args.nlayers, args.tied,
-#                                             args.dropout, args.weight_dropout, args.dropout_h,
-#                                             args.dropout_i, args.dropout_e)
-# else:
-#     model = nlp.model.language_model.StandardRNN(args.model, len(vocab), args.emsize,
-#                                                  args.nhid, args.nlayers, args.dropout, args.tied)
-
-model = nlp.model.language_model.BiRNN(args.model, len(vocab), args.emsize, args.nhid, args.nlayers, args.tied, args.dropout,
+model = nlp.model.train.BiRNN(args.model, len(vocab), args.emsize, args.nhid, args.nlayers, args.tied, args.dropout,
+                                       args.skip_connection, args.projsize, args.projclip, args.cellclip)
+model_eval = nlp.model.BiRNN(args.model, len(vocab), args.emsize, args.nhid, args.nlayers, args.tied, args.dropout,
                                        args.skip_connection, args.projsize, args.projclip, args.cellclip)
 print(model)
 model.initialize(mx.init.Xavier(), ctx=context)
-model.hybridize()
 
 if args.optimizer == 'sgd':
     trainer_params = {'learning_rate': args.lr,
@@ -176,19 +167,47 @@ loss = gluon.loss.SoftmaxCrossEntropyLoss()
 ###############################################################################
 
 def get_batch(data_source, i, seq_len=None):
+    """Get mini-batches of the dataset.
+
+    Parameters
+    ----------
+    data_source : NDArray
+        The dataset is evaluated on.
+    i : int
+        The index of the batch, starting from 0.
+    seq_len : int
+        The length of each sample in the batch.
+    Returns
+    -------
+    data: NDArray
+        The context
+    target: NDArray
+        The words to predict
+    """
     seq_len = min(seq_len if seq_len else args.bptt, len(data_source) - 1 - i)
     data = data_source[i:i+seq_len]
     target = data_source[i+1:i+1+seq_len]
     return data, target
 
 def detach(hidden):
+    """Transfer hidden states into new states, to detach them from the history.
+
+    Parameters
+    ----------
+    hidden : NDArray
+        The hidden states
+    Returns
+    ----------
+    hidden: NDArray
+        The detached hidden states
+    """
     if isinstance(hidden, (tuple, list)):
         hidden = [detach(h) for h in hidden]
     else:
         hidden = hidden.detach()
     return hidden
 
-def evaluate(data_source, batch_size, ctx=None):
+def evaluate(data_source, batch_size, segment, ctx=None):
     """Evaluate the model on the dataset.
 
     Parameters
@@ -207,6 +226,10 @@ def evaluate(data_source, batch_size, ctx=None):
     """
     total_L = 0.0
     ntotal = 0
+    if segment == 'val':
+        model_eval.load_params(args.save + '.val', context)
+    elif segment == 'test':
+        model_eval.load_params(args.save, context)
     hidden = model.begin_state(batch_size, func=mx.nd.zeros, ctx=context[0])
     for i in range(0, len(data_source) - 1, args.bptt):
         data, target = get_batch(data_source, i)
@@ -274,7 +297,6 @@ def train():
         batch_i, i = 0, 0
         while i < len(train_data) - 1 - 1:
             seq_len = args.bptt
-
             data, target = get_batch(train_data, i, seq_len=seq_len)
             data_list = gluon.utils.split_and_load(data, context, batch_axis=1, even_split=True)
             target_list = gluon.utils.split_and_load(target, context, batch_axis=1, even_split=True)
@@ -316,15 +338,16 @@ def train():
 
         print('[Epoch %d] throughput %.2f samples/s'%(
             epoch, (args.batch_size * len(train_data)) / (time.time() - start_epoch_time)))
-        val_L = evaluate(val_data, args.batch_size, context[0])
+        model.save_params(args.save + '.val')
+        val_L = evaluate(val_data, args.batch_size, 'val', context[0])
         print('[Epoch %d] time cost %.2fs, valid loss %.2f, valid ppl %.2f'%(
             epoch, time.time()-start_epoch_time, val_L, math.exp(val_L)))
 
         if val_L < best_val:
             update_lr_epoch = 0
             best_val = val_L
-            test_L = evaluate(test_data, args.batch_size, context[0])
             model.save_params(args.save)
+            test_L = evaluate(test_data, args.batch_size, 'test', context[0])
             print('test loss %.2f, test ppl %.2f'%(test_L, math.exp(test_L)))
         else:
             update_lr_epoch += 1
@@ -343,8 +366,8 @@ if __name__ == '__main__':
     if not args.eval_only:
         train()
     model.load_params(args.save, context)
-    final_val_L = evaluate(val_data, args.batch_size, context[0])
-    final_test_L = evaluate(test_data, args.batch_size, context[0])
+    final_val_L = evaluate(val_data, args.batch_size, 'test', context[0])
+    final_test_L = evaluate(test_data, args.batch_size, 'test', context[0])
     print('Best validation loss %.2f, val ppl %.2f'%(final_val_L, math.exp(final_val_L)))
     print('Best test loss %.2f, test ppl %.2f'%(final_test_L, math.exp(final_test_L)))
     print('Total time cost %.2fs'%(time.time()-start_pipeline_time))
