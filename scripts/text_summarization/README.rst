@@ -1,0 +1,2 @@
+Implement Get To The Point: Summarization with Pointer-Generator Networks https://arxiv.org/pdf/1704.04368.pdf
+===============================================================================================================
