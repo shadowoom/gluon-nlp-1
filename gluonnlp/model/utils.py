@@ -25,6 +25,7 @@ from mxnet.gluon import Block, HybridBlock, contrib, rnn
 from .parameter import WeightDropParameter
 from .lstmpcellwithclip import LSTMPCellWithClip
 
+
 def apply_weight_drop(block, local_param_name, rate, axes=(),
                       weight_dropout_mode='training'):
     """Apply weight drop to the parameter of a block.
@@ -100,6 +101,7 @@ def _find_param(block, full_param_name, local_param_name):
 
     return param_dict_results, reg_dict_results
 
+
 def _get_rnn_cell(mode, num_layers, input_size, hidden_size,
                   dropout, weight_dropout,
                   var_drop_in, var_drop_state, var_drop_out):
@@ -129,6 +131,7 @@ def _get_rnn_cell(mode, num_layers, input_size, hidden_size,
                 apply_weight_drop(rnn_cell, 'h2h_weight', rate=weight_dropout)
 
     return rnn_cell
+
 
 def _get_rnn_cell_clip_residual(mode, num_layers, input_size, hidden_size, dropout,
                                 skip_connection, proj_size=None, cell_clip=None, proj_clip=None):
