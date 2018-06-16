@@ -167,6 +167,7 @@ class StandardRNN(train.StandardRNN):
         out = self.decoder(encoded)
         return out, state
 
+
 class BiRNN(train.BiRNN):
     """Standard RNN language model.
 
@@ -187,40 +188,19 @@ class BiRNN(train.BiRNN):
     tie_weights : bool, default False
         Whether to tie the weight matrices of output dense layer and input embedding layer.
     """
-    def __init__(self, mode, vocab_size, embed_size, hidden_size, num_layers, dropout, tie_weights,
+    def __init__(self, mode, vocab_size, embed_size, hidden_size, num_layers, dropout,
                  skip_connection, proj_size, proj_clip, cell_clip, **kwargs):
-        if tie_weights:
-            assert embed_size == hidden_size, 'Embedding dimension must be equal to ' \
-                                              'hidden dimension in order to tie weights. ' \
-                                              'Got: emb: {}, hid: {}.'.format(embed_size,
-                                                                              hidden_size)
-        super(BiRNN, self).__init__(mode, vocab_size, embed_size, hidden_size, num_layers, dropout, tie_weights,
-                 skip_connection, proj_size, proj_clip, cell_clip, **kwargs)
+        # if tie_weights:
+        #     assert embed_size == hidden_size, 'Embedding dimension must be equal to ' \
+        #                                       'hidden dimension in order to tie weights. ' \
+        #                                       'Got: emb: {}, hid: {}.'.format(embed_size,
+        #                                                                       hidden_size)
+        super(BiRNN, self).__init__(mode, vocab_size, embed_size, hidden_size, num_layers, dropout,
+                                    skip_connection, proj_size, proj_clip, cell_clip, **kwargs)
 
     def forward(self, inputs, begin_state=None): # pylint: disable=arguments-differ
         """Defines the forward computation. Arguments can be either
         :py:class:`NDArray` or :py:class:`Symbol`."""
-        # if self._char_embedding:
-        #     encoded = self.embedding(inputs)
-        # else:
-        #     encoded = self.embedding(inputs[0]), self.embedding(inputs[1])
-        #
-        # if not begin_state:
-        #     begin_state = self.begin_state(batch_size=inputs.shape[1] if self._char_embedding else inputs[0].shape[1])
-        #
-        # encoded, state = self.encoder(encoded, begin_state)
-        #
-        # if self._dropout:
-        #     encoded_forward = nd.Dropout(encoded[0][-1], p=self._dropout)
-        #     encoded_backward = nd.Dropout(encoded[1][-1], p=self._dropout)
-        # else:
-        #     encoded_forward = encoded[0][-1]
-        #     encoded_backward = encoded[1][-1]
-        #
-        # forward_out = self.decoder(encoded_forward)
-        # backward_out = self.decoder(encoded_backward)
-        #
-        # return (forward_out, backward_out), state
         """Implement forward computation.
 
         Parameters
@@ -242,9 +222,10 @@ class BiRNN(train.BiRNN):
             The list of outputs with dropout of the model's encoder.
         """
 
-        encoded = self.embedding(inputs[0]), self.embedding(inputs[1])
+        encoded = self.embedding_forward(inputs[0]), self.embedding_backward(inputs[1])
 
         if not begin_state:
+            # TODO: check shape
             begin_state = self.begin_state(inputs[0].shape[1])
         ## TODO: check state output
         encoded, state = self.encoder(encoded, begin_state)
@@ -256,8 +237,8 @@ class BiRNN(train.BiRNN):
             encoded_forward = encoded[0][-1]
             encoded_backward = encoded[1][-1]
 
-        forward_out = self.decoder(encoded_forward)
-        backward_out = self.decoder(encoded_backward)
+        forward_out = self.decoder_forward(encoded_forward)
+        backward_out = self.decoder_backward(encoded_backward)
 
         return (forward_out, backward_out), state
 

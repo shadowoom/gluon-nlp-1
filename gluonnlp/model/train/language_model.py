@@ -296,13 +296,13 @@ class BiRNN(Block):
     tie_weights : bool, default False
         Whether to tie the weight matrices of output dense layer and input embedding layer.
     """
-    def __init__(self, mode, vocab_size, embed_size, hidden_size, num_layers, tie_weights=False, dropout=0.5,
+    def __init__(self, mode, vocab_size, embed_size, hidden_size, num_layers, dropout=0.5,
                  skip_connection=False, proj_size=None, proj_clip=None, cell_clip=None, **kwargs):
-        if tie_weights:
-            assert embed_size == hidden_size, 'Embedding dimension must be equal to ' \
-                                              'hidden dimension in order to tie weights. ' \
-                                              'Got: emb: {}, hid: {}.'.format(embed_size,
-                                                                              hidden_size)
+        # if tie_weights:
+        #     assert embed_size == hidden_size, 'Embedding dimension must be equal to ' \
+        #                                       'hidden dimension in order to tie weights. ' \
+        #                                       'Got: emb: {}, hid: {}.'.format(embed_size,
+        #                                                                       hidden_size)
         super(BiRNN, self).__init__(**kwargs)
         self._mode = mode
         self._embed_size = embed_size
@@ -313,19 +313,29 @@ class BiRNN(Block):
         self._cell_clip = cell_clip
         self._num_layers = num_layers
         self._dropout = dropout
-        self._tie_weights = tie_weights
         self._vocab_size = vocab_size
 
         with self.name_scope():
-            self.embedding = self._get_embedding()
+            self.embedding_forward = self._get_embedding_forward()
+            self.embedding_backward = self._get_embedding_backward()
             self.encoder = self._get_encoder()
-            self.decoder = self._get_decoder()
+            self.decoder_forward = self._get_decoder_forward()
+            self.decoder_backward = self._get_decoder_backward()
 
-    def _get_embedding(self):
+    def _get_embedding_forward(self):
         embedding = nn.HybridSequential()
         with embedding.name_scope():
             embedding.add(nn.Embedding(self._vocab_size, self._embed_size,
                                        weight_initializer=init.Uniform(0.1), sparse_grad=True))## TODO check sparse_grad
+            if self._dropout:
+                embedding.add(nn.Dropout(self._dropout))
+        return embedding
+
+    def _get_embedding_backward(self):
+        embedding = nn.HybridSequential()
+        with embedding.name_scope():
+            embedding.add(nn.Embedding(self._vocab_size, self._embed_size,
+                                       params=self.embedding_forward[0].params, sparse_grad=True))## TODO check sparse_grad
             if self._dropout:
                 embedding.add(nn.Dropout(self._dropout))
         return embedding
@@ -335,14 +345,16 @@ class BiRNN(Block):
                            hidden_size=self._hidden_size, dropout=self._dropout, skip_connection=self._skip_connection,
                            proj_size=self._proj_size, cell_clip=self._cell_clip, proj_clip=self._proj_clip)
 
-    def _get_decoder(self):
+    def _get_decoder_forward(self):
         output = nn.HybridSequential()
         with output.name_scope():
-            if self._tie_weights:
-                output.add(nn.Dense(self._vocab_size, flatten=False,
-                                    params=self.embedding[0].params))
-            else:
-                output.add(nn.Dense(self._vocab_size, flatten=False))
+            output.add(nn.Dense(self._vocab_size, flatten=False))
+        return output
+
+    def _get_decoder_backward(self):
+        output = nn.HybridSequential()
+        with output.name_scope():
+            output.add(nn.Dense(self._vocab_size, flatten=False, params=self.decoder_forward[0].params))
         return output
 
     def begin_state(self, *args, **kwargs):
@@ -372,13 +384,13 @@ class BiRNN(Block):
             The list of outputs with dropout of the model's encoder.
         """
         ## TODO: the embedding and decoder of the forward and backward should be tied
-        encoded = self.embedding(inputs[0]), self.embedding(inputs[1])
+        encoded = self.embedding_forward(inputs[0]), self.embedding_backward(inputs[1])
 
         if not begin_state:
             ## TODO: check shape
             begin_state = self.begin_state(inputs[0].shape[1])
         ## TODO: check state output
-        out_states = []
+        # out_states = []
         encoded_raw = []
         encoded_dropped = []
 
@@ -392,7 +404,7 @@ class BiRNN(Block):
             encoded_forward = encoded[0][-1]
             encoded_backward = encoded[1][-1]
 
-        forward_out = self.decoder(encoded_forward)
-        backward_out = self.decoder(encoded_backward)
+        forward_out = self.decoder_forward(encoded_forward)
+        backward_out = self.decoder_backward(encoded_backward)
 
         return (forward_out, backward_out), state, encoded_raw, encoded_dropped

@@ -58,8 +58,6 @@ parser.add_argument('--bptt', type=int, default=35,
                     help='sequence length')
 parser.add_argument('--dropout', type=float, default=0.5,
                     help='dropout applied to layers (0 = no dropout)')
-parser.add_argument('--tied', action='store_true',
-                    help='tie the word embedding and softmax weights')
 parser.add_argument('--log-interval', type=int, default=200, metavar='N',
                     help='report interval')
 parser.add_argument('--save', type=str, default='model.params',
@@ -106,7 +104,7 @@ assert args.batch_size % len(context) == 0, \
     'Total batch size must be multiple of the number of devices'
 
 assert args.weight_dropout > 0 or (args.weight_dropout == 0 and args.alpha == 0), \
-    'The alpha L2 regularization cannot be used with standard RNN, please set alpha to 0'
+    'The alpha L2 regularization cannot be used with Bidirectional RNN, please set alpha to 0'
 
 train_dataset, val_dataset, test_dataset = \
     [nlp.data.WikiText2(segment=segment,
@@ -114,14 +112,12 @@ train_dataset, val_dataset, test_dataset = \
      for segment in ['train', 'val', 'test']]
 
 vocab = nlp.Vocab(counter=nlp.data.Counter(train_dataset[0]), padding_token=None, bos_token=None)
-train_data, val_data, test_data = [x.batchify(vocab, args.batch_size)
-                                   for x in [train_dataset, val_dataset, test_dataset]]
 
-# train_data = train_dataset.batchify(vocab, args.batch_size)
-# val_batch_size = 10
-# val_data = val_dataset.batchify(vocab, val_batch_size)
-# test_batch_size = 1
-# test_data = test_dataset.batchify(vocab, test_batch_size)
+train_data = train_dataset.batchify(vocab, args.batch_size)
+val_batch_size = 10
+val_data = val_dataset.batchify(vocab, val_batch_size)
+test_batch_size = 1
+test_data = test_dataset.batchify(vocab, test_batch_size)
 
 if args.test_mode:
     args.emsize = 200
@@ -141,10 +137,11 @@ print(args)
 
 ntokens = len(vocab)
 
-model = nlp.model.train.BiRNN(args.model, len(vocab), args.emsize, args.nhid, args.nlayers, args.tied, args.dropout,
-                                       args.skip_connection, args.projsize, args.projclip, args.cellclip)
-model_eval = nlp.model.BiRNN(args.model, len(vocab), args.emsize, args.nhid, args.nlayers, args.tied, args.dropout,
-                                       args.skip_connection, args.projsize, args.projclip, args.cellclip)
+model_eval = nlp.model.BiRNN(args.model, len(vocab), args.emsize, args.nhid, args.nlayers, args.dropout,
+                             args.skip_connection, args.projsize, args.projclip, args.cellclip)
+model = nlp.model.train.BiRNN(args.model, len(vocab), args.emsize, args.nhid, args.nlayers, args.dropout,
+                              args.skip_connection, args.projsize, args.projclip, args.cellclip)
+
 print(model)
 model.initialize(mx.init.Xavier(), ctx=context)
 
@@ -160,38 +157,74 @@ elif args.optimizer == 'adam':
                       'epsilon': 1e-9}
 
 trainer = gluon.Trainer(model.collect_params(), args.optimizer, trainer_params)
+
 loss = gluon.loss.SoftmaxCrossEntropyLoss()
+ar_loss = nlp.loss.ActivationRegularizationLoss(args.alpha)
+tar_loss = nlp.loss.TemporalActivationRegularizationLoss(args.beta)
+
+
+class JointActivationRegularizationLoss(gluon.loss.Loss):
+    r"""Computes Joint Regularization Loss with standard loss.
+
+    The activation regularization refer to
+    gluonnlp.loss.ActivationRegularizationLoss.
+
+    The temporal activation regularization refer to
+    gluonnlp.loss.TemporalActivationRegularizationLoss.
+
+    Parameters
+    ----------
+    loss : gluon.loss.Loss
+        The standard loss
+    ar_loss: gluonnlp.loss.ActivationRegularizationLoss
+        The activation regularization
+    tar_loss: gluonnlp.loss.TemporalActivationRegularizationLoss
+        The temporal activation regularization
+
+    Inputs:
+        - **out**: NDArray
+        output tensor with shape `(sequence_length, batch_size, input_size)`
+          when `layout` is "TNC".
+        - **target**: NDArray
+        target tensor with shape `(sequence_length, batch_size, input_size)`
+          when `layout` is "TNC".
+        - **states**: the stack outputs from RNN,
+        which consists of output from each time step (TNC).
+        - **dropped_states**: the stack outputs from RNN with dropout,
+        which consists of output from each time step (TNC).
+
+    Outputs:
+        - **loss**: loss tensor with shape (batch_size,). Dimensions other than
+          batch_axis are averaged out.
+    """
+
+    def __init__(self, l, ar_l, tar_l, weight=None, batch_axis=None, **kwargs):
+        super(JointActivationRegularizationLoss, self).__init__(weight, batch_axis, **kwargs)
+        self._loss = l
+        self._ar_loss = ar_l
+        self._tar_loss = tar_l
+
+    def __repr__(self):
+        s = 'JointActivationTemporalActivationRegularizationLoss'
+        return s
+
+    def hybrid_forward(self, F, out, target, states, dropped_states): # pylint: disable=arguments-differ
+        # pylint: disable=unused-argument
+        l = self._loss(out.reshape(-3, -1), target.reshape(-1,))
+        l = l + self._ar_loss(*dropped_states)
+        l = l + self._tar_loss(*states)
+        return l
+
+
+joint_loss = JointActivationRegularizationLoss(loss, ar_loss, tar_loss)
 
 ###############################################################################
 # Training code
 ###############################################################################
 
-def get_batch(data_source, i, seq_len=None):
-    """Get mini-batches of the dataset.
-
-    Parameters
-    ----------
-    data_source : NDArray
-        The dataset is evaluated on.
-    i : int
-        The index of the batch, starting from 0.
-    seq_len : int
-        The length of each sample in the batch.
-    Returns
-    -------
-    data: NDArray
-        The context
-    target: NDArray
-        The words to predict
-    """
-    seq_len = min(seq_len if seq_len else args.bptt, len(data_source) - 1 - i)
-    data = data_source[i:i+seq_len]
-    target = data_source[i+1:i+1+seq_len]
-    return data, target
 
 def detach(hidden):
     """Transfer hidden states into new states, to detach them from the history.
-
     Parameters
     ----------
     hidden : NDArray
@@ -207,6 +240,32 @@ def detach(hidden):
         hidden = hidden.detach()
     return hidden
 
+
+def get_batch(data_source, i, seq_len=None):
+    """Get mini-batches of the dataset.
+
+    Parameters
+    ----------
+    data_source : NDArray
+        The dataset is evaluated on.
+    i : int
+        The index of the batch, starting from 0.
+    seq_len : int
+        The length of each sample in the batch.
+
+    Returns
+    -------
+    data: NDArray
+        The context
+    target: NDArray
+        The words to predict
+    """
+    seq_len = min(seq_len if seq_len else args.bptt, len(data_source) - 1 - i)
+    data = data_source[i:i+seq_len]
+    target = data_source[i+1:i+1+seq_len]
+    return data, target
+
+
 def evaluate(data_source, batch_size, segment, ctx=None):
     """Evaluate the model on the dataset.
 
@@ -216,6 +275,8 @@ def evaluate(data_source, batch_size, segment, ctx=None):
         The dataset is evaluated on.
     batch_size : int
         The size of the mini-batch.
+    segment : str
+        The dataset to evaluate, which can be val or test
     ctx : mx.cpu() or mx.gpu()
         The context of the computation.
 
@@ -230,56 +291,19 @@ def evaluate(data_source, batch_size, segment, ctx=None):
         model_eval.load_params(args.save + '.val', context)
     elif segment == 'test':
         model_eval.load_params(args.save, context)
-    hidden = model.begin_state(batch_size, func=mx.nd.zeros, ctx=context[0])
+    hidden = model_eval.begin_state(batch_size, func=mx.nd.zeros, ctx=context[0])
     for i in range(0, len(data_source) - 1, args.bptt):
         data, target = get_batch(data_source, i)
         data = data.as_in_context(ctx)
         target = target.as_in_context(ctx)
-        output, hidden = model((data, target), hidden)
+        output, hidden = model_eval(data, hidden)
         hidden = detach(hidden)
-        L = loss(output[0].reshape(-3, -1),
+        L = loss(output.reshape(-3, -1),
                  target.reshape(-1,))
-        total_L += mx.nd.sum(L).asscalar()
-        ntotal += L.size
-
-        L = loss(output[1].reshape(-3, -1),
-                 data.reshape(-1,))
         total_L += mx.nd.sum(L).asscalar()
         ntotal += L.size
     return total_L / ntotal
 
-def criterion(output, target, encoder_hs, dropped_encoder_hs):
-    """Compute regularized (optional) loss of the language model in training mode.
-
-        Parameters
-        ----------
-        output: NDArray
-            The output of the model.
-        target: list
-            The list of output states of the model's encoder.
-        encoder_hs: list
-            The list of outputs of the model's encoder.
-        dropped_encoder_hs: list
-            The list of outputs with dropout of the model's encoder.
-
-        Returns
-        -------
-        l: NDArray
-            The loss per word/token.
-            If both args.alpha and args.beta are zeros, the loss is the standard cross entropy.
-            If args.alpha is not zero, the standard loss is regularized with activation.
-            If args.beta is not zero, the standard loss is regularized with temporal activation.
-    """
-    l = loss(output.reshape(-3, -1), target.reshape(-1,))
-    if args.alpha:
-        dropped_means = [args.alpha*dropped_encoder_h.__pow__(2).mean()
-                         for dropped_encoder_h in dropped_encoder_hs[-1:]]
-        l = l + mx.nd.add_n(*dropped_means)
-    if args.beta:
-        means = [args.beta*(encoder_h[1:] - encoder_h[:-1]).__pow__(2).mean()
-                 for encoder_h in encoder_hs[-1:]]
-        l = l + mx.nd.add_n(*means)
-    return l
 
 def train():
     """Training loop for bi-language model.
@@ -306,11 +330,11 @@ def train():
             with autograd.record():
                 for j, (X, y, h) in enumerate(zip(data_list, target_list, hiddens)):
                     output, h, encoder_hs, dropped_encoder_hs = model((X, y), h)
-                    l = criterion(output[0], y, encoder_hs, dropped_encoder_hs)
+                    l = joint_loss(output[0], y, encoder_hs, dropped_encoder_hs)
                     L = L + l.as_in_context(context[0]) / X.size
                     Ls.append(l / X.size)
 
-                    l = criterion(output[1], X, encoder_hs, dropped_encoder_hs)
+                    l = joint_loss(output[1], X, encoder_hs, dropped_encoder_hs)
                     L = L + l.as_in_context(context[0]) / X.size
                     Ls.append(l / X.size)
 
@@ -321,7 +345,7 @@ def train():
 
             trainer.step(1)
 
-            total_L += sum([mx.nd.sum(L).asscalar() for L in Ls])
+            total_L += sum([mx.nd.sum(L).asscalar() for L in Ls]) / len(context)
             if batch_i % args.log_interval == 0 and batch_i > 0:
                 cur_L = total_L / args.log_interval
                 print('[Epoch %d Batch %d/%d] loss %.2f, ppl %.2f, '
@@ -339,7 +363,7 @@ def train():
         print('[Epoch %d] throughput %.2f samples/s'%(
             epoch, (args.batch_size * len(train_data)) / (time.time() - start_epoch_time)))
         model.save_params(args.save + '.val')
-        val_L = evaluate(val_data, args.batch_size, 'val', context[0])
+        val_L = evaluate(val_data, val_batch_size, 'val', context[0])
         print('[Epoch %d] time cost %.2fs, valid loss %.2f, valid ppl %.2f'%(
             epoch, time.time()-start_epoch_time, val_L, math.exp(val_L)))
 
@@ -347,7 +371,7 @@ def train():
             update_lr_epoch = 0
             best_val = val_L
             model.save_params(args.save)
-            test_L = evaluate(test_data, args.batch_size, 'test', context[0])
+            test_L = evaluate(test_data, test_batch_size, 'test', context[0])
             print('test loss %.2f, test ppl %.2f'%(test_L, math.exp(test_L)))
         else:
             update_lr_epoch += 1
@@ -366,8 +390,8 @@ if __name__ == '__main__':
     if not args.eval_only:
         train()
     model.load_params(args.save, context)
-    final_val_L = evaluate(val_data, args.batch_size, 'test', context[0])
-    final_test_L = evaluate(test_data, args.batch_size, 'test', context[0])
+    final_val_L = evaluate(val_data, val_batch_size, 'test', context[0])
+    final_test_L = evaluate(test_data, test_batch_size, 'test', context[0])
     print('Best validation loss %.2f, val ppl %.2f'%(final_val_L, math.exp(final_val_L)))
     print('Best test loss %.2f, test ppl %.2f'%(final_test_L, math.exp(final_test_L)))
     print('Total time cost %.2fs'%(time.time()-start_pipeline_time))

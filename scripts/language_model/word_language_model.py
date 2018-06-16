@@ -248,6 +248,7 @@ joint_loss = JointActivationRegularizationLoss(loss, ar_loss, tar_loss)
 # Training code
 ###############################################################################
 
+
 def detach(hidden):
     """Transfer hidden states into new states, to detach them from the history.
     Parameters
@@ -358,7 +359,7 @@ def train():
             L = 0
             with autograd.record():
                 for j, (X, y, h) in enumerate(zip(data_list, target_list, hiddens)):
-                    output, h, encoder_hs, dropped_encoder_hs = model.forward(X, h)
+                    output, h, encoder_hs, dropped_encoder_hs = model(X, h)
                     l = joint_loss(output, y, encoder_hs, dropped_encoder_hs)
                     L = L + l.as_in_context(context[0]) / X.size
                     Ls.append(l/X.size)
@@ -414,6 +415,7 @@ if __name__ == '__main__':
     start_pipeline_time = time.time()
     if not args.eval_only:
         train()
+    model.load_params(args.save, context)
     final_val_L = evaluate(val_data, val_batch_size, 'test', context[0])
     final_test_L = evaluate(test_data, test_batch_size, 'test', context[0])
     print('Best validation loss %.2f, val ppl %.2f'%(final_val_L, math.exp(final_val_L)))
