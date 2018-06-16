@@ -43,8 +43,8 @@ class BiLMEncoder(gluon.Block):
 
         with self.name_scope():
             lstm_input_size = self._input_size
-            self._forward_layers = nn.HybridSequential()
-            with self._forward_layers.name_scope():
+            self.forward_layers = nn.Sequential()
+            with self.forward_layers.name_scope():
                 for layer_index in range(self._num_layers):
                     forward_layer = _get_rnn_cell_clip_residual(mode=self._mode,
                                                                 num_layers=1,
@@ -63,12 +63,12 @@ class BiLMEncoder(gluon.Block):
 
                     #TODO: check
                     # lstm_input_size = proj_size if mode == 'lstmp' else hidden_size
-                    self._forward_layers.add(forward_layer)
+                    self.forward_layers.add(forward_layer)
                     lstm_input_size = hidden_size
 
             lstm_input_size = self._input_size
-            self._backward_layers = nn.HybridSequential()
-            with self._backward_layers.name_scope():
+            self.backward_layers = nn.Sequential()
+            with self.backward_layers.name_scope():
                 for layer_index in range(self._num_layers):
                     backward_layer = _get_rnn_cell_clip_residual(mode=self._mode,
                                                                  num_layers=1,
@@ -81,12 +81,19 @@ class BiLMEncoder(gluon.Block):
                                                                  proj_size=self._proj_size,
                                                                  cell_clip=self._cell_clip,
                                                                  proj_clip=self._proj_clip)
-                    self._backward_layers.add(backward_layer)
+                    self.backward_layers.add(backward_layer)
                     lstm_input_size = hidden_size
 
     def begin_state(self, *args, **kwargs):
-        return [forward_layer.begin_state(*args, **kwargs) for _, forward_layer in enumerate(self._forward_layers)],\
-               [backward_layer.begin_state(*args, **kwargs) for _, backward_layer in enumerate(self._backward_layers)]
+        # [print(forward_layer) for _, forward_layer in enumerate(self.forward_layers)]
+        # return
+        # [print((forward_layer[i], len(forward_layer))) for _, forward_layer in enumerate(self.forward_layers)
+        #  for i in range(len(forward_layer))]
+        # return
+        return [forward_layer[cell_index].begin_state(*args, **kwargs) for _, forward_layer in enumerate(self.forward_layers)
+                for cell_index in range(len(forward_layer))],\
+               [backward_layer[cell_index].begin_state(*args, **kwargs) for _, backward_layer in enumerate(self.backward_layers)
+                for cell_index in range(len(backward_layer))]
 
     def forward(self, inputs, states):
         #TODO: check seq_len
@@ -106,10 +113,10 @@ class BiLMEncoder(gluon.Block):
             outputs_forward.append([])
             for token_index in range(seq_len):
                 if layer_index == 0:
-                    output, states_forward[layer_index] = self._forward_layers[layer_index](
+                    output, states_forward[layer_index] = self.forward_layers[layer_index](
                         inputs[0][token_index], states_forward[layer_index])
                 else:
-                    output, states_forward[layer_index] = self._forward_layers[layer_index](
+                    output, states_forward[layer_index] = self.forward_layers[layer_index](
                         outputs_forward[layer_index-1][token_index], states_forward[layer_index])
                 outputs_forward[layer_index].append(output)
 
@@ -117,10 +124,10 @@ class BiLMEncoder(gluon.Block):
             outputs_backward.append([None] * seq_len)
             for token_index in reversed(range(seq_len)):
                 if layer_index == 0:
-                    output, states_backward[layer_index] = self._backward_layers[layer_index](
+                    output, states_backward[layer_index] = self.backward_layers[layer_index](
                         inputs[1][token_index], states_backward[layer_index])
                 else:
-                    output, states_backward[layer_index] = self._backward_layers[layer_index](
+                    output, states_backward[layer_index] = self.backward_layers[layer_index](
                         outputs_backward[layer_index-1][token_index], states_backward[layer_index])
                 outputs_backward[layer_index][token_index] = output
 

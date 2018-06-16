@@ -103,7 +103,7 @@ context = [mx.cpu()] if args.gpus is None or args.gpus == '' else \
 assert args.batch_size % len(context) == 0, \
     'Total batch size must be multiple of the number of devices'
 
-assert args.weight_dropout > 0 or (args.weight_dropout == 0 and args.alpha == 0), \
+assert args.alpha == 0, \
     'The alpha L2 regularization cannot be used with Bidirectional RNN, please set alpha to 0'
 
 train_dataset, val_dataset, test_dataset = \
