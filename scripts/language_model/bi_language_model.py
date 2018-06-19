@@ -81,11 +81,11 @@ parser.add_argument('--alpha', type=float, default=0,
 parser.add_argument('--beta', type=float, default=0,
                     help='beta slowness regularization applied on RNN activiation '
                          '(beta = 0 means no regularization)')
-parser.add_argument('--cellclip', type=float, default=0,
+parser.add_argument('--cellclip', type=float, default=None,
                     help='clip cell state between [-cellclip, projclip] in LSTMPCellWithClip')
 parser.add_argument('--projsize', type=int, default=0,
                     help='projection of nhid to projsize in LSTMPCellWithClip')
-parser.add_argument('--projclip', type=float, default=0,
+parser.add_argument('--projclip', type=float, default=None,
                     help='clip projection between [-projclip, projclip] in LSTMPCellWithClip')
 parser.add_argument('--skip_connection', action='store_true',
                     help='add skip connections (add cell input to output)')
