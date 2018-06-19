@@ -93,6 +93,8 @@ class LSTMPCellWithClip(LSTMPCell):
     def hybrid_forward(self, F, inputs, states, i2h_weight,
                        h2h_weight, h2r_weight, i2h_bias, h2h_bias):
         prefix = 't%d_'%self._counter
+        print('states=')
+        print(states)
         i2h = F.FullyConnected(data=inputs, weight=i2h_weight, bias=i2h_bias,
                                num_hidden=self._hidden_size*4, name=prefix+'i2h')
         h2h = F.FullyConnected(data=states[0], weight=h2h_weight, bias=h2h_bias,
@@ -106,6 +108,7 @@ class LSTMPCellWithClip(LSTMPCell):
         next_c = F._internal._plus(forget_gate * states[1], in_gate * in_transform,
                                    name=prefix+'state')
         if self._cell_clip is not None:
+            print(self._cell_clip)
             F.clip(next_c, a_min=-self._cell_clip, a_max=self._cell_clip, out=next_c)
         hidden = F._internal._mul(out_gate, F.Activation(next_c, act_type="tanh"),
                                   name=prefix+'hidden')
