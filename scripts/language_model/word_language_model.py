@@ -344,6 +344,11 @@ def train():
         hiddens = [model.begin_state(args.batch_size//len(context),
                                      func=mx.nd.zeros, ctx=ctx) for ctx in context]
         batch_i, i = 0, 0
+        # TODO: asgd
+        t = 0
+        T = 0
+        n = 0
+        logs = []
         while i < len(train_data) - 1 - 1:
             bptt = args.bptt if mx.nd.random.uniform().asscalar() < 0.95 else args.bptt / 2
             seq_len = max(5, int(mx.nd.random.normal(bptt, 5).asscalar()))
@@ -367,7 +372,17 @@ def train():
             grads = [p.grad(d.context) for p in parameters for d in data_list]
             gluon.utils.clip_global_norm(grads, args.clip)
 
+            #TODO: asgd
+            param_dict_batch_i = model.collect_params()
+
             trainer.step(1)
+
+            # TODO: asgd
+            alpha = 1.0 / max(1, batch_i - T + 1)
+            if param_dict_avg == None:
+                param_dict_avg = model.collect_params()
+            for name, param_avg in param_dict_avg.items():
+                param_dict_avg[:] += alpha * param_avg + alpha * param_dict_batch_i[name].data(context[0])
 
             total_L += sum([mx.nd.sum(L).asscalar() for L in Ls]) / len(context)
             trainer.set_learning_rate(lr_batch_start)
@@ -388,9 +403,18 @@ def train():
         print('[Epoch %d] throughput %.2f samples/s'%(
             epoch, (args.batch_size * len(train_data)) / (time.time() - start_epoch_time)))
         model.save_params(args.save + '.val')
-        val_L = evaluate(val_data, val_batch_size, 'val', context[0])
-        print('[Epoch %d] time cost %.2fs, valid loss %.2f, valid ppl %.2f'%(
-            epoch, time.time()-start_epoch_time, val_L, math.exp(val_L)))
+
+        #TODO: asgd
+        if batch_i % args.log_interval == 0 and T == 0:
+            val_L = evaluate(val_data, val_batch_size, 'val', context[0])
+            print('[Epoch %d] time cost %.2fs, valid loss %.2f, valid ppl %.2f'%(
+                epoch, time.time()-start_epoch_time, val_L, math.exp(val_L)))
+            if t > n and val_L > min(*(logs[t-n:n])):
+                T = batch_i
+            logs.append(val_L)
+            t += 1
+        for k, v in model.collect_params().items():
+            v.set_data(param_dict_avg[k])
 
         if val_L < best_val:
             update_lr_epoch = 0
