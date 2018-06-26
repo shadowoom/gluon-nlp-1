@@ -389,9 +389,11 @@ def train():
 
                 model.save_params(args.save + '.val')
                 val_L = evaluate(val_data, val_batch_size, 'val', context[0])
-                print('[Epoch %d Batch %d/%d] current loss %.2f, ppl %.2f, valid loss %.2f, valid ppl %.2f,'
+                print('[Epoch %d Batch %d/%d] current loss %.2f, ppl %.2f, '
+                      'valid loss %.2f, valid ppl %.2f, '
                       'throughput %.2f samples/s, lr %.2f'
-                      %(epoch, batch_i, len(train_data)//args.bptt, cur_L, math.exp(cur_L), val_L, math.exp(val_L),
+                      %(epoch, batch_i, len(train_data)//args.bptt, cur_L, math.exp(cur_L),
+                        val_L, math.exp(val_L),
                         args.batch_size*args.log_interval/(time.time()-start_log_interval_time),
                         lr_batch_start*seq_len/args.bptt))
                 if t > n and math.exp(val_L) > min(logs[-n:]):
