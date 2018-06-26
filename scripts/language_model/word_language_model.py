@@ -83,8 +83,8 @@ parser.add_argument('--weight_dropout', type=float, default=0.5,
                     help='weight dropout applied to h2h weight matrix (0 = no weight dropout)')
 parser.add_argument('--tied', action='store_true',
                     help='tie the word embedding and softmax weights')
-parser.add_argument('--log-interval', type=int, default=200, metavar='N',
-                    help='report interval')
+parser.add_argument('--log-interval', type=int, default=372, metavar='N',
+                    help='report interval')#372
 parser.add_argument('--save', type=str, default='model.params',
                     help='path to save the final model')
 parser.add_argument('--eval_only', action='store_true',
@@ -337,6 +337,8 @@ def train():
     best_val = float('Inf')
     start_train_time = time.time()
     parameters = model.collect_params().values()
+    model.collect_params().zero_grad()
+    param_dict_avg = None
     for epoch in range(args.epochs):
         total_L = 0.0
         start_epoch_time = time.time()
@@ -346,8 +348,8 @@ def train():
         batch_i, i = 0, 0
         # TODO: asgd
         t = 0
-        T = 0
-        n = 0
+        avg_trigger = 0
+        n = 5
         logs = []
         while i < len(train_data) - 1 - 1:
             bptt = args.bptt if mx.nd.random.uniform().asscalar() < 0.95 else args.bptt / 2
@@ -359,6 +361,7 @@ def train():
             data_list = gluon.utils.split_and_load(data, context, batch_axis=1, even_split=True)
             target_list = gluon.utils.split_and_load(target, context, batch_axis=1, even_split=True)
             hiddens = detach(hiddens)
+            model.collect_params().zero_grad()
             Ls = []
             L = 0
             with autograd.record():
@@ -366,33 +369,83 @@ def train():
                     output, h, encoder_hs, dropped_encoder_hs = model(X, h)
                     l = joint_loss(output, y, encoder_hs, dropped_encoder_hs)
                     L = L + l.as_in_context(context[0]) / X.size
-                    Ls.append(l/X.size)
+                    Ls.append(l / X.size)
                     hiddens[j] = h
             L.backward()
             grads = [p.grad(d.context) for p in parameters for d in data_list]
             gluon.utils.clip_global_norm(grads, args.clip)
 
             #TODO: asgd
-            param_dict_batch_i = model.collect_params()
+            param_dict_batch_i = {k: v.data(context[0]).copy()
+                                  for k, v in model.collect_params().items()}
+            # model.collect_params().zero_grad()
+            # param_dict_batch_i = model.collect_params()
+
+            # print('param_dict_batch_i:')
+            # for k, v in param_dict_batch_i.items():
+            #     print('k:')
+            #     print(k)
+            #     print('v:')
+            #     print(v)
 
             trainer.step(1)
 
+            # print('param_dict_avg:')
+            # for k, v in model.collect_params().items():
+            #     print('k:')
+            #     print(k)
+            #     print('v:')
+            #     print(v.data())
+            #
+            # print('param_dict_batch_i:')
+            # for k, v in param_dict_batch_i.items():
+            #     print('k:')
+            #     print(k)
+            #     print('v:')
+            #     print(v)
+
             # TODO: asgd
-            alpha = 1.0 / max(1, batch_i - T + 1)
-            if param_dict_avg == None:
-                param_dict_avg = model.collect_params()
+            alpha = 1.0 / max(1, batch_i - avg_trigger + 1)
+            if param_dict_avg is None:
+                param_dict_avg = {k: v.data(context[0]).copy()
+                                  for k, v in model.collect_params().items()}
+            # TODO: check gradient
+            # param_dict_avg.zero_grad()
             for name, param_avg in param_dict_avg.items():
-                param_dict_avg[:] += alpha * param_avg + alpha * param_dict_batch_i[name].data(context[0])
+                param_avg[:] += alpha * (param_dict_batch_i[name] - param_avg)
+
+            # print('param_dict_avg:')
+            # for k, v in param_dict_avg.items():
+            #     print('k:')
+            #     print(k)
+            #     print('v:')
+            #     print(v)
 
             total_L += sum([mx.nd.sum(L).asscalar() for L in Ls]) / len(context)
             trainer.set_learning_rate(lr_batch_start)
-            if batch_i % args.log_interval == 0 and batch_i > 0:
+            if batch_i % args.log_interval == 0 and avg_trigger == 0:
                 cur_L = total_L / args.log_interval
-                print('[Epoch %d Batch %d/%d] loss %.2f, ppl %.2f, '
+
+                # TODO: asgd
+                model.save_params(args.save + '.val')
+                val_L = evaluate(val_data, val_batch_size, 'val', context[0])
+                # print('[Epoch %d Batch %d/%d] time cost %.2fs, valid loss %.2f, valid ppl %.2f' % (
+                #     epoch, batch_i, len(train_data)//args.bptt, time.time() - start_epoch_time, val_L, math.exp(val_L)))
+                print('[Epoch %d Batch %d/%d] current loss %.2f, ppl %.2f, valid loss %.2f, valid ppl %.2f'
                       'throughput %.2f samples/s, lr %.2f'
-                      %(epoch, batch_i, len(train_data)//args.bptt, cur_L, math.exp(cur_L),
+                      %(epoch, batch_i, len(train_data)//args.bptt, cur_L, math.exp(cur_L), val_L, math.exp(val_L),
                         args.batch_size*args.log_interval/(time.time()-start_log_interval_time),
                         lr_batch_start*seq_len/args.bptt))
+                if t > n and math.exp(val_L) > min(logs[-n:]):
+                    param_dict_avg = param_dict_batch_i
+                    avg_trigger = batch_i
+                    print('avg_trigger:')
+                    print(avg_trigger)
+                    print('param_dict_avg')
+                    print(param_dict_avg)
+                logs.append(math.exp(val_L))
+                t += 1
+
                 total_L = 0.0
                 start_log_interval_time = time.time()
             i += seq_len
@@ -402,33 +455,25 @@ def train():
 
         print('[Epoch %d] throughput %.2f samples/s'%(
             epoch, (args.batch_size * len(train_data)) / (time.time() - start_epoch_time)))
-        model.save_params(args.save + '.val')
 
         #TODO: asgd
-        if batch_i % args.log_interval == 0 and T == 0:
-            val_L = evaluate(val_data, val_batch_size, 'val', context[0])
-            print('[Epoch %d] time cost %.2fs, valid loss %.2f, valid ppl %.2f'%(
-                epoch, time.time()-start_epoch_time, val_L, math.exp(val_L)))
-            if t > n and val_L > min(*(logs[t-n:n])):
-                T = batch_i
-            logs.append(val_L)
-            t += 1
         for k, v in model.collect_params().items():
             v.set_data(param_dict_avg[k])
-
+        model.save_params(args.save + '.val')
+        val_L = evaluate(val_data, val_batch_size, 'val', context[0])
         if val_L < best_val:
-            update_lr_epoch = 0
+            # update_lr_epoch = 0
             best_val = val_L
             model.save_params(args.save)
             test_L = evaluate(test_data, test_batch_size, 'test', context[0])
             print('test loss %.2f, test ppl %.2f'%(test_L, math.exp(test_L)))
-        else:
-            update_lr_epoch += 1
-            if update_lr_epoch % args.lr_update_interval == 0 and update_lr_epoch != 0:
-                lr_scale = trainer.learning_rate * args.lr_update_factor
-                print('Learning rate after interval update %f'%(lr_scale))
-                trainer.set_learning_rate(lr_scale)
-                update_lr_epoch = 0
+        # else:
+        #     update_lr_epoch += 1
+        #     if update_lr_epoch % args.lr_update_interval == 0 and update_lr_epoch != 0:
+        #         lr_scale = trainer.learning_rate * args.lr_update_factor
+        #         print('Learning rate after interval update %f'%(lr_scale))
+        #         trainer.set_learning_rate(lr_scale)
+        #         update_lr_epoch = 0
 
     print('Total training throughput %.2f samples/s'
           %((args.batch_size * len(train_data) * args.epochs) / (time.time() - start_train_time)))
