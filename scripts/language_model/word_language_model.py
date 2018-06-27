@@ -80,7 +80,7 @@ parser.add_argument('--weight_dropout', type=float, default=0.5,
 parser.add_argument('--tied', action='store_true',
                     help='tie the word embedding and softmax weights')
 parser.add_argument('--log-interval', type=int, default=372, metavar='N',
-                    help='report interval')#372
+                    help='report interval')
 parser.add_argument('--save', type=str, default='model.params',
                     help='path to save the final model')
 parser.add_argument('--eval_only', action='store_true',
@@ -102,6 +102,8 @@ parser.add_argument('--alpha', type=float, default=2,
 parser.add_argument('--beta', type=float, default=1,
                     help='beta slowness regularization applied on RNN activiation '
                          '(beta = 0 means no regularization)')
+parser.add_argument('--ntasgd', action='store_false',
+                    help='Whether to apply ntasgd')
 parser.add_argument('--test_mode', action='store_true',
                     help='Whether to run through the script with few examples')
 args = parser.parse_args()
@@ -310,9 +312,12 @@ def evaluate(data_source, batch_size, segment, ctx=None):
     total_L = 0.0
     ntotal = 0
     if segment == 'val':
-        model_eval.load_params(args.save + '.val', context)
+        model_eval.load_params(args.save + '.val.params', context)
     elif segment == 'test':
-        model_eval.load_params(args.save, context)
+        if args.ntasgd:
+            model_eval.load_params(args.save, context)
+        else:
+            model_eval.load_params(args.save + '.best.params', context)
     hidden = model_eval.begin_state(batch_size, func=mx.nd.zeros, ctx=context[0])
     for i in range(0, len(data_source) - 1, args.bptt):
         data, target = get_batch(data_source, i)
@@ -336,6 +341,10 @@ def train():
     parameters = model.collect_params().values()
     model.collect_params().zero_grad()
     param_dict_avg = None
+    t = 0
+    avg_trigger = 0
+    n = 5
+    logs = []
     for epoch in range(args.epochs):
         total_L = 0.0
         start_epoch_time = time.time()
@@ -343,10 +352,6 @@ def train():
         hiddens = [model.begin_state(args.batch_size//len(context),
                                      func=mx.nd.zeros, ctx=ctx) for ctx in context]
         batch_i, i = 0, 0
-        t = 0
-        avg_trigger = 0
-        n = 5
-        logs = []
         while i < len(train_data) - 1 - 1:
             bptt = args.bptt if mx.nd.random.uniform().asscalar() < 0.95 else args.bptt / 2
             seq_len = max(5, int(mx.nd.random.normal(bptt, 5).asscalar()))
@@ -357,37 +362,40 @@ def train():
             data_list = gluon.utils.split_and_load(data, context, batch_axis=1, even_split=True)
             target_list = gluon.utils.split_and_load(target, context, batch_axis=1, even_split=True)
             hiddens = detach(hiddens)
-            model.collect_params().zero_grad()
             Ls = []
-            L = 0
+            # L = 0
             with autograd.record():
                 for j, (X, y, h) in enumerate(zip(data_list, target_list, hiddens)):
                     output, h, encoder_hs, dropped_encoder_hs = model(X, h)
                     l = joint_loss(output, y, encoder_hs, dropped_encoder_hs)
-                    L = L + l.as_in_context(context[0]) / X.size
-                    Ls.append(l / X.size)
+                    # L = L + l.as_in_context(context[0]) / X.size
+                    Ls.append(l.as_in_context(context[0]) / X.size)
                     hiddens[j] = h
-            L.backward()
+            for L in Ls:
+                L.backward()
             grads = [p.grad(d.context) for p in parameters for d in data_list]
             gluon.utils.clip_global_norm(grads, args.clip)
 
-            param_dict_batch_i = {k: v.data(context[0]).copy()
-                                  for k, v in model.collect_params().items()}
-            trainer.step(1)
-
-            alpha = 1.0 / max(1, batch_i - avg_trigger + 1)
+            # param_dict_batch_i = {k: v.data(context[0]).copy()
+            #                       for k, v in model.collect_params().items()}
             if param_dict_avg is None:
                 param_dict_avg = {k: v.data(context[0]).copy()
                                   for k, v in model.collect_params().items()}
+
+            trainer.step(1)
+
+            gamma = 1.0 / max(1, batch_i - avg_trigger + 1)
+            param_dict_batch_i = model.collect_params()
+            param_dict_batch_i.zero_grad()
             for name, param_avg in param_dict_avg.items():
-                param_avg[:] += alpha * (param_dict_batch_i[name] - param_avg)
+                param_avg[:] += gamma * (param_dict_batch_i[name].data(context[0]) - param_avg)
 
             total_L += sum([mx.nd.sum(L).asscalar() for L in Ls]) / len(context)
             trainer.set_learning_rate(lr_batch_start)
             if batch_i % args.log_interval == 0 and avg_trigger == 0:
                 cur_L = total_L / args.log_interval
 
-                model.save_params(args.save + '.val')
+                model.save_params(args.save + '.val.params')
                 val_L = evaluate(val_data, val_batch_size, 'val', context[0])
                 print('[Epoch %d Batch %d/%d] current loss %.2f, ppl %.2f, '
                       'valid loss %.2f, valid ppl %.2f, '
@@ -396,8 +404,14 @@ def train():
                         val_L, math.exp(val_L),
                         args.batch_size*args.log_interval/(time.time()-start_log_interval_time),
                         lr_batch_start*seq_len/args.bptt))
+                if val_L < best_val:
+                    best_val = val_L
+                    model.save_params(args.save + '.best.params')
+                    test_L = evaluate(test_data, test_batch_size, 'test', context[0])
+                    print('test loss %.2f, test ppl %.2f' % (test_L, math.exp(test_L)))
                 if t > n and math.exp(val_L) > min(logs[-n:]):
-                    param_dict_avg = param_dict_batch_i
+                    for k, v in model.collect_params().items():
+                        param_dict_avg[k] = v.data(context[0]).copy()
                     avg_trigger = batch_i
                 logs.append(math.exp(val_L))
                 t += 1
@@ -412,16 +426,10 @@ def train():
         print('[Epoch %d] throughput %.2f samples/s'%(
             epoch, (args.batch_size * len(train_data)) / (time.time() - start_epoch_time)))
 
-        for k, v in model.collect_params().items():
-            v.set_data(param_dict_avg[k])
-        model.save_params(args.save + '.val')
-        val_L = evaluate(val_data, val_batch_size, 'val', context[0])
-        if val_L < best_val:
-            best_val = val_L
-            model.save_params(args.save)
-            test_L = evaluate(test_data, test_batch_size, 'test', context[0])
-            print('test loss %.2f, test ppl %.2f'%(test_L, math.exp(test_L)))
-
+    print('Saving average parameters...')
+    for k, v in model.collect_params().items():
+        v.set_data(param_dict_avg[k])
+    model.save_params(args.save)
     print('Total training throughput %.2f samples/s'
           %((args.batch_size * len(train_data) * args.epochs) / (time.time() - start_train_time)))
 
