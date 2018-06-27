@@ -385,14 +385,17 @@ def train():
 
             if batch_i % args.log_interval == 0:
                 cur_L = total_L / args.log_interval
-                print('[Epoch %d Batch %d/%d] current loss %.2f, ppl %.2f, throughput %.2f samples/s, lr %.2f'
+                print('[Epoch %d Batch %d/%d] current loss %.2f, ppl %.2f, '
+                      'throughput %.2f samples/s, lr %.2f'
                       % (epoch, batch_i, len(train_data) // args.bptt, cur_L, math.exp(cur_L),
-                         args.batch_size * args.log_interval / (time.time() - start_log_interval_time),
+                         args.batch_size * args.log_interval
+                         / (time.time() - start_log_interval_time),
                          lr_batch_start * seq_len / args.bptt))
 
                 if args.ntasgd and avg_trigger == 0:
                     mx.nd.save('{}.val.params'.format(args.save), param_dict_avg)
-                    val_L = evaluate(val_data, val_batch_size, '{}.val.params'.format(args.save), context[0])
+                    val_L = evaluate(val_data, val_batch_size,
+                                     '{}.val.params'.format(args.save), context[0])
                     print('[Epoch %d Batch %d/%d] valid loss %.2f, valid ppl %.2f, '
                           'throughput %.2f samples/s, lr %.2f'
                           %(epoch, batch_i, len(train_data)//args.bptt, val_L, math.exp(val_L),
