@@ -367,7 +367,7 @@ def train():
 
             if args.ntasgd:
                 if param_dict_avg is None:
-                    param_dict_avg = {k: v.data(context[0]).copy()
+                    param_dict_avg = {k.split(model._prefix)[1]: v.data(context[0]).copy()
                                       for k, v in model.collect_params().items()}
 
             trainer.step(1)
@@ -377,7 +377,8 @@ def train():
                 param_dict_batch_i = model.collect_params()
                 param_dict_batch_i.zero_grad()
                 for name, param_avg in param_dict_avg.items():
-                    param_avg[:] += gamma * (param_dict_batch_i[name].data(context[0]) - param_avg)
+                    param_avg[:] += gamma * (param_dict_batch_i['{}{}'.format(model._prefix, name)]
+                                             .data(context[0]) - param_avg)
 
             total_L += sum([mx.nd.sum(L).asscalar() for L in Ls]) / len(context)
             trainer.set_learning_rate(lr_batch_start)
@@ -390,8 +391,8 @@ def train():
                          lr_batch_start * seq_len / args.bptt))
 
                 if args.ntasgd and avg_trigger == 0:
-                    mx.nd.save(args.save + '.val.params', param_dict_avg)
-                    val_L = evaluate(val_data, val_batch_size, args.save + '.val.params', context[0])
+                    mx.nd.save('{}.val.params'.format(args.save), param_dict_avg)
+                    val_L = evaluate(val_data, val_batch_size, '{}.val.params'.format(args.save), context[0])
                     print('[Epoch %d Batch %d/%d] valid loss %.2f, valid ppl %.2f, '
                           'throughput %.2f samples/s, lr %.2f'
                           %(epoch, batch_i, len(train_data)//args.bptt, val_L, math.exp(val_L),
@@ -399,7 +400,7 @@ def train():
                             lr_batch_start*seq_len/args.bptt))
                     if t > n and val_L > min(logs[-n:]):
                         for k, v in model.collect_params().items():
-                            param_dict_avg[k] = v.data(context[0]).copy()
+                            param_dict_avg[k.split(model._prefix)[1]] = v.data(context[0]).copy()
                         avg_trigger = batch_i
                     logs.append(val_L)
                     t += 1
@@ -415,11 +416,11 @@ def train():
             epoch, (args.batch_size * len(train_data)) / (time.time() - start_epoch_time)))
 
         if args.ntasgd:
-            mx.nd.save(args.save + '.val.params', param_dict_avg)
+            mx.nd.save('{}.val.params'.format(args.save), param_dict_avg)
 
         else:
-            model.save_params(args.save + '.val.params')
-        val_L = evaluate(val_data, val_batch_size, args.save + '.val.params', context[0])
+            model.save_params('{}.val.params'.format(args.save))
+        val_L = evaluate(val_data, val_batch_size, '{}.val.params'.format(args.save), context[0])
         print('[Epoch %d] time cost %.2fs, valid loss %.2f, valid ppl %.2f' % (
             epoch, time.time() - start_epoch_time, val_L, math.exp(val_L)))
 
