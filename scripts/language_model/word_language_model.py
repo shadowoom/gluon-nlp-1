@@ -373,7 +373,7 @@ def train():
             trainer.step(1)
 
             if args.ntasgd:
-                gamma = 1.0 / max(1, batch_i - avg_trigger + 1)
+                gamma = 1.0 / max(1, batch_i - avg_trigger + 2)
                 param_dict_batch_i = model.collect_params()
                 param_dict_batch_i.zero_grad()
                 for name, param_avg in param_dict_avg.items():
@@ -420,7 +420,6 @@ def train():
 
         if args.ntasgd:
             mx.nd.save('{}.val.params'.format(args.save), param_dict_avg)
-
         else:
             model.save_params('{}.val.params'.format(args.save))
         val_L = evaluate(val_data, val_batch_size, '{}.val.params'.format(args.save), context[0])
