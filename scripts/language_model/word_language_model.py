@@ -369,7 +369,7 @@ def train():
             #TODO debugging
             for p in parameters:
                 for d in data_list:
-                    print(p.grad(d))
+                    print(p.grad(d.context))
                 break
 
             # grads = [p.grad(d.context) for p in parameters for d in data_list]
