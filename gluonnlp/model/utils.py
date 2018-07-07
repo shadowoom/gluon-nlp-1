@@ -174,7 +174,7 @@ def multi_gpu_clip_global_norm(trainer, parameters, max_norm):
     """Rescales NDArrays so that the sum of their 2-norm on every context is smaller than `max_norm`.
     """
     trainer.allreduce_grads()
-    ctx = parameters[0].list_ctx()[0]
+    ctx = list(parameters)[0].list_ctx()[0]
     grads = [p.grad(ctx) for p in parameters]
     total_norm, scale = _multi_gpu_clip_global_norm_scale(grads, max_norm)
     if scale < 1.0:
