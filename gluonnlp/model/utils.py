@@ -178,7 +178,7 @@ def multi_gpu_clip_global_norm(trainer, parameters, max_norm):
     grads = [p.grad(ctx) for p in parameters]
     total_norm, scale = _multi_gpu_clip_global_norm_scale(grads, max_norm)
     if scale < 1.0:
-        for ctx in parameters[0].list_ctx():
+        for ctx in list(parameters)[0].list_ctx():
             grads = [p.grad(ctx) for p in parameters]
             for grad in grads:
                 grad *= scale
