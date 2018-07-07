@@ -127,7 +127,8 @@ vocab = nlp.Vocab(counter=nlp.data.Counter(train_dataset[0]), padding_token=None
 train_data = train_dataset.batchify(vocab, args.batch_size)
 val_batch_size = 10
 val_data = val_dataset.batchify(vocab, val_batch_size)
-test_batch_size = 1
+#TODO: modify back to 1
+test_batch_size = 10
 test_data = test_dataset.batchify(vocab, test_batch_size)
 
 if args.test_mode:
@@ -410,22 +411,28 @@ def train():
 
             if batch_i % args.log_interval == 0:
                 cur_L = total_L / args.log_interval
-                print('[Epoch %d Batch %d/%d] current loss %.2f, ppl %.2f, '
-                      'throughput %.2f samples/s, lr %.2f'
-                      % (epoch, batch_i, len(train_data) // args.bptt, cur_L, math.exp(cur_L),
-                         args.batch_size * args.log_interval
-                         / (time.time() - start_log_interval_time),
-                         lr_batch_start * seq_len / args.bptt))
+                try:
+                    print('[Epoch %d Batch %d/%d] current loss %.2f, ppl %.2f, '
+                          'throughput %.2f samples/s, lr %.2f'
+                          % (epoch, batch_i, len(train_data) // args.bptt, cur_L, math.exp(cur_L),
+                             args.batch_size * args.log_interval
+                             / (time.time() - start_log_interval_time),
+                             lr_batch_start * seq_len / args.bptt))
+                except OverflowError:
+                    print('Current PPL is too large!')
 
                 if args.ntasgd and avg_trigger == 0:
                     mx.nd.save('{}.val.params'.format(args.save), param_dict_avg)
                     val_L = evaluate(val_data, val_batch_size,
                                      '{}.val.params'.format(args.save), context[0])
-                    print('[Epoch %d Batch %d/%d] valid loss %.2f, valid ppl %.2f, '
-                          'throughput %.2f samples/s, lr %.2f'
-                          %(epoch, batch_i, len(train_data)//args.bptt, val_L, math.exp(val_L),
-                            args.batch_size*args.log_interval/(time.time()-start_log_interval_time),
-                            lr_batch_start*seq_len/args.bptt))
+                    try:
+                        print('[Epoch %d Batch %d/%d] valid loss %.2f, valid ppl %.2f, '
+                              'throughput %.2f samples/s, lr %.2f'
+                              %(epoch, batch_i, len(train_data)//args.bptt, val_L, math.exp(val_L),
+                                args.batch_size*args.log_interval/(time.time()-start_log_interval_time),
+                                lr_batch_start*seq_len/args.bptt))
+                    except OverflowError:
+                        print('Val PPL is too large!')
                     if t > n and val_L > min(logs[-n:]):
                         for k, v in model.collect_params().items():
                             param_dict_avg[k.split(model._prefix)[1]] = v.data(context[0]).copy()
@@ -448,8 +455,11 @@ def train():
         else:
             model.save_params('{}.val.params'.format(args.save))
         val_L = evaluate(val_data, val_batch_size, '{}.val.params'.format(args.save), context[0])
-        print('[Epoch %d] time cost %.2fs, valid loss %.2f, valid ppl %.2f' % (
-            epoch, time.time() - start_epoch_time, val_L, math.exp(val_L)))
+        try:
+            print('[Epoch %d] time cost %.2fs, valid loss %.2f, valid ppl %.2f' % (
+                epoch, time.time() - start_epoch_time, val_L, math.exp(val_L)))
+        except OverflowError:
+            print('[Epoch %d] Val PPL is too large!' % epoch)
 
         if val_L < best_val:
             best_val = val_L
@@ -458,8 +468,11 @@ def train():
             else:
                 model.save_params(args.save)
             test_L = evaluate(test_data, test_batch_size, args.save, context[0])
-            print('[Epoch %d] test loss %.2f, test ppl %.2f'
-                  % (epoch, test_L, math.exp(test_L)))
+            try:
+                print('[Epoch %d] test loss %.2f, test ppl %.2f'
+                      % (epoch, test_L, math.exp(test_L)))
+            except OverflowError:
+                print('[Epoch %d] test PPL is too large!' % epoch)
 
     print('Total training throughput %.2f samples/s'
           %((args.batch_size * len(train_data) * args.epochs) / (time.time() - start_train_time)))
@@ -471,6 +484,12 @@ if __name__ == '__main__':
         train()
     final_val_L = evaluate(val_data, val_batch_size, args.save, context[0])
     final_test_L = evaluate(test_data, test_batch_size, args.save, context[0])
-    print('Best validation loss %.2f, val ppl %.2f'%(final_val_L, math.exp(final_val_L)))
-    print('Best test loss %.2f, test ppl %.2f'%(final_test_L, math.exp(final_test_L)))
+    try:
+        print('Best validation loss %.2f, val ppl %.2f' % (final_val_L, math.exp(final_val_L)))
+    except OverflowError:
+        print('Best val PPL is too large!')
+    try:
+        print('Best test loss %.2f, test ppl %.2f' % (final_test_L, math.exp(final_test_L)))
+    except OverflowError:
+        print('Best test PPL is too large!')
     print('Total time cost %.2fs'%(time.time()-start_pipeline_time))
