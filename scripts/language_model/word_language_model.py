@@ -355,14 +355,17 @@ def train():
             target_list = gluon.utils.split_and_load(target, context, batch_axis=1, even_split=True)
             hiddens = detach(hiddens)
             Ls = []
+            L = 0
             with autograd.record():
                 for j, (X, y, h) in enumerate(zip(data_list, target_list, hiddens)):
                     output, h, encoder_hs, dropped_encoder_hs = model(X, h)
                     l = joint_loss(output, y, encoder_hs, dropped_encoder_hs)
+                    L = L + l.as_in_context(context[0]) / X.size
                     Ls.append(l.as_in_context(context[0]) / X.size)
                     hiddens[j] = h
-            for L in Ls:
-                L.backward()
+            # for L in Ls:
+            #     L.backward()
+            L.backward()
 
             # #Calculate the average of each parameter's gradient over all the context, and copy back to each context,
             # #this result in every context has the same averaged gradient regarding to each parameter Double check
