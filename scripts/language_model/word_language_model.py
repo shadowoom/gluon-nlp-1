@@ -331,7 +331,7 @@ def train():
     best_val = float('Inf')
     start_train_time = time.time()
     parameters = model.collect_params().values()
-    model.collect_params().zero_grad()
+    # model.collect_params().zero_grad()
     param_dict_avg = None
     t = 0
     avg_trigger = 0
@@ -389,7 +389,7 @@ def train():
             if args.ntasgd:
                 gamma = 1.0 / max(1, batch_i - avg_trigger + 2)
                 param_dict_batch_i = model.collect_params()
-                param_dict_batch_i.zero_grad()
+                # param_dict_batch_i.zero_grad()
                 for name, param_avg in param_dict_avg.items():
                     param_avg[:] += gamma * (param_dict_batch_i['{}{}'.format(model._prefix, name)]
                                              .data(context[0]) - param_avg)
