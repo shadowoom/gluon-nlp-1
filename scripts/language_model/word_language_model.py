@@ -375,14 +375,13 @@ def train():
 
             # nlp.model.utils.multi_gpu_clip_global_norm(trainer, parameters, args.clip)
 
-
             if args.ntasgd:
                 if param_dict_avg is None:
                     param_dict_avg = {k.split(model._prefix)[1]: v.data(context[0]).copy()
                                       for k, v in model.collect_params().items()}
 
             #TODO: the allreduce_grads have been computed twice
-            trainer.step(1)
+            trainer.update(1)
 
             if args.ntasgd:
                 gamma = 1.0 / max(1, batch_i - avg_trigger + 2)
