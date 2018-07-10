@@ -334,7 +334,8 @@ def train():
     """
     best_val = float('Inf')
     start_train_time = time.time()
-    parameters = model.collect_params().values()
+    parameters = model.collect_params()
+    # parameters = model.collect_params().values()
     # model.collect_params().zero_grad()
     param_dict_avg = None
     t = 0
@@ -377,7 +378,7 @@ def train():
             # # Do clipping over the parameters on the context
             # # TODO: make the global norm as one copy and transfer back to the contexts
             for d in data_list:
-                grads = [p.grad(d.context) for p in parameters]
+                grads = [p.grad(d.context) for p in parameters.values()]
                 gluon.utils.clip_global_norm(grads, args.clip)
 
             # nlp.model.utils.multi_gpu_clip_global_norm(trainer, parameters, args.clip)
@@ -385,17 +386,17 @@ def train():
             if args.ntasgd:
                 if param_dict_avg is None:
                     param_dict_avg = {k.split(model._prefix)[1]: v.data(context[0]).copy()
-                                      for k, v in model.collect_params().items()}
+                                      for k, v in parameters.items()}
 
             #TODO: the allreduce_grads have been computed twice
             trainer.update(1)
 
             if args.ntasgd:
                 gamma = 1.0 / max(1, batch_i - avg_trigger + 2)
-                param_dict_batch_i = model.collect_params()
+                # param_dict_batch_i = model.collect_params()
                 # param_dict_batch_i.zero_grad()
                 for name, param_avg in param_dict_avg.items():
-                    param_avg[:] += gamma * (param_dict_batch_i['{}{}'.format(model._prefix, name)]
+                    param_avg[:] += gamma * (parameters['{}{}'.format(model._prefix, name)]
                                              .data(context[0]) - param_avg)
 
             total_L += sum([mx.nd.sum(L).asscalar() for L in Ls]) / len(context)
@@ -413,7 +414,7 @@ def train():
                 except OverflowError:
                     print('Current PPL is too large!')
 
-                if args.ntasgd and avg_trigger == 0:
+                if args.ntasgd:
                     mx.nd.save('{}.val.params'.format(args.save), param_dict_avg)
                     val_L = evaluate(val_data, val_batch_size,
                                      '{}.val.params'.format(args.save), context[0])
@@ -426,7 +427,7 @@ def train():
                     except OverflowError:
                         print('Val PPL is too large!')
                     if t > n and val_L > min(logs[-n:]):
-                        for k, v in model.collect_params().items():
+                        for k, v in parameters.items():
                             param_dict_avg[k.split(model._prefix)[1]] = v.data(context[0]).copy()
                         avg_trigger = batch_i
                     logs.append(val_L)
