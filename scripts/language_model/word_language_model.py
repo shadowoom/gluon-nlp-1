@@ -102,6 +102,10 @@ parser.add_argument('--ntasgd', action='store_false',
                     help='Whether to apply ntasgd')
 parser.add_argument('--test_mode', action='store_true',
                     help='Whether to run through the script with few examples')
+parser.add_argument('--lr_update_interval', type=int, default=30,
+                    help='lr udpate interval')
+parser.add_argument('--lr_update_factor', type=float, default=0.1,
+                    help='lr udpate factor')
 args = parser.parse_args()
 
 ###############################################################################
@@ -450,6 +454,7 @@ def train():
             print('[Epoch %d] Val PPL is too large!' % epoch)
 
         if val_L < best_val:
+            update_lr_epoch = 0
             best_val = val_L
             if args.ntasgd:
                 mx.nd.save(args.save, param_dict_avg)
@@ -461,6 +466,16 @@ def train():
                       % (epoch, test_L, math.exp(test_L)))
             except OverflowError:
                 print('[Epoch %d] test PPL is too large!' % epoch)
+        else:
+            update_lr_epoch += 1
+            if update_lr_epoch % args.lr_update_interval == 0 and update_lr_epoch != 0:
+                lr_scale = trainer.learning_rate * args.lr_update_factor
+                print('Learning rate after interval update %f' % (lr_scale))
+                trainer.set_learning_rate(lr_scale)
+                update_lr_epoch = 0
+
+        #TODO: add the lr scheduler trick (change to mxnet scheduler)
+
 
     print('Total training throughput %.2f samples/s'
           %((args.batch_size * len(train_data) * args.epochs) / (time.time() - start_train_time)))
