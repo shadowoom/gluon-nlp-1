@@ -428,7 +428,7 @@ def train():
                                 lr_batch_start*seq_len/args.bptt))
                     except OverflowError:
                         print('Val PPL is too large!')
-                    if t > n and val_L > min(logs[-n:]):
+                    if t > n and val_L > min(logs[:-n]):
                         for k, v in parameters.items():
                             param_dict_avg[k.split(model._prefix)[1]] = v.data(context[0]).copy()
                         avg_trigger = batch_i
