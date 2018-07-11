@@ -106,9 +106,11 @@ class AWDRNN(Block):
         with output.name_scope():
             if self._tie_weights:
                 output.add(nn.Dense(self._vocab_size, flatten=False,
+                                    weight_initializer=init.Uniform(0.1),
                                     params=self.embedding[0].params))
             else:
-                output.add(nn.Dense(self._vocab_size, flatten=False))
+                output.add(nn.Dense(self._vocab_size, flatten=False,
+                                    weight_initializer=init.Uniform(0.1)))
         return output
 
     def begin_state(self, *args, **kwargs):

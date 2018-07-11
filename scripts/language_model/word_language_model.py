@@ -92,6 +92,7 @@ parser.add_argument('--optimizer', type=str, default='sgd',
                     help='optimizer to use (sgd, adam)')
 parser.add_argument('--wd', type=float, default=1.2e-6,
                     help='weight decay applied to all weights')
+#TODO: try alpha, beta=0
 parser.add_argument('--alpha', type=float, default=2,
                     help='alpha L2 regularization on RNN activation '
                          '(alpha = 0 means no regularization)')
@@ -166,7 +167,7 @@ else:
     model = nlp.model.train.StandardRNN(args.model, len(vocab), args.emsize,
                                         args.nhid, args.nlayers, args.dropout, args.tied)
 
-
+#TODO: initialization to uniform
 model.initialize(mx.init.Xavier(), ctx=context)
 
 
@@ -181,7 +182,8 @@ elif args.optimizer == 'adam':
                       'beta2': 0.999,
                       'epsilon': 1e-9}
 
-trainer = gluon.Trainer(model.collect_params(), args.optimizer, trainer_params, update_on_kvstore=False)
+#TODO: update_kv_store=False?
+trainer = gluon.Trainer(model.collect_params(), args.optimizer, trainer_params)
 
 loss = gluon.loss.SoftmaxCrossEntropyLoss()
 ar_loss = nlp.loss.ActivationRegularizationLoss(args.alpha)
@@ -381,7 +383,7 @@ def train():
                 grads = [p.grad(d.context) for p in parameters.values()]
                 gluon.utils.clip_global_norm(grads, args.clip)
 
-            # nlp.model.utils.multi_gpu_clip_global_norm(trainer, parameters, args.clip)
+            # nlp.model.utils.multi_gpu_clip_global_norm(trainer, parameters.values(), args.clip)
 
             if args.ntasgd:
                 if param_dict_avg is None:
