@@ -315,7 +315,7 @@ def evaluate(data_source, batch_size, params_file_name, ctx=None):
     """
     total_L = 0.0
     ntotal = 0
-    model_eval.load_params(params_file_name, context)
+    model_eval.load_parameters(params_file_name, context)
     hidden = model_eval.begin_state(batch_size, func=mx.nd.zeros, ctx=context[0])
     for i in range(0, len(data_source) - 1, args.bptt):
         data, target = get_batch(data_source, i)
@@ -362,17 +362,17 @@ def train():
             target_list = gluon.utils.split_and_load(target, context, batch_axis=1, even_split=True)
             hiddens = detach(hiddens)
             Ls = []
-            L = 0
+            # L = 0
             with autograd.record():
                 for j, (X, y, h) in enumerate(zip(data_list, target_list, hiddens)):
                     output, h, encoder_hs, dropped_encoder_hs = model(X, h)
                     l = joint_loss(output, y, encoder_hs, dropped_encoder_hs)
-                    L = L + l.as_in_context(context[0]) / X.size
+                    # L = L + l.as_in_context(context[0]) / X.size
                     Ls.append(l.as_in_context(context[0]) / X.size)
                     hiddens[j] = h
-            # for L in Ls:
-            #     L.backward()
-            L.backward()
+            for L in Ls:
+                L.backward()
+            # L.backward()
 
             # #Calculate the average of each parameter's gradient over all the context, and copy back to each context,
             # #this result in every context has the same averaged gradient regarding to each parameter Double check
@@ -448,7 +448,7 @@ def train():
         if args.ntasgd:
             mx.nd.save('{}.val.params'.format(args.save), param_dict_avg)
         else:
-            model.save_params('{}.val.params'.format(args.save))
+            model.save_parameters('{}.val.params'.format(args.save))
         val_L = evaluate(val_data, val_batch_size, '{}.val.params'.format(args.save), context[0])
         try:
             print('[Epoch %d] time cost %.2fs, valid loss %.2f, valid ppl %.2f' % (
@@ -462,7 +462,7 @@ def train():
             if args.ntasgd:
                 mx.nd.save(args.save, param_dict_avg)
             else:
-                model.save_params(args.save)
+                model.save_parameters(args.save)
             test_L = evaluate(test_data, test_batch_size, args.save, context[0])
             try:
                 print('[Epoch %d] test loss %.2f, test ppl %.2f'
