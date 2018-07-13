@@ -167,7 +167,6 @@ else:
     model = nlp.model.train.StandardRNN(args.model, len(vocab), args.emsize,
                                         args.nhid, args.nlayers, args.dropout, args.tied)
 
-#TODO: initialization to uniform
 model.initialize(mx.init.Xavier(), ctx=context)
 
 
@@ -448,7 +447,7 @@ def train():
         if args.ntasgd:
             mx.nd.save('{}.val.params'.format(args.save), param_dict_avg)
         else:
-            model.save_parameters('{}.val.params'.format(args.save))
+            model.save_params('{}.val.params'.format(args.save))
         val_L = evaluate(val_data, val_batch_size, '{}.val.params'.format(args.save), context[0])
         try:
             print('[Epoch %d] time cost %.2fs, valid loss %.2f, valid ppl %.2f' % (
@@ -462,7 +461,7 @@ def train():
             if args.ntasgd:
                 mx.nd.save(args.save, param_dict_avg)
             else:
-                model.save_parameters(args.save)
+                model.save_params(args.save)
             test_L = evaluate(test_data, test_batch_size, args.save, context[0])
             try:
                 print('[Epoch %d] test loss %.2f, test ppl %.2f'
@@ -473,7 +472,7 @@ def train():
             update_lr_epoch += 1
             if update_lr_epoch % args.lr_update_interval == 0 and update_lr_epoch != 0:
                 lr_scale = trainer.learning_rate * args.lr_update_factor
-                print('Learning rate after interval update %f' % (lr_scale))
+                print('Learning rate after interval update %f' % lr_scale)
                 trainer.set_learning_rate(lr_scale)
                 update_lr_epoch = 0
 
