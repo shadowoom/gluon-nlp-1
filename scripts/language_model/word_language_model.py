@@ -312,9 +312,21 @@ def evaluate(data_source, batch_size, params_file_name, ctx=None):
     loss: float
         The loss on the dataset
     """
+    def torch_param_to_numpy(param):
+        return param.data.numpy()
+
+    def set_gluon_param(param, torch_param):
+        value = torch_param_to_numpy(torch_param)
+        param.set_data(mx.nd.array(value))
+
+
     total_L = 0.0
     ntotal = 0
-    model_eval.load_parameters(params_file_name, context)
+    import torch
+    if args.save == 'wiki1150.model.params':
+        set_gluon_param(model_eval.collect_params(), torch.load(args.save))
+    else:
+        model_eval.load_parameters(params_file_name, context)
     hidden = model_eval.begin_state(batch_size, func=mx.nd.zeros, ctx=context[0])
     for i in range(0, len(data_source) - 1, args.bptt):
         data, target = get_batch(data_source, i)
@@ -487,6 +499,10 @@ if __name__ == '__main__':
     start_pipeline_time = time.time()
     if not args.eval_only:
         train()
+
+    #TODO: reproduce pytorch result
+    args.save = 'wiki1150.model.params'
+
     final_val_L = evaluate(val_data, val_batch_size, args.save, context[0])
     final_test_L = evaluate(test_data, test_batch_size, args.save, context[0])
     try:
