@@ -22,8 +22,10 @@ __all__ = ['BiLMEncoder']
 import mxnet as mx
 
 from mxnet import gluon
-from mxnet.gluon import nn
+from mxnet.gluon import nn, rnn
 from .utils import _get_rnn_cell_clip_residual
+
+from .lstmpcellwithclip import LSTMPCellWithClip
 
 
 class BiLMEncoder(gluon.Block):
@@ -43,57 +45,73 @@ class BiLMEncoder(gluon.Block):
 
         with self.name_scope():
             lstm_input_size = self._input_size
-            self.forward_layers = nn.Sequential()
+            self.forward_layers = rnn.SequentialRNNCell()
             with self.forward_layers.name_scope():
                 for layer_index in range(self._num_layers):
-                    forward_layer = _get_rnn_cell_clip_residual(mode=self._mode,
-                                                                num_layers=1,
-                                                                input_size=lstm_input_size,
-                                                                hidden_size=self._hidden_size,
-                                                                dropout=0 if layer_index == num_layers - 1
-                                                                else self._dropout,
-                                                                skip_connection=False if layer_index == 0
-                                                                else self._skip_connection,
-                                                                proj_size=self._proj_size,
-                                                                cell_clip=self._cell_clip,
-                                                                proj_clip=self._proj_clip)
+                    # forward_layer = _get_rnn_cell_clip_residual(mode=self._mode,
+                    #                                             num_layers=1,
+                    #                                             input_size=lstm_input_size,
+                    #                                             hidden_size=self._hidden_size,
+                    #                                             dropout=0 if layer_index == num_layers - 1
+                    #                                             else self._dropout,
+                    #                                             skip_connection=False if layer_index == 0
+                    #                                             else self._skip_connection,
+                    #                                             proj_size=self._proj_size,
+                    #                                             cell_clip=self._cell_clip,
+                    #                                             proj_clip=self._proj_clip)
 
-                    # setattr(self, 'forward_layer_{}'.format(layer_index), forward_layer)
-                    # setattr(self, 'backward_layer_{}'.format(layer_index), backward_layer)
 
-                    #TODO: check
-                    # lstm_input_size = proj_size if mode == 'lstmp' else hidden_size
-                    self.forward_layers.add(forward_layer)
+                    # # setattr(self, 'forward_layer_{}'.format(layer_index), forward_layer)
+                    # # setattr(self, 'backward_layer_{}'.format(layer_index), backward_layer)
+                    #
+                    # #TODO: check
+                    # # lstm_input_size = proj_size if mode == 'lstmp' else hidden_size
+                    # self.forward_layers.add(forward_layer)
+                    # lstm_input_size = hidden_size
+                    cell = LSTMPCellWithClip(self._hidden_size, self._proj_size, cell_clip=self._cell_clip,
+                                             projection_clip=self._proj_clip, input_size=self._input_size)
+                    self.forward_layers.add(cell)
+                    if dropout != 0:
+                        self.forward_layers.add(rnn.DropoutCell(dropout))
                     lstm_input_size = hidden_size
 
             lstm_input_size = self._input_size
-            self.backward_layers = nn.Sequential()
+            self.backward_layers = rnn.SequentialRNNCell()
             with self.backward_layers.name_scope():
                 for layer_index in range(self._num_layers):
-                    backward_layer = _get_rnn_cell_clip_residual(mode=self._mode,
-                                                                 num_layers=1,
-                                                                 input_size=lstm_input_size,
-                                                                 hidden_size=self._hidden_size,
-                                                                 dropout=0 if layer_index == num_layers - 1
-                                                                 else self._dropout,
-                                                                 skip_connection=False if layer_index == 0
-                                                                 else self._skip_connection,
-                                                                 proj_size=self._proj_size,
-                                                                 cell_clip=self._cell_clip,
-                                                                 proj_clip=self._proj_clip)
-                    self.backward_layers.add(backward_layer)
+                    # backward_layer = _get_rnn_cell_clip_residual(mode=self._mode,
+                    #                                              num_layers=1,
+                    #                                              input_size=lstm_input_size,
+                    #                                              hidden_size=self._hidden_size,
+                    #                                              dropout=0 if layer_index == num_layers - 1
+                    #                                              else self._dropout,
+                    #                                              skip_connection=False if layer_index == 0
+                    #                                              else self._skip_connection,
+                    #                                              proj_size=self._proj_size,
+                    #                                              cell_clip=self._cell_clip,
+                    #                                              proj_clip=self._proj_clip)
+                    # self.backward_layers.add(backward_layer)
+                    # lstm_input_size = hidden_size
+                    cell = LSTMPCellWithClip(self._hidden_size, self._proj_size, cell_clip=self._cell_clip,
+                                             projection_clip=self._proj_clip, input_size=self._input_size)
+                    self.backward_layers.add(cell)
+                    if dropout != 0:
+                        self.backward_layers.add(rnn.DropoutCell(dropout))
                     lstm_input_size = hidden_size
 
-    def begin_state(self, *args, **kwargs):
-        # [print(forward_layer) for _, forward_layer in enumerate(self.forward_layers)]
+    def begin_state(self, **kwargs):
+        # [print(forward_layer) for forward_layer in self.forward_layers]
         # return
         # [print((forward_layer[i], len(forward_layer))) for _, forward_layer in enumerate(self.forward_layers)
         #  for i in range(len(forward_layer))]
         # return
-        return [forward_layer[cell_index].begin_state(*args, **kwargs) for _, forward_layer in enumerate(self.forward_layers)
-                for cell_index in range(len(forward_layer))],\
-               [backward_layer[cell_index].begin_state(*args, **kwargs) for _, backward_layer in enumerate(self.backward_layers)
-                for cell_index in range(len(backward_layer))]
+        # return [forward_layer[cell_index].begin_state(*args, **kwargs) for forward_layer in self.forward_layers
+        #         for cell_index in range(len(forward_layer))],\
+        #        [backward_layer[cell_index].begin_state(*args, **kwargs) for backward_layer in self.backward_layers
+        #         for cell_index in range(len(backward_layer))]
+        # return [forward_layer.begin_state(**kwargs) for forward_layer in self.forward_layers],\
+        #        [backward_layer.begin_state(**kwargs) for backward_layer in self.backward_layers]
+        return [self.forward_layers.begin_state(**kwargs)], [self.backward_layers.begin_state(**kwargs)]
 
     def forward(self, inputs, states):
         #TODO: check seq_len

@@ -326,7 +326,7 @@ class BiRNN(Block):
         embedding = nn.HybridSequential()
         with embedding.name_scope():
             embedding.add(nn.Embedding(self._vocab_size, self._embed_size,
-                                       weight_initializer=init.Uniform(0.1), sparse_grad=True))## TODO check sparse_grad
+                                       weight_initializer=init.Uniform(0.1)))## TODO check sparse_grad
             if self._dropout:
                 embedding.add(nn.Dropout(self._dropout))
         return embedding
@@ -335,7 +335,7 @@ class BiRNN(Block):
         embedding = nn.HybridSequential()
         with embedding.name_scope():
             embedding.add(nn.Embedding(self._vocab_size, self._embed_size,
-                                       params=self.embedding_forward[0].params, sparse_grad=True))## TODO check sparse_grad
+                                       params=self.embedding_forward[0].params))## TODO check sparse_grad
             if self._dropout:
                 embedding.add(nn.Dropout(self._dropout))
         return embedding
@@ -357,8 +357,8 @@ class BiRNN(Block):
             output.add(nn.Dense(self._vocab_size, flatten=False, params=self.decoder_forward[0].params))
         return output
 
-    def begin_state(self, *args, **kwargs):
-        return self.encoder.begin_state(*args, **kwargs)
+    def begin_state(self, **kwargs):
+        return self.encoder.begin_state(**kwargs)
 
     def forward(self, inputs, begin_state=None): # pylint: disable=arguments-differ
         """Defines the forward computation. Arguments can be either
