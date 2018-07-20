@@ -117,8 +117,6 @@ class BiLMEncoder(gluon.Block):
     def forward(self, inputs, states):
         #TODO: check seq_len
         seq_len = inputs[0].shape[0]
-        print(inputs[0].shape)
-        print(inputs[1].shape)
 
         if not states:
             #TODO: check batch_size
