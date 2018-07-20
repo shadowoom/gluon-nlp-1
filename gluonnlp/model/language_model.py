@@ -222,12 +222,14 @@ class BiRNN(train.BiRNN):
             The list of outputs with dropout of the model's encoder.
         """
 
+        ## TODO: the embedding and decoder of the forward and backward should be tied
         encoded = self.embedding_forward(inputs[0]), self.embedding_backward(inputs[1])
 
         if not begin_state:
-            # TODO: check shape
+            ## TODO: check shape
             begin_state = self.begin_state(inputs[0].shape[1])
         ## TODO: check state output
+
         encoded, state = self.encoder(encoded, begin_state)
 
         if self._dropout:
