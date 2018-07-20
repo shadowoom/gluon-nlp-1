@@ -22,10 +22,8 @@ __all__ = ['BiLMEncoder']
 import mxnet as mx
 
 from mxnet import gluon
-from mxnet.gluon import nn, rnn
+from mxnet.gluon import nn
 from .utils import _get_rnn_cell_clip_residual
-
-from .lstmpcellwithclip import LSTMPCellWithClip
 
 
 class BiLMEncoder(gluon.Block):
