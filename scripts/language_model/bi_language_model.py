@@ -52,8 +52,8 @@ sys.path.append(os.path.join(curr_path, '..', '..'))
 
 parser = argparse.ArgumentParser(description=
                                  'MXNet Autograd RNN/LSTM Language Model on Wikitext-2.')
-parser.add_argument('--model', type=str, default='lstm',
-                    help='type of recurrent net (rnn_tanh, rnn_relu, lstm, gru)')
+parser.add_argument('--model', type=str, default='lstmpc',
+                    help='type of recurrent net (lstmpc, rnn_tanh, rnn_relu, lstm, gru)')
 parser.add_argument('--emsize', type=int, default=650,
                     help='size of word embeddings')
 parser.add_argument('--nhid', type=int, default=650,
@@ -70,6 +70,8 @@ parser.add_argument('--batch_size', type=int, default=20, metavar='N',
                     help='batch size')
 parser.add_argument('--bptt', type=int, default=35,
                     help='sequence length')
+parser.add_argument('--dropout_e', type=float, default=0.5,
+                    help='dropout applied to embedding layer (0 = no dropout)')
 parser.add_argument('--dropout', type=float, default=0.5,
                     help='dropout applied to layers (0 = no dropout)')
 parser.add_argument('--log-interval', type=int, default=200, metavar='N',
@@ -151,9 +153,9 @@ print(args)
 
 ntokens = len(vocab)
 
-model_eval = nlp.model.BiRNN(args.model, len(vocab), args.emsize, args.nhid, args.nlayers, args.dropout,
+model_eval = nlp.model.BiRNN(args.model, len(vocab), args.emsize, args.nhid, args.nlayers, args.dropout_e, args.dropout,
                              args.skip_connection, args.projsize, args.projclip, args.cellclip)
-model = nlp.model.train.BiRNN(args.model, len(vocab), args.emsize, args.nhid, args.nlayers, args.dropout,
+model = nlp.model.train.BiRNN(args.model, len(vocab), args.emsize, args.nhid, args.nlayers, args.dropout_e, args.dropout,
                               args.skip_connection, args.projsize, args.projclip, args.cellclip)
 
 print(model)
@@ -367,7 +369,7 @@ def train():
 
             trainer.step(1)
 
-            total_L += sum([mx.nd.sum(L).asscalar() for L in Ls]) / len(context)
+            total_L += sum([mx.nd.sum(L).asscalar() for L in Ls]) / (2*len(context))
             if batch_i % args.log_interval == 0 and batch_i > 0:
                 cur_L = total_L / args.log_interval
                 print('[Epoch %d Batch %d/%d] loss %.2f, ppl %.2f, '

@@ -118,4 +118,3 @@ class LSTMPCellWithClip(LSTMPCell):
             F.clip(next_r, a_min=-self._projection_clip, a_max=self._projection_clip, out=next_r)
 
         return next_r, [next_r, next_c]
-    # pylint: enable= arguments-differ

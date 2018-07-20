@@ -296,13 +296,8 @@ class BiRNN(Block):
     tie_weights : bool, default False
         Whether to tie the weight matrices of output dense layer and input embedding layer.
     """
-    def __init__(self, mode, vocab_size, embed_size, hidden_size, num_layers, dropout=0.5,
+    def __init__(self, mode, vocab_size, embed_size, hidden_size, num_layers, dropout_e=0.5, dropout=0.5,
                  skip_connection=False, proj_size=None, proj_clip=None, cell_clip=None, **kwargs):
-        # if tie_weights:
-        #     assert embed_size == hidden_size, 'Embedding dimension must be equal to ' \
-        #                                       'hidden dimension in order to tie weights. ' \
-        #                                       'Got: emb: {}, hid: {}.'.format(embed_size,
-        #                                                                       hidden_size)
         super(BiRNN, self).__init__(**kwargs)
         self._mode = mode
         self._embed_size = embed_size
@@ -312,6 +307,7 @@ class BiRNN(Block):
         self._proj_clip = proj_clip
         self._cell_clip = cell_clip
         self._num_layers = num_layers
+        self._dropout_e = dropout_e
         self._dropout = dropout
         self._vocab_size = vocab_size
 
@@ -326,18 +322,18 @@ class BiRNN(Block):
         embedding = nn.HybridSequential()
         with embedding.name_scope():
             embedding.add(nn.Embedding(self._vocab_size, self._embed_size,
-                                       weight_initializer=init.Uniform(0.1)))## TODO check sparse_grad
-            if self._dropout:
-                embedding.add(nn.Dropout(self._dropout))
+                                       weight_initializer=init.Uniform(0.1)))
+            if self._dropout_e:
+                embedding.add(nn.Dropout(self._dropout_e))
         return embedding
 
     def _get_embedding_backward(self):
         embedding = nn.HybridSequential()
         with embedding.name_scope():
             embedding.add(nn.Embedding(self._vocab_size, self._embed_size,
-                                       params=self.embedding_forward[0].params))## TODO check sparse_grad
-            if self._dropout:
-                embedding.add(nn.Dropout(self._dropout))
+                                       params=self.embedding_forward[0].params))
+            if self._dropout_e:
+                embedding.add(nn.Dropout(self._dropout_e))
         return embedding
 
     def _get_encoder(self):
