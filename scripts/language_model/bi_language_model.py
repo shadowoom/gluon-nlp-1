@@ -2,6 +2,20 @@
 Bidirectional Language Model
 ============================
 
+This example shows how to build a word-level bidirectional language model on WikiText-2 with Gluon NLP Toolkit.
+By using the existing data pipeline tools and building blocks, the process is greatly simplified.
+
+We implemented the bidirectional language model implemented in the following work,
+which wins the Best Paper Award in NAACL18. The language model could be used to compute the ELMo (Embeddings from
+Language Models) representations in the following paper or used as separate language model for your applications.
+
+@inproceedings{Peters:2018,
+  author={Peters, Matthew E. and  Neumann, Mark and Iyyer, Mohit and Gardner, Matt and Clark,
+  Christopher and Lee, Kenton and Zettlemoyer, Luke},
+  title={Deep contextualized word representations},
+  booktitle={Proc. of NAACL},
+  year={2018}
+}
 """
 
 # coding: utf-8
@@ -143,7 +157,10 @@ model = nlp.model.train.BiRNN(args.model, len(vocab), args.emsize, args.nhid, ar
                               args.skip_connection, args.projsize, args.projclip, args.cellclip)
 
 print(model)
+
 model.initialize(mx.init.Xavier(), ctx=context)
+
+model.hybridize()
 
 if args.optimizer == 'sgd':
     trainer_params = {'learning_rate': args.lr,
@@ -311,7 +328,7 @@ def evaluate(data_source, batch_size, segment, ctx=None):
 
 
 def train():
-    """Training loop for bi-language model.
+    """Training loop for bi-language model (biLM).
 
     """
     best_val = float('Inf')
