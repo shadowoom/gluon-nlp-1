@@ -211,8 +211,10 @@ class JointActivationRegularizationLoss(gluon.loss.Loss):
     def hybrid_forward(self, F, out, target, states, dropped_states): # pylint: disable=arguments-differ
         # pylint: disable=unused-argument
         l = self._loss(out.reshape(-3, -1), target.reshape(-1,))
-        l = l + self._ar_loss(*dropped_states)
-        l = l + self._tar_loss(*states)
+        if args.alpha != 0:
+            l = l + self._ar_loss(*dropped_states)
+        if args.beta != 0:
+            l = l + self._tar_loss(*states)
         return l
 
 
@@ -291,17 +293,20 @@ def evaluate(data_source, batch_size, segment, ctx=None):
         model_eval.load_params(args.save + '.val', context)
     elif segment == 'test':
         model_eval.load_params(args.save, context)
-    hidden = model_eval.begin_state(batch_size, func=mx.nd.zeros, ctx=context[0])
+    hidden = model_eval.begin_state(batch_size=batch_size, func=mx.nd.zeros, ctx=context[0])
     for i in range(0, len(data_source) - 1, args.bptt):
         data, target = get_batch(data_source, i)
         data = data.as_in_context(ctx)
         target = target.as_in_context(ctx)
-        output, hidden = model_eval(data, hidden)
+        output, hidden = model_eval((data, target), hidden)
         hidden = detach(hidden)
-        L = loss(output.reshape(-3, -1),
+        L = loss(output[0].reshape(-3, -1),
                  target.reshape(-1,))
         total_L += mx.nd.sum(L).asscalar()
-        ntotal += L.size
+        L = loss(output[1].reshape(-3, -1),
+                 data.reshape(-1,))
+        total_L += mx.nd.sum(L).asscalar()
+        ntotal += 2*L.size
     return total_L / ntotal
 
 
@@ -316,8 +321,8 @@ def train():
         total_L = 0.0
         start_epoch_time = time.time()
         start_log_interval_time = time.time()
-        hiddens = [model.begin_state(args.batch_size//len(context),
-                                     func=mx.nd.zeros, ctx=ctx) for ctx in context]
+        hiddens = [model.begin_state(batch_size=args.batch_size//len(context),
+                                     func=mx.nd .zeros, ctx=ctx) for ctx in context]
         batch_i, i = 0, 0
         while i < len(train_data) - 1 - 1:
             seq_len = args.bptt
