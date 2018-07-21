@@ -188,14 +188,9 @@ class BiRNN(train.BiRNN):
     tie_weights : bool, default False
         Whether to tie the weight matrices of output dense layer and input embedding layer.
     """
-    def __init__(self, mode, vocab_size, embed_size, hidden_size, num_layers, dropout,
+    def __init__(self, mode, vocab_size, embed_size, hidden_size, num_layers, dropout_e, dropout,
                  skip_connection, proj_size, proj_clip, cell_clip, **kwargs):
-        # if tie_weights:
-        #     assert embed_size == hidden_size, 'Embedding dimension must be equal to ' \
-        #                                       'hidden dimension in order to tie weights. ' \
-        #                                       'Got: emb: {}, hid: {}.'.format(embed_size,
-        #                                                                       hidden_size)
-        super(BiRNN, self).__init__(mode, vocab_size, embed_size, hidden_size, num_layers, dropout,
+        super(BiRNN, self).__init__(mode, vocab_size, embed_size, hidden_size, num_layers, dropout_e, dropout,
                                     skip_connection, proj_size, proj_clip, cell_clip, **kwargs)
 
     def forward(self, inputs, begin_state=None): # pylint: disable=arguments-differ
@@ -222,13 +217,10 @@ class BiRNN(train.BiRNN):
             The list of outputs with dropout of the model's encoder.
         """
 
-        ## TODO: the embedding and decoder of the forward and backward should be tied
         encoded = self.embedding_forward(inputs[0]), self.embedding_backward(inputs[1])
 
         if not begin_state:
-            ## TODO: check shape
             begin_state = self.begin_state(inputs[0].shape[1])
-        ## TODO: check state output
 
         encoded, state = self.encoder(encoded, begin_state)
 
