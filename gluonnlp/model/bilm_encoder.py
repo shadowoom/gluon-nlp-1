@@ -27,6 +27,39 @@ from .utils import _get_rnn_cell_clip_residual
 
 
 class BiLMEncoder(gluon.Block):
+    r"""Bidirectional LM encoder.
+
+    We implement the encoder of the biLM proposed in the following work::
+
+        @inproceedings{Peters:2018,
+        author={Peters, Matthew E. and  Neumann, Mark and Iyyer, Mohit and Gardner, Matt and Clark,
+        Christopher and Lee, Kenton and Zettlemoyer, Luke},
+        title={Deep contextualized word representations},
+        booktitle={Proc. of NAACL},
+        year={2018}
+        }
+
+    Parameters
+    ----------
+    mode : str
+        The type of RNN cell to use. Options are 'lstmpc', 'rnn_tanh', 'rnn_relu', 'lstm', 'gru'.
+    num_layers : int
+        The number of RNN cells in the encoder.
+    input_size : int
+        The initial input size of in the RNN cell.
+    hidden_size : int
+        The hidden size of the RNN cell.
+    dropout : float
+        The dropout rate to use for encoder output.
+    skip_connection : bool
+        Whether to add skip connections (add RNN cell input to output)
+    proj_size : int
+        The projection size of each LSTMPCellWithClip cell
+    cell_clip : float
+        Clip cell state between [-cellclip, projclip] in LSTMPCellWithClip cell
+    proj_clip : float
+        Clip projection between [-projclip, projclip] in LSTMPCellWithClip cell
+    """
     def __init__(self, mode, num_layers, input_size, hidden_size, dropout,
                  skip_connection, proj_size=None, cell_clip=None, proj_clip=None, **kwargs):
         super(BiLMEncoder, self).__init__(**kwargs)
@@ -85,6 +118,33 @@ class BiLMEncoder(gluon.Block):
                [backward_layer.begin_state(**kwargs) for _, backward_layer in enumerate(self.backward_layers)]
 
     def forward(self, inputs, states):
+        """Defines the forward computation for cache cell. Arguments can be either
+        :py:class:`NDArray` or :py:class:`Symbol`.
+
+        Parameters
+        ----------
+        inputs : List[NDArray]
+            The input data. Each has layout='TNC', including:
+            inputs[0] indicates the data used in forward pass.
+            inputs[1] indicates the data used in backward pass.
+        states : List[NDArray]
+            The states. Each has layout='TNC', including:
+            states[0] indicates the states used in forward pass, each has shape (seq_len, batch_size, num_hidden).
+            states[1] indicates the states used in backward pass, each has shape (seq_len, batch_size, num_hidden)
+
+        Returns
+        --------
+        (outputs_forward, outputs_backward): Tuple
+            Including:
+            outputs_forward: The output data from forward pass,
+            which has layout='TNC'.
+            outputs_backward: The output data from backward pass,
+            which has layout='TNC'
+        (states_forward, states_backward) : Tuple
+            Including:
+            states_forward: The out states from forward pass, which has the same shape with *states[0]*.
+            states_backward: The out states from backward pass, which has the same shape with *states[1]*.
+        """
         seq_len = inputs[0].shape[0]
 
         if not states:

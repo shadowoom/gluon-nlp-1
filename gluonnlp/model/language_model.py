@@ -107,12 +107,12 @@ class AWDRNN(train.AWDRNN):
         return out, out_states
 
 class StandardRNN(train.StandardRNN):
-    """Standard RNN language model.
+    """Bidirectional language model by Allen Institute for Artificial Intelligence and University of Washington.
 
     Parameters
     ----------
     mode : str
-        The type of RNN to use. Options are 'lstm', 'gru', 'rnn_tanh', 'rnn_relu'.
+        The type of RNN to use. Options are 'lstmpc', 'lstm', 'gru', 'rnn_tanh', 'rnn_relu'.
     vocab_size : int
         Size of the input vocabulary.
     embed_size : int
@@ -121,10 +121,18 @@ class StandardRNN(train.StandardRNN):
         Number of hidden units for RNN.
     num_layers : int
         Number of RNN layers.
+    dropout_e : float
+        Dropout rate to use on the embedding layer.
     dropout : float
         Dropout rate to use for encoder output.
-    tie_weights : bool, default False
-        Whether to tie the weight matrices of output dense layer and input embedding layer.
+    skip_connection : bool
+        Whether to add skip connections (add RNN cell input to output)
+    proj_size : int
+        The projection size of each LSTMPCellWithClip cell
+    proj_clip : float
+        Clip projection between [-projclip, projclip] in LSTMPCellWithClip cell
+    cell_clip : float
+        Clip cell state between [-cellclip, projclip] in LSTMPCellWithClip cell
     """
     def __init__(self, mode, vocab_size, embed_size, hidden_size,
                  num_layers, dropout, tie_weights, **kwargs):
@@ -194,29 +202,26 @@ class BiRNN(train.BiRNN):
                                     skip_connection, proj_size, proj_clip, cell_clip, **kwargs)
 
     def forward(self, inputs, begin_state=None): # pylint: disable=arguments-differ
-        """Defines the forward computation. Arguments can be either
-        :py:class:`NDArray` or :py:class:`Symbol`."""
-        """Implement forward computation.
+        """Implement the forward computation that the biRNN model use.
 
-        Parameters
-        ----------
-        inputs : NDArray
-            The training dataset.
-        begin_state : list
-            The initial hidden states.
+           Parameters
+           -----------
+           inputs : Tuple(NDArray)
+               Each input tensor with shape `(sequence_length, batch_size)`
+               when `layout` is "TNC".
+           begin_state : list
+               initial recurrent state tensor with length equals to num_layers.
+               the initial state with shape `(1, batch_size, num_hidden)`
 
-        Returns
-        -------
-        out: NDArray
-            The output of the model.
-        out_states: list
-            The list of output states of the model's encoder.
-        encoded_raw: list
-            The list of outputs of the model's encoder.
-        encoded_dropped: list
-            The list of outputs with dropout of the model's encoder.
-        """
-
+           Returns
+           --------
+           (forward_out, backward_out): Tuple(NDArray)
+               Each output tensor with shape `(sequence_length, batch_size, input_size)`
+               when `layout` is "TNC".
+           state: list
+               output recurrent state tensor with length equals to num_layers.
+               the state with shape `(1, batch_size, num_hidden)`
+           """
         encoded = self.embedding_forward(inputs[0]), self.embedding_backward(inputs[1])
 
         if not begin_state:

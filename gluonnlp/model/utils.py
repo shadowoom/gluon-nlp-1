@@ -135,7 +135,30 @@ def _get_rnn_cell(mode, num_layers, input_size, hidden_size,
 
 def _get_rnn_cell_clip_residual(mode, num_layers, input_size, hidden_size, dropout,
                                 skip_connection, proj_size=None, cell_clip=None, proj_clip=None):
-    """create rnn cell with clip and residual connection given specs"""
+    """Create rnn cell with clip and residual connection given specs
+
+    Parameters
+    ----------
+    mode : str
+        The type of RNN cell to use. Options are 'lstmpc', 'rnn_tanh', 'rnn_relu', 'lstm', 'gru'.
+    num_layers : int
+        The number of RNN cells in the encoder.
+    input_size : int
+        The initial input size of in the RNN cell.
+    hidden_size : int
+        The hidden size of the RNN cell.
+    dropout : float
+        The dropout rate to use for encoder output.
+    skip_connection : bool
+        Whether to add skip connections (add RNN cell input to output)
+    proj_size : int
+        The projection size of each LSTMPCellWithClip cell
+    cell_clip : float
+        Clip cell state between [-cellclip, projclip] in LSTMPCellWithClip cell
+    proj_clip : float
+        Clip projection between [-projclip, projclip] in LSTMPCellWithClip cell
+
+    """
     rnn_cell = rnn.SequentialRNNCell()
     with rnn_cell.name_scope():
         for i in range(num_layers):

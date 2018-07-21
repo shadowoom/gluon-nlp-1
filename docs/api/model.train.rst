@@ -13,9 +13,11 @@ Language Modeling
     :nosignatures:
 
     AWDRNN
+    BiRNN
     StandardRNN
     CacheCell
     get_cache_model
+
 
 
 Word Embeddings

@@ -16,14 +16,14 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-"""LSTM projection cell with projection clip and cell clip."""
+"""LSTM projection cell with cell clip and projection clip."""
 __all__ = ['LSTMPCellWithClip']
 
 from mxnet.gluon.contrib.rnn import LSTMPCell
 
+
 class LSTMPCellWithClip(LSTMPCell):
-    r"""Long-Short Term Memory Projected (LSTMP) network cell.
-    (https://arxiv.org/abs/1402.1128)
+    r"""Long-Short Term Memory Projected (LSTMP) network cell with cell clip and projection clip.
     Each call computes the following function:
     .. math::
         \begin{array}{ll}
@@ -31,11 +31,13 @@ class LSTMPCellWithClip(LSTMPCell):
         f_t = sigmoid(W_{if} x_t + b_{if} + W_{rf} r_{(t-1)} + b_{rf}) \\
         g_t = \tanh(W_{ig} x_t + b_{ig} + W_{rc} r_{(t-1)} + b_{rg}}) \\
         o_t = sigmoid(W_{io} x_t + b_{io} + W_{ro} r_{(t-1)} + b_{ro}) \\
-        c_t = f_t * c_{(t-1)} + i_t * g_t \\
+        c_t = c_clip(f_t * c_{(t-1)} + i_t * g_t) \\
         h_t = o_t * \tanh(c_t) \\
-        r_t = W_{hr} h_t
+        r_t = p_clip(W_{hr} h_t)
         \end{array}
-    where :math:`r_t` is the projected recurrent activation at time `t`,
+    where :math:` c_clip` is the cell clip applied on the next cell;
+    :math:`r_t` is the projected recurrent activation at time `t`,
+    :math:`p_clip` means apply projection clip on he projected output.
     math:`h_t` is the hidden state at time `t`, :math:`c_t` is the
     cell state at time `t`, :math:`x_t` is the input at time `t`, and :math:`i_t`,
     :math:`f_t`, :math:`g_t`, :math:`o_t` are the input, forget, cell, and
@@ -61,7 +63,7 @@ class LSTMPCellWithClip(LSTMPCell):
         to zero.
     h2h_bias_initializer : str or Initializer
         Initializer for the bias vector.
-    prefix : str, default 'lstmp_'
+    prefix : str
         Prefix for name of `Block`s
         (and name of weight if params is `None`).
     params : Parameter or None
@@ -76,7 +78,6 @@ class LSTMPCellWithClip(LSTMPCell):
         - **next_states**: a list of two output recurrent state tensors. Each has
           the same shape as `states`.
     """
-    ##TODO: check writing style
     def __init__(self, hidden_size, projection_size,
                  i2h_weight_initializer=None, h2h_weight_initializer=None,
                  h2r_weight_initializer=None,
