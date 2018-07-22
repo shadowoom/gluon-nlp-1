@@ -83,9 +83,16 @@ class LSTMPCellWithClip(LSTMPCell):
                  h2r_weight_initializer=None,
                  i2h_bias_initializer='zeros', h2h_bias_initializer='zeros',
                  input_size=0, cell_clip=None, projection_clip=None, prefix=None, params=None):
-        super(LSTMPCellWithClip, self).__init__(hidden_size, projection_size, i2h_weight_initializer,
-                                                h2h_weight_initializer, h2r_weight_initializer, i2h_bias_initializer,
-                                                h2h_bias_initializer, input_size, prefix=prefix, params=params)
+        super(LSTMPCellWithClip, self).__init__(hidden_size,
+                                                projection_size,
+                                                i2h_weight_initializer,
+                                                h2h_weight_initializer,
+                                                h2r_weight_initializer,
+                                                i2h_bias_initializer,
+                                                h2h_bias_initializer,
+                                                input_size,
+                                                prefix=prefix,
+                                                params=params)
 
         self._cell_clip = cell_clip
         self._projection_clip = projection_clip
@@ -100,15 +107,15 @@ class LSTMPCellWithClip(LSTMPCell):
                                num_hidden=self._hidden_size*4, name=prefix+'h2h')
         gates = i2h + h2h
         slice_gates = F.SliceChannel(gates, num_outputs=4, name=prefix+'slice')
-        in_gate = F.Activation(slice_gates[0], act_type="sigmoid", name=prefix+'i')
-        forget_gate = F.Activation(slice_gates[1], act_type="sigmoid", name=prefix+'f')
-        in_transform = F.Activation(slice_gates[2], act_type="tanh", name=prefix+'c')
-        out_gate = F.Activation(slice_gates[3], act_type="sigmoid", name=prefix+'o')
+        in_gate = F.Activation(slice_gates[0], act_type='sigmoid', name=prefix+'i')
+        forget_gate = F.Activation(slice_gates[1], act_type='sigmoid', name=prefix+'f')
+        in_transform = F.Activation(slice_gates[2], act_type='tanh', name=prefix+'c')
+        out_gate = F.Activation(slice_gates[3], act_type='sigmoid', name=prefix+'o')
         next_c = F._internal._plus(forget_gate * states[1], in_gate * in_transform,
                                    name=prefix+'state')
         if self._cell_clip is not None:
             F.clip(next_c, a_min=-self._cell_clip, a_max=self._cell_clip, out=next_c)
-        hidden = F._internal._mul(out_gate, F.Activation(next_c, act_type="tanh"),
+        hidden = F._internal._mul(out_gate, F.Activation(next_c, act_type='tanh'),
                                   name=prefix+'hidden')
         next_r = F.FullyConnected(data=hidden, num_hidden=self._projection_size,
                                   weight=h2r_weight, no_bias=True, name=prefix+'out')

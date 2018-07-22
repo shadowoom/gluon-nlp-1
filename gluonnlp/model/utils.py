@@ -161,7 +161,7 @@ def _get_rnn_cell_clip_residual(mode, num_layers, input_size, hidden_size, dropo
     """
     rnn_cell = rnn.SequentialRNNCell()
     with rnn_cell.name_scope():
-        for i in range(num_layers):
+        for _ in range(num_layers):
             if mode == 'rnn_relu':
                 cell = rnn.RNNCell(hidden_size, 'relu', input_size=input_size)
             elif mode == 'rnn_tanh':
@@ -171,7 +171,9 @@ def _get_rnn_cell_clip_residual(mode, num_layers, input_size, hidden_size, dropo
             elif mode == 'gru':
                 cell = rnn.GRUCell(hidden_size, input_size=input_size)
             elif mode == 'lstmpc':
-                cell = LSTMPCellWithClip(hidden_size, proj_size, cell_clip=cell_clip, projection_clip=proj_clip,
+                cell = LSTMPCellWithClip(hidden_size, proj_size,
+                                         cell_clip=cell_clip,
+                                         projection_clip=proj_clip,
                                          input_size=input_size)
 
             if skip_connection:

@@ -278,7 +278,8 @@ class StandardRNN(Block):
 
 
 class BiRNN(Block):
-    """Bidirectional language model by Allen Institute for Artificial Intelligence and University of Washington.
+    """Bidirectional language model by Allen Institute for Artificial Intelligence
+    and University of Washington.
 
     Parameters
     ----------
@@ -305,8 +306,9 @@ class BiRNN(Block):
     cell_clip : float
         Clip cell state between [-cellclip, projclip] in LSTMPCellWithClip cell
     """
-    def __init__(self, mode, vocab_size, embed_size, hidden_size, num_layers, dropout_e=0.5, dropout=0.5,
-                 skip_connection=False, proj_size=None, proj_clip=None, cell_clip=None, **kwargs):
+    def __init__(self, mode, vocab_size, embed_size, hidden_size, num_layers, dropout_e=0.5,
+                 dropout=0.5, skip_connection=False, proj_size=None,
+                 proj_clip=None, cell_clip=None, **kwargs):
         super(BiRNN, self).__init__(**kwargs)
         self._mode = mode
         self._embed_size = embed_size
@@ -346,9 +348,11 @@ class BiRNN(Block):
         return embedding
 
     def _get_encoder(self):
-        return BiLMEncoder(mode=self._mode, num_layers=self._num_layers, input_size=self._embed_size,
-                           hidden_size=self._hidden_size, dropout=self._dropout, skip_connection=self._skip_connection,
-                           proj_size=self._proj_size, cell_clip=self._cell_clip, proj_clip=self._proj_clip)
+        return BiLMEncoder(mode=self._mode, num_layers=self._num_layers,
+                           input_size=self._embed_size, hidden_size=self._hidden_size,
+                           dropout=self._dropout, skip_connection=self._skip_connection,
+                           proj_size=self._proj_size, cell_clip=self._cell_clip,
+                           proj_clip=self._proj_clip)
 
     def _get_decoder_forward(self):
         output = nn.HybridSequential()
@@ -359,7 +363,8 @@ class BiRNN(Block):
     def _get_decoder_backward(self):
         output = nn.HybridSequential()
         with output.name_scope():
-            output.add(nn.Dense(self._vocab_size, flatten=False, params=self.decoder_forward[0].params))
+            output.add(nn.Dense(self._vocab_size, flatten=False,
+                                params=self.decoder_forward[0].params))
         return output
 
     def begin_state(self, **kwargs):
@@ -396,7 +401,7 @@ class BiRNN(Block):
         encoded = self.embedding_forward(inputs[0]), self.embedding_backward(inputs[1])
 
         if not begin_state:
-            begin_state = self.begin_state(inputs[0].shape[1])
+            begin_state = self.begin_state(batch_size=inputs[0].shape[1])
         encoded_raw = []
         encoded_dropped = []
 

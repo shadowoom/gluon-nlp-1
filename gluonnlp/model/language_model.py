@@ -107,7 +107,8 @@ class AWDRNN(train.AWDRNN):
         return out, out_states
 
 class StandardRNN(train.StandardRNN):
-    """Bidirectional language model by Allen Institute for Artificial Intelligence and University of Washington.
+    """Bidirectional language model by Allen Institute for Artificial Intelligence
+    and University of Washington.
 
     Parameters
     ----------
@@ -198,8 +199,9 @@ class BiRNN(train.BiRNN):
     """
     def __init__(self, mode, vocab_size, embed_size, hidden_size, num_layers, dropout_e, dropout,
                  skip_connection, proj_size, proj_clip, cell_clip, **kwargs):
-        super(BiRNN, self).__init__(mode, vocab_size, embed_size, hidden_size, num_layers, dropout_e, dropout,
-                                    skip_connection, proj_size, proj_clip, cell_clip, **kwargs)
+        super(BiRNN, self).__init__(mode, vocab_size, embed_size, hidden_size, num_layers,
+                                    dropout_e, dropout, skip_connection, proj_size,
+                                    proj_clip, cell_clip, **kwargs)
 
     def forward(self, inputs, begin_state=None): # pylint: disable=arguments-differ
         """Implement the forward computation that the biRNN model use.
@@ -225,7 +227,7 @@ class BiRNN(train.BiRNN):
         encoded = self.embedding_forward(inputs[0]), self.embedding_backward(inputs[1])
 
         if not begin_state:
-            begin_state = self.begin_state(inputs[0].shape[1])
+            begin_state = self.begin_state(batch_size=inputs[0].shape[1])
 
         encoded, state = self.encoder(encoded, begin_state)
 

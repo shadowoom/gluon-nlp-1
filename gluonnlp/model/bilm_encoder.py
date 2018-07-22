@@ -83,9 +83,11 @@ class BiLMEncoder(gluon.Block):
                                                                 num_layers=1,
                                                                 input_size=lstm_input_size,
                                                                 hidden_size=self._hidden_size,
-                                                                dropout=0 if layer_index == num_layers - 1
+                                                                dropout=0
+                                                                if layer_index == num_layers - 1
                                                                 else self._dropout,
-                                                                skip_connection=False if layer_index == 0
+                                                                skip_connection=False
+                                                                if layer_index == 0
                                                                 else self._skip_connection,
                                                                 proj_size=self._proj_size,
                                                                 cell_clip=self._cell_clip,
@@ -102,9 +104,11 @@ class BiLMEncoder(gluon.Block):
                                                                  num_layers=1,
                                                                  input_size=lstm_input_size,
                                                                  hidden_size=self._hidden_size,
-                                                                 dropout=0 if layer_index == num_layers - 1
+                                                                 dropout=0
+                                                                 if layer_index == num_layers - 1
                                                                  else self._dropout,
-                                                                 skip_connection=False if layer_index == 0
+                                                                 skip_connection=False
+                                                                 if layer_index == 0
                                                                  else self._skip_connection,
                                                                  proj_size=self._proj_size,
                                                                  cell_clip=self._cell_clip,
@@ -114,10 +118,12 @@ class BiLMEncoder(gluon.Block):
                     lstm_input_size = hidden_size
 
     def begin_state(self, **kwargs):
-        return [forward_layer.begin_state(**kwargs) for _, forward_layer in enumerate(self.forward_layers)], \
-               [backward_layer.begin_state(**kwargs) for _, backward_layer in enumerate(self.backward_layers)]
+        return [forward_layer.begin_state(**kwargs)
+                for _, forward_layer in enumerate(self.forward_layers)], \
+               [backward_layer.begin_state(**kwargs)
+                for _, backward_layer in enumerate(self.backward_layers)]
 
-    def forward(self, inputs, states):
+    def forward(self, inputs, states): # pylint: disable=arguments-differ
         """Defines the forward computation for cache cell. Arguments can be either
         :py:class:`NDArray` or :py:class:`Symbol`.
 
@@ -129,8 +135,10 @@ class BiLMEncoder(gluon.Block):
             inputs[1] indicates the data used in backward pass.
         states : List[NDArray]
             The states. Each has layout='TNC', including:
-            states[0] indicates the states used in forward pass, each has shape (seq_len, batch_size, num_hidden).
-            states[1] indicates the states used in backward pass, each has shape (seq_len, batch_size, num_hidden)
+            states[0] indicates the states used in forward pass,
+            each has shape (seq_len, batch_size, num_hidden).
+            states[1] indicates the states used in backward pass,
+            each has shape (seq_len, batch_size, num_hidden)
 
         Returns
         --------
@@ -142,8 +150,10 @@ class BiLMEncoder(gluon.Block):
             which has layout='TNC'
         (states_forward, states_backward) : Tuple
             Including:
-            states_forward: The out states from forward pass, which has the same shape with *states[0]*.
-            states_backward: The out states from backward pass, which has the same shape with *states[1]*.
+            states_forward: The out states from forward pass,
+            which has the same shape with *states[0]*.
+            states_backward: The out states from backward pass,
+            which has the same shape with *states[1]*.
         """
         seq_len = inputs[0].shape[0]
 
