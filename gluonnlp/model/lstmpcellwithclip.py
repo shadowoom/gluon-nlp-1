@@ -100,6 +100,9 @@ class LSTMPCellWithClip(LSTMPCell):
     # pylint: disable= arguments-differ
     def hybrid_forward(self, F, inputs, states, i2h_weight,
                        h2h_weight, h2r_weight, i2h_bias, h2h_bias):
+        r"""Hybrid forward computation for Long-Short Term Memory Projected (LSTMP) network cell
+        with cell clip and projection clip.
+        """
         prefix = 't%d_'%self._counter
         i2h = F.FullyConnected(data=inputs, weight=i2h_weight, bias=i2h_bias,
                                num_hidden=self._hidden_size*4, name=prefix+'i2h')
