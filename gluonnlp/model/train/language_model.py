@@ -17,13 +17,14 @@
 # specific language governing permissions and limitations
 # under the License.
 """Language models for training."""
-__all__ = ['AWDRNN', 'StandardRNN', 'BigRNN']
+__all__ = ['AWDRNN', 'StandardRNN', 'BigRNN', 'BiRNN']
 
 from mxnet import init, nd, autograd
 from mxnet.gluon import nn, Block, contrib, rnn
 
 from ..utils import _get_rnn_layer, apply_weight_drop
 from ..sampled_block import ISDense, SparseISDense
+from gluonnlp.model.bilm_encoder import BiLMEncoder
 
 class AWDRNN(Block):
     """AWD language model by salesforce.
@@ -275,13 +276,11 @@ class StandardRNN(Block):
         out = self.decoder(encoded)
         return out, state, encoded_raw, encoded_dropped
 
+
 class BigRNN(Block):
     """Big language model with LSTMP and importance sampling.
-
     Reference: https://github.com/rafaljozefowicz/lm
-
     License: MIT
-
     Parameters
     ----------
     vocab_size : int
@@ -305,7 +304,6 @@ class BigRNN(Block):
     sparse_grad : bool
         Whether to use RowSparseNDArray for the gradients w.r.t.
         weights of input and output embeddings.
-
     .. note: If `sparse_grad` is set to True, the gradient w.r.t input and output
              embeddings will be sparse. Only a subset of optimizers support
              sparse gradients, including SGD, AdaGrad and Adam.
@@ -313,7 +311,6 @@ class BigRNN(Block):
              which may perform differently from standard updates.
              For more details, please check the Optimization API at:
              https://mxnet.incubator.apache.org/api/python/optimization/optimization.html
-
     .. note: If `sparse_weight` is set to True, the parameters in the embedding block and
              decoder block will be stored in row_sparse format, which helps reduce memory
              consumption and communication overhead during multi-GPU training. However,
@@ -388,7 +385,6 @@ class BigRNN(Block):
 
     def forward(self, inputs, label, begin_state, sampled_values): # pylint: disable=arguments-differ
         """Defines the forward computation.
-
         Parameters
         -----------
         inputs : NDArray
@@ -402,7 +398,6 @@ class BigRNN(Block):
             a list of three tensors for `sampled_classes` with shape `(num_samples,)`,
             `expected_count_sampled` with shape `(num_samples,)`, and
             `expected_count_true` with shape `(sequence_length, batch_size)`.
-
         Returns
         --------
         out : NDArray
@@ -425,3 +420,144 @@ class BigRNN(Block):
         out = out.reshape((length, batch_size, -1))
         new_target = new_target.reshape((length, batch_size))
         return out, out_states, new_target
+
+
+class BiRNN(Block):
+    """Bidirectional language model by Allen Institute for Artificial Intelligence
+    and University of Washington.
+    Parameters
+    ----------
+    mode : str
+        The type of RNN to use. Options are 'lstmpc', 'lstm', 'gru', 'rnn_tanh', 'rnn_relu'.
+    vocab_size : int
+        Size of the input vocabulary.
+    embed_size : int
+        Dimension of embedding vectors.
+    hidden_size : int
+        Number of hidden units for RNN.
+    num_layers : int
+        Number of RNN layers.
+    dropout_e : float
+        Dropout rate to use on the embedding layer.
+    dropout : float
+        Dropout rate to use for encoder output.
+    skip_connection : bool
+        Whether to add skip connections (add RNN cell input to output)
+    proj_size : int
+        The projection size of each LSTMPCellWithClip cell
+    proj_clip : float
+        Clip projection between [-projclip, projclip] in LSTMPCellWithClip cell
+    cell_clip : float
+        Clip cell state between [-cellclip, projclip] in LSTMPCellWithClip cell
+    """
+    def __init__(self, mode, vocab_size, embed_size, hidden_size, num_layers, dropout_e=0.5,
+                 dropout=0.5, skip_connection=False, proj_size=None,
+                 proj_clip=None, cell_clip=None, **kwargs):
+        super(BiRNN, self).__init__(**kwargs)
+        self._mode = mode
+        self._embed_size = embed_size
+        self._hidden_size = hidden_size
+        self._skip_connection = skip_connection
+        self._proj_size = proj_size
+        self._proj_clip = proj_clip
+        self._cell_clip = cell_clip
+        self._num_layers = num_layers
+        self._dropout_e = dropout_e
+        self._dropout = dropout
+        self._vocab_size = vocab_size
+
+        with self.name_scope():
+            self.embedding_forward = self._get_embedding_forward()
+            self.embedding_backward = self._get_embedding_backward()
+            self.encoder = self._get_encoder()
+            self.decoder_forward = self._get_decoder_forward()
+            self.decoder_backward = self._get_decoder_backward()
+
+    def _get_embedding_forward(self):
+        embedding = nn.HybridSequential()
+        with embedding.name_scope():
+            embedding.add(nn.Embedding(self._vocab_size, self._embed_size,
+                                       weight_initializer=init.Uniform(0.1)))
+            if self._dropout_e:
+                embedding.add(nn.Dropout(self._dropout_e))
+        return embedding
+
+    def _get_embedding_backward(self):
+        embedding = nn.HybridSequential()
+        with embedding.name_scope():
+            embedding.add(nn.Embedding(self._vocab_size, self._embed_size,
+                                       params=self.embedding_forward[0].params))
+            if self._dropout_e:
+                embedding.add(nn.Dropout(self._dropout_e))
+        return embedding
+
+    def _get_encoder(self):
+        return BiLMEncoder(mode=self._mode, num_layers=self._num_layers,
+                           input_size=self._embed_size, hidden_size=self._hidden_size,
+                           dropout=self._dropout, skip_connection=self._skip_connection,
+                           proj_size=self._proj_size, cell_clip=self._cell_clip,
+                           proj_clip=self._proj_clip)
+
+    def _get_decoder_forward(self):
+        output = nn.HybridSequential()
+        with output.name_scope():
+            output.add(nn.Dense(self._vocab_size, flatten=False))
+        return output
+
+    def _get_decoder_backward(self):
+        output = nn.HybridSequential()
+        with output.name_scope():
+            output.add(nn.Dense(self._vocab_size, flatten=False,
+                                params=self.decoder_forward[0].params))
+        return output
+
+    def begin_state(self, **kwargs):
+        return self.encoder.begin_state(**kwargs)
+
+    def forward(self, inputs, begin_state=None): # pylint: disable=arguments-differ
+        """Implement the forward computation that the biRNN model use.
+        Parameters
+        -----------
+        inputs : Tuple(NDArray)
+            Each input tensor with shape `(sequence_length, batch_size)`
+            when `layout` is "TNC".
+        begin_state : list
+            initial recurrent state tensor with length equals to num_layers.
+            the initial state with shape `(1, batch_size, num_hidden)`
+        Returns
+        --------
+        (forward_out, backward_out): Tuple(NDArray)
+            Each output tensor with shape `(sequence_length, batch_size, input_size)`
+            when `layout` is "TNC".
+        state: list
+            output recurrent state tensor with length equals to num_layers.
+            the state with shape `(1, batch_size, num_hidden)`
+        encoded_raw: list
+            The list of outputs of the model's encoder with length equals to num_layers.
+            the shape of every encoder's output `(sequence_length, batch_size, num_hidden)`
+        encoded_dropped: list
+            The list of outputs with dropout of the model's encoder with length equals
+            to num_layers. The shape of every encoder's dropped output
+            `(sequence_length, batch_size, num_hidden)`
+        """
+        encoded = self.embedding_forward(inputs[0]), self.embedding_backward(inputs[1])
+
+        if not begin_state:
+            begin_state = self.begin_state(batch_size=inputs[0].shape[1])
+        encoded_raw = []
+        encoded_dropped = []
+
+        encoded, state = self.encoder(encoded, begin_state)
+        encoded_raw.append(encoded)
+
+        if self._dropout:
+            encoded_forward = nd.Dropout(encoded[0][-1], p=self._dropout)
+            encoded_backward = nd.Dropout(encoded[1][-1], p=self._dropout)
+        else:
+            encoded_forward = encoded[0][-1]
+            encoded_backward = encoded[1][-1]
+
+        forward_out = self.decoder_forward(encoded_forward)
+        backward_out = self.decoder_backward(encoded_backward)
+
+        return (forward_out, backward_out), state, encoded_raw, encoded_dropped
