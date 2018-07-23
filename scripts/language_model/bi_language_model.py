@@ -1,22 +1,23 @@
 """
-Word Language Model
-===================
+Bidirectional Language Model
+============================
 
-This example shows how to build a word-level language model on WikiText-2 with Gluon NLP Toolkit.
-By using the existing data pipeline tools and building blocks, the process is greatly simplified.
+This example shows how to build a word-level bidirectional language model on WikiText-2
+with Gluon NLP Toolkit. By using the existing data pipeline tools and building blocks,
+the process is greatly simplified.
 
-We implement the AWD LSTM language model proposed in the following work.
+We implemented the bidirectional language model implemented in the following work,
+which wins the Best Paper Award in NAACL18. The language model could be used to compute the ELMo
+(Embeddings from Language Models) representations in the following paper or used
+as separate language model for your applications.
 
-@article{merityRegOpt,
-  title={{Regularizing and Optimizing LSTM Language Models}},
-  author={Merity, Stephen and Keskar, Nitish Shirish and Socher, Richard},
-  journal={ICLR},
+@inproceedings{Peters:2018,
+  author={Peters, Matthew E. and  Neumann, Mark and Iyyer, Mohit and Gardner, Matt and Clark,
+  Christopher and Lee, Kenton and Zettlemoyer, Luke},
+  title={Deep contextualized word representations},
+  booktitle={Proc. of NAACL},
   year={2018}
 }
-
-Note that we are using standard SGD as the optimizer for code simpilification.
-Once NT-ASGD in the work is implemented and used as the optimizer.
-Our implementation should yield identical results.
 """
 
 # coding: utf-8
@@ -53,36 +54,28 @@ sys.path.append(os.path.join(curr_path, '..', '..'))
 
 parser = argparse.ArgumentParser(description=
                                  'MXNet Autograd RNN/LSTM Language Model on Wikitext-2.')
-parser.add_argument('--model', type=str, default='lstm',
-                    help='type of recurrent net (rnn_tanh, rnn_relu, lstm, gru)')
-parser.add_argument('--emsize', type=int, default=400,
+parser.add_argument('--model', type=str, default='lstmpc',
+                    help='type of recurrent net (lstmpc, rnn_tanh, rnn_relu, lstm, gru)')
+parser.add_argument('--emsize', type=int, default=650,
                     help='size of word embeddings')
-parser.add_argument('--nhid', type=int, default=1150,
+parser.add_argument('--nhid', type=int, default=650,
                     help='number of hidden units per layer')
-parser.add_argument('--nlayers', type=int, default=3,
+parser.add_argument('--nlayers', type=int, default=2,
                     help='number of layers')
-parser.add_argument('--lr', type=float, default=30,
+parser.add_argument('--lr', type=float, default=20,
                     help='initial learning rate')
 parser.add_argument('--clip', type=float, default=0.25,
                     help='gradient clipping')
-parser.add_argument('--epochs', type=int, default=180,
+parser.add_argument('--epochs', type=int, default=750,
                     help='upper epoch limit')
-parser.add_argument('--batch_size', type=int, default=80, metavar='N',
+parser.add_argument('--batch_size', type=int, default=20, metavar='N',
                     help='batch size')
-parser.add_argument('--bptt', type=int, default=70,
+parser.add_argument('--bptt', type=int, default=35,
                     help='sequence length')
-parser.add_argument('--dropout', type=float, default=0.4,
-                    help='dropout applied to layers (0 = no dropout)')
-parser.add_argument('--dropout_h', type=float, default=0.2,
-                    help='dropout applied to hidden layer (0 = no dropout)')
-parser.add_argument('--dropout_i', type=float, default=0.65,
-                    help='dropout applied to input layer (0 = no dropout)')
-parser.add_argument('--dropout_e', type=float, default=0.1,
+parser.add_argument('--dropout_e', type=float, default=0.5,
                     help='dropout applied to embedding layer (0 = no dropout)')
-parser.add_argument('--weight_dropout', type=float, default=0.5,
-                    help='weight dropout applied to h2h weight matrix (0 = no weight dropout)')
-parser.add_argument('--tied', action='store_true',
-                    help='tie the word embedding and softmax weights')
+parser.add_argument('--dropout', type=float, default=0.5,
+                    help='dropout applied to layers (0 = no dropout)')
 parser.add_argument('--log-interval', type=int, default=200, metavar='N',
                     help='report interval')
 parser.add_argument('--save', type=str, default='model.params',
@@ -98,14 +91,22 @@ parser.add_argument('--lr_update_factor', type=float, default=0.1,
                     help='lr udpate factor')
 parser.add_argument('--optimizer', type=str, default='sgd',
                     help='optimizer to use (sgd, adam)')
-parser.add_argument('--wd', type=float, default=1.2e-6,
+parser.add_argument('--wd', type=float, default=0,
                     help='weight decay applied to all weights')
-parser.add_argument('--alpha', type=float, default=2,
+parser.add_argument('--alpha', type=float, default=0,
                     help='alpha L2 regularization on RNN activation '
                          '(alpha = 0 means no regularization)')
-parser.add_argument('--beta', type=float, default=1,
+parser.add_argument('--beta', type=float, default=0,
                     help='beta slowness regularization applied on RNN activiation '
                          '(beta = 0 means no regularization)')
+parser.add_argument('--cellclip', type=float, default=None,
+                    help='clip cell state between [-cellclip, projclip] in LSTMPCellWithClip')
+parser.add_argument('--projsize', type=int, default=0,
+                    help='projection of nhid to projsize in LSTMPCellWithClip')
+parser.add_argument('--projclip', type=float, default=None,
+                    help='clip projection between [-projclip, projclip] in LSTMPCellWithClip')
+parser.add_argument('--skip_connection', action='store_true',
+                    help='add skip connections (add cell input to output)')
 parser.add_argument('--test_mode', action='store_true',
                     help='Whether to run through the script with few examples')
 args = parser.parse_args()
@@ -120,8 +121,8 @@ context = [mx.cpu()] if args.gpus is None or args.gpus == '' else \
 assert args.batch_size % len(context) == 0, \
     'Total batch size must be multiple of the number of devices'
 
-assert args.weight_dropout > 0 or (args.weight_dropout == 0 and args.alpha == 0), \
-    'The alpha L2 regularization cannot be used with standard RNN, please set alpha to 0'
+assert args.alpha == 0, \
+    'The alpha L2 regularization cannot be used with Bidirectional RNN, please set alpha to 0'
 
 train_dataset, val_dataset, test_dataset = \
     [nlp.data.WikiText2(segment=segment,
@@ -151,25 +152,21 @@ print(args)
 # Build the model
 ###############################################################################
 
+
 ntokens = len(vocab)
 
-if args.weight_dropout > 0:
-    print('Use AWDRNN')
-    model_eval = nlp.model.AWDRNN(args.model, len(vocab), args.emsize, args.nhid, args.nlayers,
-                                  args.tied, args.dropout, args.weight_dropout,
-                                  args.dropout_h, args.dropout_i, args.dropout_e)
-    model = nlp.model.train.AWDRNN(args.model, len(vocab), args.emsize, args.nhid, args.nlayers,
-                                   args.tied, args.dropout, args.weight_dropout,
-                                   args.dropout_h, args.dropout_i, args.dropout_e)
-else:
-    model_eval = nlp.model.StandardRNN(args.model, len(vocab), args.emsize,
-                                       args.nhid, args.nlayers, args.dropout, args.tied)
-    model = nlp.model.train.StandardRNN(args.model, len(vocab), args.emsize,
-                                        args.nhid, args.nlayers, args.dropout, args.tied)
+model_eval = nlp.model.BiRNN(args.model, len(vocab), args.emsize, args.nhid, args.nlayers,
+                             args.dropout_e, args.dropout, args.skip_connection,
+                             args.projsize, args.projclip, args.cellclip)
+model = nlp.model.train.BiRNN(args.model, len(vocab), args.emsize, args.nhid, args.nlayers,
+                              args.dropout_e, args.dropout, args.skip_connection,
+                              args.projsize, args.projclip, args.cellclip)
 
+print(model)
 
 model.initialize(mx.init.Xavier(), ctx=context)
 
+model.hybridize()
 
 if args.optimizer == 'sgd':
     trainer_params = {'learning_rate': args.lr,
@@ -237,8 +234,10 @@ class JointActivationRegularizationLoss(gluon.loss.Loss):
     def hybrid_forward(self, F, out, target, states, dropped_states): # pylint: disable=arguments-differ
         # pylint: disable=unused-argument
         l = self._loss(out.reshape(-3, -1), target.reshape(-1,))
-        l = l + self._ar_loss(*dropped_states)
-        l = l + self._tar_loss(*states)
+        if args.alpha != 0:
+            l = l + self._ar_loss(*dropped_states)
+        if args.beta != 0:
+            l = l + self._tar_loss(*states)
         return l
 
 
@@ -317,22 +316,25 @@ def evaluate(data_source, batch_size, segment, ctx=None):
         model_eval.load_params(args.save + '.val', context)
     elif segment == 'test':
         model_eval.load_params(args.save, context)
-    hidden = model_eval.begin_state(batch_size, func=mx.nd.zeros, ctx=context[0])
+    hidden = model_eval.begin_state(batch_size=batch_size, func=mx.nd.zeros, ctx=context[0])
     for i in range(0, len(data_source) - 1, args.bptt):
         data, target = get_batch(data_source, i)
         data = data.as_in_context(ctx)
         target = target.as_in_context(ctx)
-        output, hidden = model_eval(data, hidden)
+        output, hidden = model_eval((data, target), hidden)
         hidden = detach(hidden)
-        L = loss(output.reshape(-3, -1),
+        L = loss(output[0].reshape(-3, -1),
                  target.reshape(-1,))
         total_L += mx.nd.sum(L).asscalar()
-        ntotal += L.size
+        L = loss(output[1].reshape(-3, -1),
+                 data.reshape(-1,))
+        total_L += mx.nd.sum(L).asscalar()
+        ntotal += 2*L.size
     return total_L / ntotal
 
 
 def train():
-    """Training loop for awd language model.
+    """Training loop for bi-language model (biLM).
 
     """
     best_val = float('Inf')
@@ -342,15 +344,11 @@ def train():
         total_L = 0.0
         start_epoch_time = time.time()
         start_log_interval_time = time.time()
-        hiddens = [model.begin_state(args.batch_size//len(context),
-                                     func=mx.nd.zeros, ctx=ctx) for ctx in context]
+        hiddens = [model.begin_state(batch_size=args.batch_size//len(context),
+                                     func=mx.nd .zeros, ctx=ctx) for ctx in context]
         batch_i, i = 0, 0
         while i < len(train_data) - 1 - 1:
-            bptt = args.bptt if mx.nd.random.uniform().asscalar() < 0.95 else args.bptt / 2
-            seq_len = max(5, int(mx.nd.random.normal(bptt, 5).asscalar()))
-            lr_batch_start = trainer.learning_rate
-            trainer.set_learning_rate(lr_batch_start*seq_len/args.bptt)
-
+            seq_len = args.bptt
             data, target = get_batch(train_data, i, seq_len=seq_len)
             data_list = gluon.utils.split_and_load(data, context, batch_axis=1, even_split=True)
             target_list = gluon.utils.split_and_load(target, context, batch_axis=1, even_split=True)
@@ -359,10 +357,15 @@ def train():
             L = 0
             with autograd.record():
                 for j, (X, y, h) in enumerate(zip(data_list, target_list, hiddens)):
-                    output, h, encoder_hs, dropped_encoder_hs = model(X, h)
-                    l = joint_loss(output, y, encoder_hs, dropped_encoder_hs)
+                    output, h, encoder_hs, dropped_encoder_hs = model((X, y), h)
+                    l = joint_loss(output[0], y, encoder_hs, dropped_encoder_hs)
                     L = L + l.as_in_context(context[0]) / X.size
-                    Ls.append(l/X.size)
+                    Ls.append(l / X.size)
+
+                    l = joint_loss(output[1], X, encoder_hs, dropped_encoder_hs)
+                    L = L + l.as_in_context(context[0]) / X.size
+                    Ls.append(l / X.size)
+
                     hiddens[j] = h
             L.backward()
             grads = [p.grad(d.context) for p in parameters for d in data_list]
@@ -370,15 +373,14 @@ def train():
 
             trainer.step(1)
 
-            total_L += sum([mx.nd.sum(L).asscalar() for L in Ls]) / len(context)
-            trainer.set_learning_rate(lr_batch_start)
+            total_L += sum([mx.nd.sum(L).asscalar() for L in Ls]) / (2*len(context))
             if batch_i % args.log_interval == 0 and batch_i > 0:
                 cur_L = total_L / args.log_interval
                 print('[Epoch %d Batch %d/%d] loss %.2f, ppl %.2f, '
                       'throughput %.2f samples/s, lr %.2f'
                       %(epoch, batch_i, len(train_data)//args.bptt, cur_L, math.exp(cur_L),
                         args.batch_size*args.log_interval/(time.time()-start_log_interval_time),
-                        lr_batch_start*seq_len/args.bptt))
+                        trainer.learning_rate))
                 total_L = 0.0
                 start_log_interval_time = time.time()
             i += seq_len

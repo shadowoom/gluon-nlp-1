@@ -65,11 +65,16 @@ from .highway import *
 
 from .convolutional_encoder import *
 
+from .bilm_encoder import BiLMEncoder
+
+from .lstmpcellwithclip import LSTMPCellWithClip
+
 from . import train
 
 __all__ = language_model.__all__ + beam_search.__all__ + attention_cell.__all__ + \
           utils.__all__ + parameter.__all__ + block.__all__ + highway.__all__ + \
-          convolutional_encoder.__all__ + ['get_model'] + ['train']
+          convolutional_encoder.__all__ + ['get_model'] + ['train'] \
+          + bilm_encoder.__all__ + lstmpcellwithclip.__all__
 
 
 def get_model(name, dataset_name='wikitext-2', **kwargs):

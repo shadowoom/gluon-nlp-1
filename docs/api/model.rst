@@ -15,6 +15,9 @@ Language Modeling
     awd_lstm_lm_1150
     awd_lstm_lm_600
     AWDRNN
+    BiRNN
+    BiLMEncoder
+    LSTMPCellWithClip
     standard_lstm_lm_200
     standard_lstm_lm_650
     standard_lstm_lm_1500

@@ -115,3 +115,15 @@ def test_save_load_cache_models():
             print(cache_cell)
             cache_cell.save_params('tests/data/model/' + name + '-' + dataset_name + '.params')
             cache_cell.load_params('tests/data/model/' + name + '-' + dataset_name + '.params')
+
+
+def test_bidirectional_models():
+    val = nlp.data.WikiText2(segment='val', root='tests/data/wikitext-2')
+    val_freq = get_frequencies(val)
+    vocab = nlp.Vocab(val_freq)
+    text_models = ['bi_lstm_proj_clip_lm_1500', 'bi_lstm_proj_clip_lm_650', 'bi_lstm_proj_clip_lm_200']
+    pretrained_to_test = {'bi_lstm_proj_clip_lm_1500': 'wikitext-2', 'bi_lstm_proj_clip_lm_650': 'wikitext-2', 'bi_lstm_proj_clip_lm_200': 'wikitext-2'}
+    # TODO: add test
+    print(len(vocab))
+    print(len(text_models))
+    print(len(pretrained_to_test))
