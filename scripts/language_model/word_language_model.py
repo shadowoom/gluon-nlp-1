@@ -541,6 +541,7 @@ if __name__ == '__main__':
 
     #TODO: reproduce pytorch
     args.save = 'WT2.1150.model.pt'
+    model_eval.initialize(mx.init.Xavier(), ctx=context)
 
     final_val_L = evaluate(val_data, val_batch_size, args.save, context[0])
     final_test_L = evaluate(test_data, test_batch_size, args.save, context[0])
