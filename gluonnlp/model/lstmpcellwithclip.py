@@ -27,6 +27,7 @@ class LSTMPCellWithClip(LSTMPCell):
     Each call computes the following function:
 
     .. math::
+
     \begin{array}{ll}
         i_t = sigmoid(W_{ii} x_t + b_{ii} + W_{ri} r_{(t-1)} + b_{ri}) \\
         f_t = sigmoid(W_{if} x_t + b_{if} + W_{rf} r_{(t-1)} + b_{rf}) \\
