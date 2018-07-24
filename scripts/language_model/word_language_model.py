@@ -324,7 +324,7 @@ def evaluate(data_source, batch_size, params_file_name, ctx=None):
 
     #TODO: reproduce pytorch
     def torch_param_to_numpy(param):
-        return param.data.numpy()
+        return param.data.cpu().numpy()
 
     def set_gluon_param(param, torch_param):
         value = torch_param_to_numpy(torch_param)
