@@ -166,7 +166,7 @@ print(model)
 
 model.initialize(mx.init.Xavier(), ctx=context)
 
-model.hybridize()
+# model.hybridize()
 
 if args.optimizer == 'sgd':
     trainer_params = {'learning_rate': args.lr,
@@ -360,14 +360,16 @@ def train():
                     output, h, encoder_hs, dropped_encoder_hs = model((X, y), h)
                     l = joint_loss(output[0], y, encoder_hs, dropped_encoder_hs)
                     L = L + l.as_in_context(context[0]) / X.size
-                    Ls.append(l / X.size)
+                    Ls.append(l.as_in_context(context[0]) / X.size)
 
                     l = joint_loss(output[1], X, encoder_hs, dropped_encoder_hs)
                     L = L + l.as_in_context(context[0]) / X.size
-                    Ls.append(l / X.size)
+                    Ls.append(l.as_in_context(context[0]) / X.size)
 
                     hiddens[j] = h
             L.backward()
+            # for L in Ls:
+            #     L.backward()
             grads = [p.grad(d.context) for p in parameters for d in data_list]
             gluon.utils.clip_global_norm(grads, args.clip)
 
