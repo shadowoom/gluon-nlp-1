@@ -366,7 +366,7 @@ def evaluate(data_source, batch_size, params_file_name, ctx=None):
     else:
         model_eval.load_params(params_file_name, context)
 
-    hidden = model_eval.begin_state(batch_size, func=mx.nd.zeros, ctx=context[0])
+    hidden = model_eval.begin_state(batch_size=batch_size, func=mx.nd.zeros, ctx=context[0])
     for i in range(0, len(data_source) - 1, args.bptt):
         data, target = get_batch(data_source, i)
         data = data.as_in_context(ctx)
