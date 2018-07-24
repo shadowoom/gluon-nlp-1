@@ -25,9 +25,10 @@ from mxnet.gluon.contrib.rnn import LSTMPCell
 class LSTMPCellWithClip(LSTMPCell):
     r"""Long-Short Term Memory Projected (LSTMP) network cell with cell clip and projection clip.
     Each call computes the following function:
+
     .. math::
-        
-	\begin{array}{ll}
+
+    \begin{array}{ll}
         i_t = sigmoid(W_{ii} x_t + b_{ii} + W_{ri} r_{(t-1)} + b_{ri}) \\
         f_t = sigmoid(W_{if} x_t + b_{if} + W_{rf} r_{(t-1)} + b_{rf}) \\
         g_t = \tanh(W_{ig} x_t + b_{ig} + W_{rc} r_{(t-1)} + b_{rg}}) \\
@@ -35,8 +36,8 @@ class LSTMPCellWithClip(LSTMPCell):
         c_t = c_clip(f_t * c_{(t-1)} + i_t * g_t) \\
         h_t = o_t * \tanh(c_t) \\
         r_t = p_clip(W_{hr} h_t)
-        \end{array}
-    
+    \end{array}
+
     where :math:`c_clip` is the cell clip applied on the next cell;
     :math:`r_t` is the projected recurrent activation at time `t`,
     :math:`p_clip` means apply projection clip on he projected output.
@@ -44,6 +45,7 @@ class LSTMPCellWithClip(LSTMPCell):
     cell state at time `t`, :math:`x_t` is the input at time `t`, and :math:`i_t`,
     :math:`f_t`, :math:`g_t`, :math:`o_t` are the input, forget, cell, and
     out gates, respectively.
+
     Parameters
     ----------
     hidden_size : int
@@ -71,14 +73,10 @@ class LSTMPCellWithClip(LSTMPCell):
     params : Parameter or None
         Container for weight sharing between cells.
         Created if `None`.
-    Inputs:
-        - **data**: input tensor with shape `(batch_size, input_size)`.
-        - **states**: a list of two initial recurrent state tensors, with shape
-          `(batch_size, projection_size)` and `(batch_size, hidden_size)` respectively.
-    Outputs:
-        - **out**: output tensor with shape `(batch_size, num_hidden)`.
-        - **next_states**: a list of two output recurrent state tensors. Each has
-          the same shape as `states`.
+    cell_clip : float
+        Clip cell state between [-cellclip, projclip] in LSTMPCellWithClip cell
+    projection_clip : float
+        Clip projection between [-projection_clip, projection_clip] in LSTMPCellWithClip cell
     """
     def __init__(self, hidden_size, projection_size,
                  i2h_weight_initializer=None, h2h_weight_initializer=None,
@@ -102,8 +100,20 @@ class LSTMPCellWithClip(LSTMPCell):
     # pylint: disable= arguments-differ
     def hybrid_forward(self, F, inputs, states, i2h_weight,
                        h2h_weight, h2r_weight, i2h_bias, h2h_bias):
-        r"""Hybrid forward computation for Long-Short Term Memory Projected (LSTMP) network cell
+        r"""Hybrid forward computation for Long-Short Term Memory Projected network cell
         with cell clip and projection clip.
+
+        Parameters
+        ----------
+        inputs : input tensor with shape `(batch_size, input_size)`.
+        states : a list of two initial recurrent state tensors, with shape
+            `(batch_size, projection_size)` and `(batch_size, hidden_size)` respectively.
+
+        Returns
+        --------
+        out : output tensor with shape `(batch_size, num_hidden)`.
+        next_states : a list of two output recurrent state tensors. Each has
+            the same shape as `states`.
         """
         prefix = 't%d_'%self._counter
         i2h = F.FullyConnected(data=inputs, weight=i2h_weight, bias=i2h_bias,
