@@ -391,7 +391,7 @@ def train():
         mx.nd.waitall()
 
         for p in parameters:
-            print(p.grad()[1:])
+            print(p.grad()[:1])
 
         print('[Epoch %d] throughput %.2f samples/s'%(
             epoch, (args.batch_size * len(train_data)) / (time.time() - start_epoch_time)))
