@@ -173,6 +173,8 @@ model.initialize(mx.init.Xavier(), ctx=context)
 
 print(model.collect_params())
 
+print(model)
+
 print(model_eval)
 
 
@@ -327,7 +329,11 @@ def evaluate(data_source, batch_size, params_file_name, ctx=None):
         return param.data.cpu().numpy()
 
     def set_gluon_param(param, torch_param):
+        print(param)
+        print('start torch_param_to_numpy')
+        start_torch_param_to_numpy = time.time()
         value = torch_param_to_numpy(torch_param)
+        print('torch_param_to_numpy cost %.2f s' % (time.time() - start_torch_param_to_numpy))
         param.set_data(mx.nd.array(value))
 
     def set_model_params(params, torch_params_file):
@@ -358,11 +364,12 @@ def evaluate(data_source, batch_size, params_file_name, ctx=None):
                 set_gluon_param(v, torch.load(torch_params_file + '.rnns.2.module.bias_ih_l0'))
             elif 'lstm2_l0_h2h_bias' in k:
                 set_gluon_param(v, torch.load(torch_params_file + '.rnns.2.module.bias_hh_l0'))
-            elif 'embedding0_bias' in k:
-                set_gluon_param(v, torch.load(torch_params_file + '.decoder.bias'))
+            # elif 'embedding0_bias' in k:
+            #     set_gluon_param(v, torch.load(torch_params_file + '.decoder.bias'))
 
     if args.save == 'WT2.1150.model.pt':
         set_model_params(model_eval.collect_params(), args.save)
+        model_eval.decoder.params =model_eval.embedding.params
     else:
         model_eval.load_params(params_file_name, context)
 
@@ -542,6 +549,8 @@ if __name__ == '__main__':
     #TODO: reproduce pytorch
     args.save = 'WT2.1150.model.pt'
     model_eval.initialize(mx.init.Xavier(), ctx=context)
+
+    print(model_eval.collect_params())
 
     final_val_L = evaluate(val_data, val_batch_size, args.save, context[0])
     final_test_L = evaluate(test_data, test_batch_size, args.save, context[0])
