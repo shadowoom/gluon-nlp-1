@@ -340,6 +340,8 @@ def train():
     best_val = float('Inf')
     start_train_time = time.time()
     parameters = model.collect_params().values()
+    print(parameters)
+
     for epoch in range(args.epochs):
         total_L = 0.0
         start_epoch_time = time.time()
@@ -391,6 +393,7 @@ def train():
         mx.nd.waitall()
 
         for p in parameters:
+            print(p)
             print(p.grad()[:1])
 
         print('[Epoch %d] throughput %.2f samples/s'%(
