@@ -408,7 +408,7 @@ def train():
             best_val = val_L
             model.save_params(args.save)
             test_L = evaluate(test_data, test_batch_size, 'test', context[0])
-            print('test loss %.2f, test ppl %.2f'%(test_L, math.exp(test_L)))
+            print('test loss %.2f, test ppl %.2f' % (test_L, math.exp(test_L)))
         else:
             update_lr_epoch += 1
             if update_lr_epoch % args.lr_update_interval == 0 and update_lr_epoch != 0:
