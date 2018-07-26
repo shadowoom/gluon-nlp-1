@@ -132,9 +132,9 @@ train_dataset, val_dataset, test_dataset = \
 vocab = nlp.Vocab(counter=nlp.data.Counter(train_dataset[0]), padding_token=None, bos_token=None)
 
 train_data = train_dataset.batchify(vocab, args.batch_size)
-val_batch_size = 10
+val_batch_size = args.batch_size
 val_data = val_dataset.batchify(vocab, val_batch_size)
-test_batch_size = 1
+test_batch_size = args.batch_size
 test_data = test_dataset.batchify(vocab, test_batch_size)
 
 if args.test_mode:
