@@ -166,7 +166,7 @@ print(model)
 
 model.initialize(mx.init.Xavier(), ctx=context)
 
-model.hybridize()
+model.hybridize(static_alloc=True)
 
 if args.optimizer == 'sgd':
     trainer_params = {'learning_rate': args.lr,
