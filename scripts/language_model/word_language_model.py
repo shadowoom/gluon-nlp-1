@@ -132,10 +132,10 @@ train_dataset, val_dataset, test_dataset = \
 vocab = nlp.Vocab(counter=nlp.data.Counter(train_dataset[0]), padding_token=None, bos_token=None)
 
 train_data = train_dataset.batchify(vocab, args.batch_size)
-val_batch_size = 10
+val_batch_size = args.batch_size
 val_data = val_dataset.batchify(vocab, val_batch_size)
 #TODO: modify back to 1
-test_batch_size = 10
+test_batch_size = args.batch_size
 test_data = test_dataset.batchify(vocab, test_batch_size)
 
 if args.test_mode:
@@ -171,6 +171,8 @@ else:
 
 model.initialize(mx.init.Xavier(), ctx=context)
 
+model.hybridize(static_alloc=True)
+
 print(model.collect_params())
 
 print(model)
@@ -190,7 +192,8 @@ elif args.optimizer == 'adam':
                       'epsilon': 1e-9}
 
 #TODO: update_kv_store=False?
-trainer = gluon.Trainer(model.collect_params(), args.optimizer, trainer_params, update_on_kvstore=False)
+trainer = gluon.Trainer(model.collect_params(), args.optimizer, trainer_params,
+                        update_on_kvstore=False)
 
 loss = gluon.loss.SoftmaxCrossEntropyLoss()
 ar_loss = nlp.loss.ActivationRegularizationLoss(args.alpha)
@@ -374,8 +377,9 @@ def evaluate(data_source, batch_size, params_file_name, ctx=None):
         model_eval.load_params(params_file_name, context)
 
     hidden = model_eval.begin_state(batch_size=batch_size, func=mx.nd.zeros, ctx=context[0])
-    for i in range(0, len(data_source) - 1, args.bptt):
-        data, target = get_batch(data_source, i)
+    i = 0
+    while i < len(train_data) - 1 - 1:
+        data, target = get_batch(data_source, i, seq_len=args.bptt)
         data = data.as_in_context(ctx)
         target = target.as_in_context(ctx)
         output, hidden = model_eval(data, hidden)
@@ -384,6 +388,7 @@ def evaluate(data_source, batch_size, params_file_name, ctx=None):
                  target.reshape(-1,))
         total_L += mx.nd.sum(L).asscalar()
         ntotal += L.size
+        i += args.bptt
     return total_L / ntotal
 
 
@@ -440,6 +445,11 @@ def train():
                 grads = [p.grad(d.context) for p in parameters.values()]
                 gluon.utils.clip_global_norm(grads, args.clip)
 
+            for d in data_list:
+                for p in parameters.values():
+                    print(p)
+                    print(p.grad(d.context))
+
             # nlp.model.utils.multi_gpu_clip_global_norm(trainer, parameters.values(), args.clip)
 
             if args.ntasgd:
@@ -485,7 +495,7 @@ def train():
                                 lr_batch_start*seq_len/args.bptt))
                     except OverflowError:
                         print('Val PPL is too large!')
-                    if t > n and val_L > min(logs[:-n]):
+                    if t > n and val_L > min(logs[-n:]):
                         for k, v in parameters.items():
                             param_dict_avg[k.split(model._prefix)[1]] = v.data(context[0]).copy()
                         avg_trigger = batch_i
@@ -547,10 +557,10 @@ if __name__ == '__main__':
         train()
 
     #TODO: reproduce pytorch
-    args.save = 'WT2.1150.model.pt'
-    model_eval.initialize(mx.init.One(), ctx=context)
-
-    print(model_eval.collect_params())
+    # args.save = 'WT2.1150.model.pt'
+    # model_eval.initialize(mx.init.One(), ctx=context)
+    #
+    # print(model_eval.collect_params())
 
     final_val_L = evaluate(val_data, val_batch_size, args.save, context[0])
     final_test_L = evaluate(test_data, test_batch_size, args.save, context[0])
