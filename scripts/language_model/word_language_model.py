@@ -245,7 +245,7 @@ class JointActivationRegularizationLoss(gluon.loss.Loss):
         s = 'JointActivationTemporalActivationRegularizationLoss'
         return s
 
-    def hybrid_forward(self, F, out, target, states, dropped_states): # pylint: disable=arguments-differ
+    def forward(self, out, target, states, dropped_states): # pylint: disable=arguments-differ
         # pylint: disable=unused-argument
         l = self._loss(out.reshape(-3, -1), target.reshape(-1,))
         l = l + self._ar_loss(*dropped_states)
@@ -254,6 +254,7 @@ class JointActivationRegularizationLoss(gluon.loss.Loss):
 
 
 joint_loss = JointActivationRegularizationLoss(loss, ar_loss, tar_loss)
+# joint_loss.hybridize(static_alloc=True)
 
 ###############################################################################
 # Training code
