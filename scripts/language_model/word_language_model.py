@@ -433,7 +433,7 @@ def train():
                     output, h, encoder_hs, dropped_encoder_hs = model(X, h)
                     l = joint_loss(output, y, encoder_hs, dropped_encoder_hs)
                     # L = L + l.as_in_context(context[0]) / X.size
-                    Ls.append(l.as_in_context(context[0]) / X.size)
+                    Ls.append(l.as_in_context(context[0]) / (len(context) * X.size))
                     hiddens[j] = h
             for L in Ls:
                 L.backward()
@@ -471,7 +471,7 @@ def train():
                     param_avg[:] += gamma * (parameters['{}{}'.format(model._prefix, name)]
                                              .data(context[0]) - param_avg)
 
-            total_L += sum([mx.nd.sum(L).asscalar() for L in Ls]) / len(context)
+            total_L += sum([mx.nd.sum(L).asscalar() for L in Ls])
             trainer.set_learning_rate(lr_batch_start)
 
             if batch_i % args.log_interval == 0:
