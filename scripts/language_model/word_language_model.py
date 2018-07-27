@@ -451,7 +451,7 @@ def train():
             for d in data_list:
                 for p in parameters.values():
                     print(p)
-                    print(p.grad(d.context))
+                    print(p.grad(d.context)[:1])
 
             # nlp.model.utils.multi_gpu_clip_global_norm(trainer, parameters.values(), args.clip)
 
