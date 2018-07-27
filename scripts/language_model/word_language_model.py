@@ -539,13 +539,13 @@ def train():
                       % (epoch, test_L, math.exp(test_L)))
             except OverflowError:
                 print('[Epoch %d] test PPL is too large!' % epoch)
-        # else:
-        #     update_lr_epoch += 1
-        #     if update_lr_epoch % args.lr_update_interval == 0 and update_lr_epoch != 0:
-        #         lr_scale = trainer.learning_rate * args.lr_update_factor
-        #         print('Learning rate after interval update %f' % lr_scale)
-        #         trainer.set_learning_rate(lr_scale)
-        #         update_lr_epoch = 0
+            # else:
+            #     update_lr_epoch += 1
+            #     if update_lr_epoch % args.lr_update_interval == 0 and update_lr_epoch != 0:
+            #         lr_scale = trainer.learning_rate * args.lr_update_factor
+            #         print('Learning rate after interval update %f' % lr_scale)
+            #         trainer.set_learning_rate(lr_scale)
+            #         update_lr_epoch = 0
 
         #TODO: add the lr scheduler trick (change to mxnet scheduler)
 
