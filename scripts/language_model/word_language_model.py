@@ -192,8 +192,7 @@ elif args.optimizer == 'adam':
                       'epsilon': 1e-9}
 
 #TODO: update_kv_store=False?
-trainer = gluon.Trainer(model.collect_params(), args.optimizer, trainer_params,
-                        update_on_kvstore=False)
+trainer = gluon.Trainer(model.collect_params(), args.optimizer, trainer_params)
 
 loss = gluon.loss.SoftmaxCrossEntropyLoss()
 ar_loss = nlp.loss.ActivationRegularizationLoss(args.alpha)
@@ -502,6 +501,7 @@ def train():
                         for k, v in parameters.items():
                             param_dict_avg[k.split(model._prefix)[1]] = v.data(context[0]).copy()
                         avg_trigger = batch_i
+                        print('avg_trigger: %d' % avg_trigger)
                     logs.append(val_L)
                     t += 1
 
