@@ -101,7 +101,7 @@ parser.add_argument('--alpha', type=float, default=2,
 parser.add_argument('--beta', type=float, default=1,
                     help='beta slowness regularization applied on RNN activiation '
                          '(beta = 0 means no regularization)')
-parser.add_argument('--ntasgd', action='store_false',
+parser.add_argument('--ntasgd', action='store_true',
                     help='Whether to apply ntasgd')
 parser.add_argument('--test_mode', action='store_true',
                     help='Whether to run through the script with few examples')
@@ -132,10 +132,10 @@ train_dataset, val_dataset, test_dataset = \
 vocab = nlp.Vocab(counter=nlp.data.Counter(train_dataset[0]), padding_token=None, bos_token=None)
 
 train_data = train_dataset.batchify(vocab, args.batch_size)
-val_batch_size = args.batch_size
+val_batch_size = 10
 val_data = val_dataset.batchify(vocab, val_batch_size)
 #TODO: modify back to 1
-test_batch_size = args.batch_size
+test_batch_size = 10
 test_data = test_dataset.batchify(vocab, test_batch_size)
 
 if args.test_mode:
