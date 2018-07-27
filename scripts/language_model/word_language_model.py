@@ -444,6 +444,7 @@ def train():
             # # Do clipping over the parameters on the context
             # # TODO: make the global norm as one copy and transfer back to the contexts
             for d in data_list:
+                print('context:')
                 print(d.context)
                 grads = [p.grad(d.context) for p in parameters.values()]
                 gluon.utils.clip_global_norm(grads, args.clip)
