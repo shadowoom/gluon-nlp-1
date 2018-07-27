@@ -381,7 +381,7 @@ def evaluate(data_source, batch_size, params_file_name, ctx=None):
 
     hidden = model_eval.begin_state(batch_size=batch_size, func=mx.nd.zeros, ctx=context[0])
     i = 0
-    while i < len(train_data) - 1 - 1:
+    while i < len(data_source) - 1 - 1:
         data, target = get_batch(data_source, i, seq_len=args.bptt)
         data = data.as_in_context(ctx)
         target = target.as_in_context(ctx)
