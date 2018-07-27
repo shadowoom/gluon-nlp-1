@@ -486,7 +486,7 @@ def train():
                 except OverflowError:
                     print('Current PPL is too large!')
 
-                if args.ntasgd:
+                if args.ntasgd and avg_trigger == 0:
                     mx.nd.save('{}.val.params'.format(args.save), param_dict_avg)
                     val_L = evaluate(val_data, val_batch_size,
                                      '{}.val.params'.format(args.save), context[0])
