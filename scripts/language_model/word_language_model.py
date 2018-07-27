@@ -444,13 +444,9 @@ def train():
             # # Do clipping over the parameters on the context
             # # TODO: make the global norm as one copy and transfer back to the contexts
             for d in data_list:
+                print(d.context)
                 grads = [p.grad(d.context) for p in parameters.values()]
                 gluon.utils.clip_global_norm(grads, args.clip)
-
-            for d in data_list:
-                for p in parameters.values():
-                    print(p)
-                    print(p.grad(d.context)[:1])
 
             # nlp.model.utils.multi_gpu_clip_global_norm(trainer, parameters.values(), args.clip)
 
@@ -511,6 +507,11 @@ def train():
             batch_i += 1
 
         mx.nd.waitall()
+
+        for d in data_list:
+            for p in parameters.values():
+                print(p)
+                print(p.grad(d.context)[:1])
 
         print('[Epoch %d] throughput %.2f samples/s' % (
             epoch, (args.batch_size * len(train_data)) / (time.time() - start_epoch_time)))
