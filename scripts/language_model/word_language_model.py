@@ -237,8 +237,10 @@ class JointActivationRegularizationLoss(gluon.loss.Loss):
     def hybrid_forward(self, F, out, target, states, dropped_states): # pylint: disable=arguments-differ
         # pylint: disable=unused-argument
         l = self._loss(out.reshape(-3, -1), target.reshape(-1,))
-        l = l + self._ar_loss(*dropped_states)
-        l = l + self._tar_loss(*states)
+        if args.alpha != 0:
+            l = l + self._ar_loss(*dropped_states)
+        if args.beta != 0:
+            l = l + self._tar_loss(*states)
         return l
 
 
