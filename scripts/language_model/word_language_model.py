@@ -192,7 +192,8 @@ elif args.optimizer == 'adam':
                       'epsilon': 1e-9}
 
 #TODO: update_kv_store=False?
-trainer = gluon.Trainer(model.collect_params(), args.optimizer, trainer_params, update_on_kvstore=False)
+trainer = gluon.Trainer(model.collect_params(), args.optimizer, trainer_params,
+                        update_on_kvstore=False)
 
 loss = gluon.loss.SoftmaxCrossEntropyLoss()
 ar_loss = nlp.loss.ActivationRegularizationLoss(args.alpha)
@@ -507,11 +508,11 @@ def train():
 
         mx.nd.waitall()
 
-        for d in data_list:
-            print(d.context)
-            for p in parameters.values():
-                print(p)
-                print(p.grad(d.context)[:1])
+        # for d in data_list:
+        #     print(d.context)
+        #     for p in parameters.values():
+        #         print(p)
+        #         print(p.grad(d.context)[:1])
 
         print('[Epoch %d] throughput %.2f samples/s' % (
             epoch, (args.batch_size * len(train_data)) / (time.time() - start_epoch_time)))
@@ -528,7 +529,7 @@ def train():
             print('[Epoch %d] Val PPL is too large!' % epoch)
 
         if val_L < best_val:
-            # update_lr_epoch = 0
+            update_lr_epoch = 0
             best_val = val_L
             if args.ntasgd:
                 mx.nd.save(args.save, param_dict_avg)
@@ -540,13 +541,13 @@ def train():
                       % (epoch, test_L, math.exp(test_L)))
             except OverflowError:
                 print('[Epoch %d] test PPL is too large!' % epoch)
-            # else:
-            #     update_lr_epoch += 1
-            #     if update_lr_epoch % args.lr_update_interval == 0 and update_lr_epoch != 0:
-            #         lr_scale = trainer.learning_rate * args.lr_update_factor
-            #         print('Learning rate after interval update %f' % lr_scale)
-            #         trainer.set_learning_rate(lr_scale)
-            #         update_lr_epoch = 0
+        else:
+            update_lr_epoch += 1
+            if update_lr_epoch % args.lr_update_interval == 0 and update_lr_epoch != 0:
+                lr_scale = trainer.learning_rate * args.lr_update_factor
+                print('Learning rate after interval update %f' % lr_scale)
+                trainer.set_learning_rate(lr_scale)
+                update_lr_epoch = 0
 
         #TODO: add the lr scheduler trick (change to mxnet scheduler)
 
