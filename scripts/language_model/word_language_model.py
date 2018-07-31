@@ -439,16 +439,16 @@ def train():
                 L.backward()
             # L.backward()
 
-            # #Calculate the average of each parameter's gradient over all the context, and copy back to each context,
-            # #this result in every context has the same averaged gradient regarding to each parameter Double check
-            trainer.allreduce_grads()
-            # # Do clipping over the parameters on the context
-            # # TODO: make the global norm as one copy and transfer back to the contexts
-            for d in data_list:
-                grads = [p.grad(d.context) for p in parameters.values()]
-                gluon.utils.clip_global_norm(grads, args.clip)
+            # # #Calculate the average of each parameter's gradient over all the context, and copy back to each context,
+            # # #this result in every context has the same averaged gradient regarding to each parameter Double check
+            # trainer.allreduce_grads()
+            # # # Do clipping over the parameters on the context
+            # # # TODO: make the global norm as one copy and transfer back to the contexts
+            # for d in data_list:
+            #     grads = [p.grad(d.context) for p in parameters.values()]
+            #     gluon.utils.clip_global_norm(grads, args.clip)
 
-            # nlp.model.utils.multi_gpu_clip_global_norm(trainer, parameters.values(), args.clip)
+            nlp.model.utils.multi_gpu_clip_global_norm(trainer, parameters.values(), args.clip)
 
             if args.ntasgd:
                 if param_dict_avg is None:
