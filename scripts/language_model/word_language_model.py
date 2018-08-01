@@ -79,7 +79,7 @@ parser.add_argument('--weight_dropout', type=float, default=0.5,
                     help='weight dropout applied to h2h weight matrix (0 = no weight dropout)')
 parser.add_argument('--tied', action='store_true',
                     help='tie the word embedding and softmax weights')
-parser.add_argument('--log-interval', type=int, default=372, metavar='N',
+parser.add_argument('--log-interval', type=int, default=200, metavar='N',
                     help='report interval')
 parser.add_argument('--save', type=str, default='model.params',
                     help='path to save the final model')
@@ -410,8 +410,9 @@ def train():
             trainer.update(1)
 
             if args.ntasgd and ntasgd:
-                gamma = 1.0 / max(1, epoch * (len(train_data) // args.bptt)
-                                  + batch_i - avg_trigger + 2)
+                gamma = 1.0 / max(1, epoch * ((len(train_data) // args.bptt) + 1)
+                                  + batch_i - avg_trigger + 1)
+                print('gamma: %f' % gamma)
                 # param_dict_batch_i = model.collect_params()
                 # param_dict_batch_i.zero_grad()
                 for name, param_avg in param_dict_avg.items():
@@ -421,7 +422,7 @@ def train():
             total_L += sum([mx.nd.sum(L).asscalar() for L in Ls])
             trainer.set_learning_rate(lr_batch_start)
 
-            if batch_i % args.log_interval == 0:
+            if batch_i % args.log_interval == 0 and batch_i > 0:
                 cur_L = total_L / args.log_interval
                 try:
                     print('[Epoch %d Batch %d/%d] current loss %.2f, ppl %.2f, '
@@ -432,36 +433,6 @@ def train():
                              lr_batch_start * seq_len / args.bptt))
                 except OverflowError:
                     print('Current PPL is too large!')
-
-                if args.ntasgd and avg_trigger == 0:
-                    if ntasgd:
-                        mx.nd.save('{}.val.params'.format(args.save), param_dict_avg)
-                    else:
-                        model.save_params('{}.val.params'.format(args.save))
-                    val_L = evaluate(val_data, val_batch_size,
-                                     '{}.val.params'.format(args.save), context[0])
-                    try:
-                        print('[Epoch %d Batch %d/%d] valid loss %.2f, valid ppl %.2f, '
-                              'throughput %.2f samples/s, lr %.2f'
-                              %(epoch, batch_i, len(train_data)//args.bptt, val_L, math.exp(val_L),
-                                args.batch_size*args.log_interval/(time.time()-start_log_interval_time),
-                                lr_batch_start*seq_len/args.bptt))
-                    except OverflowError:
-                        print('Val PPL is too large!')
-                    if t > n and val_L > min(logs[-n:]):
-                        if param_dict_avg is None:
-                            param_dict_avg = {k.split(model._prefix)[1]: v.data(context[0]).copy()
-                                              for k, v in parameters.items()}
-                        else:
-                            for k, v in parameters.items():
-                                param_dict_avg[k.split(model._prefix)[1]] \
-                                    = v.data(context[0]).copy()
-                        avg_trigger = epoch * (len(train_data) // args.bptt) + batch_i
-                        print('avg_trigger: %d' % avg_trigger)
-                        ntasgd = True
-                    logs.append(val_L)
-                    t += 1
-
                 total_L = 0.0
                 start_log_interval_time = time.time()
             i += seq_len
@@ -484,10 +455,42 @@ def train():
             model.save_params('{}.val.params'.format(args.save))
         val_L = evaluate(val_data, val_batch_size, '{}.val.params'.format(args.save), context[0])
         try:
-            print('[Epoch %d] time cost %.2fs, valid loss %.2f, valid ppl %.2f' % (
-                epoch, time.time() - start_epoch_time, val_L, math.exp(val_L)))
+            print('[Epoch %d] time cost %.2fs, valid loss %.2f, valid ppl %.2f，lr %.2f' % (
+                epoch, time.time() - start_epoch_time, val_L, math.exp(val_L),
+                trainer.learning_rate))
         except OverflowError:
             print('[Epoch %d] Val PPL is too large!' % epoch)
+
+        if args.ntasgd and avg_trigger == 0:
+            # if ntasgd:
+            #     mx.nd.save('{}.val.params'.format(args.save), param_dict_avg)
+            # else:
+            #     model.save_params('{}.val.params'.format(args.save))
+            # val_L = evaluate(val_data, val_batch_size,
+            #                  '{}.val.params'.format(args.save), context[0])
+            # try:
+            #     print('[Epoch %d Batch %d/%d] valid loss %.2f, valid ppl %.2f, '
+            #           'throughput %.2f samples/s, lr %.2f'
+            #           % (epoch, batch_i, len(train_data) // args.bptt, val_L, math.exp(val_L),
+            #              args.batch_size * args.log_interval / (
+            #                          time.time() - start_log_interval_time),
+            #              lr_batch_start * seq_len / args.bptt))
+            # except OverflowError:
+            #     print('Val PPL is too large!')
+            # if t > n and val_L > min(logs[-n:]):
+            if t > n:
+                if param_dict_avg is None:
+                    param_dict_avg = {k.split(model._prefix)[1]: v.data(context[0]).copy()
+                                      for k, v in parameters.items()}
+                else:
+                    for k, v in parameters.items():
+                        param_dict_avg[k.split(model._prefix)[1]] \
+                            = v.data(context[0]).copy()
+                avg_trigger = epoch * (len(train_data) // args.bptt) + len(train_data) // args.bptt
+                print('Switching to NTASGD and avg_trigger is : %d' % avg_trigger)
+                ntasgd = True
+            logs.append(val_L)
+            t += 1
 
         if val_L < best_val:
             update_lr_epoch = 0
