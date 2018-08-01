@@ -94,7 +94,6 @@ parser.add_argument('--optimizer', type=str, default='sgd',
                     help='optimizer to use (sgd, adam)')
 parser.add_argument('--wd', type=float, default=1.2e-6,
                     help='weight decay applied to all weights')
-#TODO: try alpha, beta=0
 parser.add_argument('--alpha', type=float, default=2,
                     help='alpha L2 regularization on RNN activation '
                          '(alpha = 0 means no regularization)')
@@ -170,8 +169,8 @@ else:
                                         args.nhid, args.nlayers, args.dropout, args.tied)
 
 model.initialize(mx.init.Xavier(), ctx=context)
-#
-# model.hybridize(static_alloc=True)
+
+model.hybridize(static_alloc=True)
 
 print(model.collect_params())
 
@@ -190,6 +189,8 @@ elif args.optimizer == 'adam':
                       'beta1': 0,
                       'beta2': 0.999,
                       'epsilon': 1e-9}
+
+ntasgd = False
 
 #TODO: update_kv_store=False?
 trainer = gluon.Trainer(model.collect_params(), args.optimizer, trainer_params,
@@ -450,7 +451,7 @@ def train():
 
             nlp.model.utils.multi_gpu_clip_global_norm(trainer, parameters.values(), args.clip)
 
-            if args.ntasgd:
+            if args.ntasgd and ntasgd:
                 if param_dict_avg is None:
                     param_dict_avg = {k.split(model._prefix)[1]: v.data(context[0]).copy()
                                       for k, v in parameters.items()}
@@ -458,8 +459,9 @@ def train():
             #TODO: the allreduce_grads have been computed twice
             trainer.update(1)
 
-            if args.ntasgd:
-                gamma = 1.0 / max(1, batch_i - avg_trigger + 2)
+            if args.ntasgd and ntasgd:
+                gamma = 1.0 / max(1, epoch * (len(train_data) // args.bptt)
+                                  + batch_i - avg_trigger + 2)
                 # param_dict_batch_i = model.collect_params()
                 # param_dict_batch_i.zero_grad()
                 for name, param_avg in param_dict_avg.items():
@@ -482,7 +484,10 @@ def train():
                     print('Current PPL is too large!')
 
                 if args.ntasgd and avg_trigger == 0:
-                    mx.nd.save('{}.val.params'.format(args.save), param_dict_avg)
+                    if ntasgd:
+                        mx.nd.save('{}.val.params'.format(args.save), param_dict_avg)
+                    else:
+                        model.save_params('{}.val.params'.format(args.save))
                     val_L = evaluate(val_data, val_batch_size,
                                      '{}.val.params'.format(args.save), context[0])
                     try:
@@ -494,10 +499,16 @@ def train():
                     except OverflowError:
                         print('Val PPL is too large!')
                     if t > n and val_L > min(logs[-n:]):
-                        for k, v in parameters.items():
-                            param_dict_avg[k.split(model._prefix)[1]] = v.data(context[0]).copy()
-                        avg_trigger = batch_i
+                        if param_dict_avg is None:
+                            param_dict_avg = {k.split(model._prefix)[1]: v.data(context[0]).copy()
+                                              for k, v in parameters.items()}
+                        else:
+                            for k, v in parameters.items():
+                                param_dict_avg[k.split(model._prefix)[1]] \
+                                    = v.data(context[0]).copy()
+                        avg_trigger = epoch * (len(train_data) // args.bptt) + batch_i
                         print('avg_trigger: %d' % avg_trigger)
+                        ntasgd = True
                     logs.append(val_L)
                     t += 1
 
@@ -517,7 +528,7 @@ def train():
         print('[Epoch %d] throughput %.2f samples/s' % (
             epoch, (args.batch_size * len(train_data)) / (time.time() - start_epoch_time)))
 
-        if args.ntasgd:
+        if args.ntasgd and ntasgd:
             mx.nd.save('{}.val.params'.format(args.save), param_dict_avg)
         else:
             model.save_params('{}.val.params'.format(args.save))
@@ -531,7 +542,7 @@ def train():
         if val_L < best_val:
             update_lr_epoch = 0
             best_val = val_L
-            if args.ntasgd:
+            if args.ntasgd and ntasgd:
                 mx.nd.save(args.save, param_dict_avg)
             else:
                 model.save_params(args.save)
