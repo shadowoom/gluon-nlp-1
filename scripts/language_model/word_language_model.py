@@ -188,8 +188,6 @@ elif args.optimizer == 'adam':
                       'beta2': 0.999,
                       'epsilon': 1e-9}
 
-ntasgd = False
-
 #TODO: update_kv_store=False?
 trainer = gluon.Trainer(model.collect_params(), args.optimizer, trainer_params,
                         update_on_kvstore=False)
@@ -351,6 +349,7 @@ def train():
     """Training loop for awd language model.
 
     """
+    ntasgd = False
     best_val = float('Inf')
     start_train_time = time.time()
     parameters = model.collect_params()
