@@ -34,8 +34,6 @@ We implement the AWD LSTM language model proposed in the following work.
 # specific language governing permissions and limitations
 # under the License.
 
-import torch
-
 import argparse
 import time
 import math
@@ -331,54 +329,7 @@ def evaluate(data_source, batch_size, params_file_name, ctx=None):
     total_L = 0.0
     ntotal = 0
 
-    #TODO: reproduce pytorch
-    def torch_param_to_numpy(param):
-        return param.data.cpu().numpy()
-
-    def set_gluon_param(param, torch_param):
-        print(param)
-        print('start torch_param_to_numpy')
-        start_torch_param_to_numpy = time.time()
-        value = torch_param_to_numpy(torch_param)
-        print('torch_param_to_numpy cost %.2f s' % (time.time() - start_torch_param_to_numpy))
-        print(value)
-        param.set_data(mx.nd.array(value))
-
-    def set_model_params(params, torch_params_file):
-        for k, v in params.items():
-            if 'embedding0_weight' in k:
-                set_gluon_param(v, torch.load(torch_params_file + '.encoder.weight'))
-            elif 'lstm0_l0_i2h_weight' in k:
-                set_gluon_param(v, torch.load(torch_params_file + '.rnns.0.module.weight_ih_l0'))
-            elif 'lstm0_l0_h2h_weight' in k:
-                set_gluon_param(v, torch.load(torch_params_file + '.rnns.0.module.weight_hh_l0_raw'))
-            elif 'lstm0_l0_i2h_bias' in k:
-                set_gluon_param(v, torch.load(torch_params_file + '.rnns.0.module.bias_ih_l0'))
-            elif 'lstm0_l0_h2h_bias' in k:
-                set_gluon_param(v, torch.load(torch_params_file + '.rnns.0.module.bias_hh_l0'))
-            elif 'lstm1_l0_i2h_weight' in k:
-                set_gluon_param(v, torch.load(torch_params_file + '.rnns.1.module.weight_ih_l0'))
-            elif 'lstm1_l0_h2h_weight' in k:
-                set_gluon_param(v, torch.load(torch_params_file + '.rnns.1.module.weight_hh_l0_raw'))
-            elif 'lstm1_l0_i2h_bias' in k:
-                set_gluon_param(v, torch.load(torch_params_file + '.rnns.1.module.bias_ih_l0'))
-            elif 'lstm1_l0_h2h_bias' in k:
-                set_gluon_param(v, torch.load(torch_params_file + '.rnns.1.module.bias_hh_l0'))
-            elif 'lstm2_l0_i2h_weight' in k:
-                set_gluon_param(v, torch.load(torch_params_file + '.rnns.2.module.weight_ih_l0'))
-            elif 'lstm2_l0_h2h_weight' in k:
-                set_gluon_param(v, torch.load(torch_params_file + '.rnns.2.module.weight_hh_l0_raw'))
-            elif 'lstm2_l0_i2h_bias' in k:
-                set_gluon_param(v, torch.load(torch_params_file + '.rnns.2.module.bias_ih_l0'))
-            elif 'lstm2_l0_h2h_bias' in k:
-                set_gluon_param(v, torch.load(torch_params_file + '.rnns.2.module.bias_hh_l0'))
-            elif 'embedding0_bias' in k:
-                set_gluon_param(v, torch.load(torch_params_file + '.decoder.bias'))
-
-    if args.save == 'WT2.1150.model.pt':
-        set_model_params(model_eval.collect_params(), args.save)
-    else:
-        model_eval.load_params(params_file_name, context)
+    model_eval.load_params(params_file_name, context)
 
     hidden = model_eval.begin_state(batch_size=batch_size, func=mx.nd.zeros, ctx=context[0])
     i = 0
@@ -571,12 +522,6 @@ if __name__ == '__main__':
     start_pipeline_time = time.time()
     if not args.eval_only:
         train()
-
-    #TODO: reproduce pytorch
-    # args.save = 'WT2.1150.model.pt'
-    # model_eval.initialize(mx.init.One(), ctx=context)
-    #
-    # print(model_eval.collect_params())
 
     final_val_L = evaluate(val_data, val_batch_size, args.save, context[0])
     final_test_L = evaluate(test_data, test_batch_size, args.save, context[0])
