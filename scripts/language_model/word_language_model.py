@@ -168,7 +168,7 @@ else:
 
 model.initialize(mx.init.Xavier(), ctx=context)
 
-model.hybridize(static_alloc=True)
+# model.hybridize(static_alloc=True)
 
 print(model.collect_params())
 
