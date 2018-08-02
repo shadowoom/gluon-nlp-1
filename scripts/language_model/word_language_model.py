@@ -478,7 +478,7 @@ def train():
             # except OverflowError:
             #     print('Val PPL is too large!')
             # if t > n and val_L > min(logs[-n:]):
-            if t > n:
+            if t > n and val_L > min(logs[:-n]):
                 if param_dict_avg is None:
                     param_dict_avg = {k.split(model._prefix)[1]: v.data(context[0]).copy()
                                       for k, v in parameters.items()}
