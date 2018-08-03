@@ -176,6 +176,8 @@ print(model)
 
 print(model_eval)
 
+print(args.ntasgd)
+
 
 if args.optimizer == 'sgd':
     trainer_params = {'learning_rate': args.lr,
