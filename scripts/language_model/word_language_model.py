@@ -196,9 +196,8 @@ elif args.optimizer == 'adam':
                       'beta2': 0.999,
                       'epsilon': 1e-9}
 
-#TODO: update_kv_store=False?
-trainer = gluon.Trainer(model.collect_params(), args.optimizer, trainer_params,
-                        update_on_kvstore=False)
+#TODO: update_kv_store=False? bug?
+trainer = gluon.Trainer(model.collect_params(), args.optimizer, trainer_params)
 
 loss = gluon.loss.SoftmaxCrossEntropyLoss()
 ar_loss = nlp.loss.ActivationRegularizationLoss(args.alpha)
