@@ -27,8 +27,8 @@ from mxnet.gluon.model_zoo.model_store import get_model_file
 from mxnet import nd, cpu, autograd
 from mxnet.gluon.model_zoo import model_store
 
-from gluonnlp.model import train
-from gluonnlp.data.utils import _load_pretrained_vocab
+from . import train
+from ..data.utils import _load_pretrained_vocab
 
 
 class AWDRNN(train.AWDRNN):
