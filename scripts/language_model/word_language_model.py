@@ -35,6 +35,8 @@ We implement the AWD LSTM language model proposed in the following work.
 # under the License.
 
 import argparse
+import random
+import numpy as np
 import time
 import math
 import os
@@ -107,6 +109,10 @@ parser.add_argument('--lr_update_interval', type=int, default=30,
 parser.add_argument('--lr_update_factor', type=float, default=0.1,
                     help='lr udpate factor')
 args = parser.parse_args()
+
+np.random.seed(1882)
+random.seed(1882)
+mx.random.seed(1882)
 
 ###############################################################################
 # Load data
