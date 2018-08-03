@@ -311,45 +311,75 @@ def get_batch(data_source, i, seq_len=None):
     return data, target
 
 
+# def evaluate(data_source, batch_size, params_file_name, ctx=None):
+#     """Evaluate the model on the dataset.
+#
+#     Parameters
+#     ----------
+#     data_source : NDArray
+#         The dataset is evaluated on.
+#     batch_size : int
+#         The size of the mini-batch.
+#     params_file_name : str
+#         The parameter file to use to evaluate,
+#         e.g., val.params or args.save
+#     ctx : mx.cpu() or mx.gpu()
+#         The context of the computation.
+#
+#     Returns
+#     -------
+#     loss: float
+#         The loss on the dataset
+#     """
+#
+#     total_L = 0.0
+#     ntotal = 0
+#
+#     model_eval.load_params(params_file_name, context)
+#
+#     hidden = model_eval.begin_state(batch_size=batch_size, func=mx.nd.zeros, ctx=context[0])
+#     i = 0
+#     while i < len(data_source) - 1 - 1:
+#         data, target = get_batch(data_source, i, seq_len=args.bptt)
+#         data = data.as_in_context(ctx)
+#         target = target.as_in_context(ctx)
+#         output, hidden = model_eval(data, hidden)
+#         hidden = detach(hidden)
+#         L = loss(output.reshape(-3, -1),
+#                  target.reshape(-1,))
+#         total_L += mx.nd.sum(L).asscalar()
+#         ntotal += L.size
+#         i += args.bptt
+#     return total_L / ntotal
+
 def evaluate(data_source, batch_size, params_file_name, ctx=None):
     """Evaluate the model on the dataset.
-
     Parameters
     ----------
     data_source : NDArray
         The dataset is evaluated on.
     batch_size : int
         The size of the mini-batch.
-    params_file_name : str
-        The parameter file to use to evaluate,
-        e.g., val.params or args.save
     ctx : mx.cpu() or mx.gpu()
         The context of the computation.
-
     Returns
     -------
     loss: float
         The loss on the dataset
     """
-
     total_L = 0.0
     ntotal = 0
-
-    model_eval.load_params(params_file_name, context)
-
-    hidden = model_eval.begin_state(batch_size=batch_size, func=mx.nd.zeros, ctx=context[0])
-    i = 0
-    while i < len(data_source) - 1 - 1:
-        data, target = get_batch(data_source, i, seq_len=args.bptt)
+    hidden = model.begin_state(batch_size, func=mx.nd.zeros, ctx=context[0])
+    for i in range(0, len(data_source) - 1, args.bptt):
+        data, target = get_batch(data_source, i)
         data = data.as_in_context(ctx)
         target = target.as_in_context(ctx)
-        output, hidden = model_eval(data, hidden)
+        output, hidden, _, _ = model(data, hidden)
         hidden = detach(hidden)
         L = loss(output.reshape(-3, -1),
                  target.reshape(-1,))
         total_L += mx.nd.sum(L).asscalar()
         ntotal += L.size
-        i += args.bptt
     return total_L / ntotal
 
 
