@@ -348,10 +348,11 @@ def train():
                     Ls.append(l/X.size)
                     hiddens[j] = h
             L.backward()
-            grads = [p.grad(d.context) for p in parameters for d in data_list]
-            gluon.utils.clip_global_norm(grads, args.clip)
-
-            trainer.step(1)
+            # grads = [p.grad(d.context) for p in parameters for d in data_list]
+            # gluon.utils.clip_global_norm(grads, args.clip)
+            nlp.model.utils.multi_gpu_clip_global_norm(trainer, parameters, args.clip)
+            # trainer.step(1)
+            trainer.update(1)
 
             total_L += sum([mx.nd.sum(L).asscalar() for L in Ls])
             trainer.set_learning_rate(lr_batch_start)
