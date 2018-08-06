@@ -39,6 +39,8 @@ Our implementation should yield identical results.
 # under the License.
 
 import argparse
+import random
+import numpy as np
 import time
 import math
 import os
@@ -109,6 +111,10 @@ parser.add_argument('--beta', type=float, default=1,
 parser.add_argument('--test_mode', action='store_true',
                     help='Whether to run through the script with few examples')
 args = parser.parse_args()
+
+np.random.seed(1882)
+random.seed(1882)
+mx.random.seed(1882)
 
 ###############################################################################
 # Load data
