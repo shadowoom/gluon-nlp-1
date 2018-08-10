@@ -136,6 +136,11 @@ train_dataset, val_dataset, test_dataset = \
 
 vocab = nlp.Vocab(counter=nlp.data.Counter(train_dataset[0]), padding_token=None, bos_token=None)
 
+print(vocab)
+print(train_dataset)
+print(val_dataset)
+print(test_dataset)
+
 time.sleep(5)
 print('begin train datset loadeed')
 train_data = train_dataset.batchify(vocab, args.batch_size)
