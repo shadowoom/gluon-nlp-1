@@ -16,22 +16,40 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
+"""Hyperparameters for transformer."""
 
-# pylint: disable=wildcard-import
-"""NMT example."""
+import nmt
 
-from . import _constants, bleu, dataset, encoder_decoder, \
-    gnmt, loss, transformer, translation, utils
+# parameters for dataset
+src_lang = 'en'
+tgt_lang = 'de'
+src_max_len = -1
+tgt_max_len = -1
 
-from ._constants import *
-from .bleu import *
-from .dataset import *
-from .encoder_decoder import *
-from .gnmt import *
-from .loss import *
-from .transformer import *
-from .translation import *
-from .utils import *
+# parameters for model
+num_units = 512
+hidden_size = 2048
+dropout = 0.1
+epsilon = 0.1
+num_layers = 6
+num_heads = 8
+scaled = True
 
-__all__ = _constants.__all__ + bleu.__all__ + dataset.__all__ + encoder_decoder.__all__ \
-          + gnmt.__all__ + loss.__all__ + transformer.__all__ + translation.__all__ + utils.__all__
+# parameters for training
+optimizer = 'adam'
+epochs = 3
+batch_size = 2700
+test_batch_size = 256
+num_accumulated = 1
+lr = 2
+warmup_steps = 1
+save_dir = 'transformer_en_de_u512'
+average_start = 1
+num_buckets = 20
+log_interval = 10
+bleu = '13a'
+
+#parameters for testing
+beam_size = 4
+lp_alpha = 0.6
+lp_k = 5
