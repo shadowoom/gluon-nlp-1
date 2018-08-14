@@ -10,6 +10,10 @@ In this notebook, we will show how to train Transformer and evaluate the pretrai
 import warnings
 warnings.filterwarnings('ignore')
 
+PATH_TO_GLUONNLP='/home/ubuntu/cgwang/code/gluon-nlp-1'
+import sys
+sys.path.insert(0, PATH_TO_GLUONNLP)
+import argparse
 import time
 import random
 import os
@@ -46,7 +50,7 @@ ctx = mx.gpu(0)
 
 ### Set Hyperparameters
 
-```{.python .input}
+```{.python .input  n=3}
 # parameters for dataset
 demo = True
 if not demo:
@@ -89,6 +93,24 @@ lp_k = 5
 logging_config(save_dir)
 ```
 
+```{.json .output n=3}
+[
+ {
+  "name": "stdout",
+  "output_type": "stream",
+  "text": "All Logs will be saved to transformer_en_de_u512/<ipython-input-3-42bee6356879>.log\n"
+ },
+ {
+  "data": {
+   "text/plain": "'transformer_en_de_u512'"
+  },
+  "execution_count": 3,
+  "metadata": {},
+  "output_type": "execute_result"
+ }
+]
+```
+
 ### Load and Preprocess Dataset
 
 The following shows how to process the dataset and cache the processed dataset
@@ -97,7 +119,7 @@ sequences and 2) split the string input to a list of tokens and 3) map the
 string token into its index in the vocabulary and 4) append EOS token to source
 sentence and add BOS and EOS tokens to target sentence.
 
-```{.python .input  n=3}
+```{.python .input  n=4}
 def cache_dataset(dataset, prefix):
     """Cache the processed npy dataset  the dataset into a npz
 
@@ -251,13 +273,23 @@ data_test = SimpleDataset([(ele[0], ele[1], len(ele[0]), len(ele[1]), i)
                            for i, ele in enumerate(data_test)])
 ```
 
+```{.json .output n=4}
+[
+ {
+  "name": "stdout",
+  "output_type": "stream",
+  "text": "Load cached data from /home/ubuntu/cgwang/code/gluon-nlp-1/scripts/nmt/cached/TOY_en_de_-1_-1_train.npz\nLoad cached data from /home/ubuntu/cgwang/code/gluon-nlp-1/scripts/nmt/cached/TOY_en_de_-1_-1_val.npz\nLoad cached data from /home/ubuntu/cgwang/code/gluon-nlp-1/scripts/nmt/cached/TOY_en_de_-1_-1_False_test.npz\n"
+ }
+]
+```
+
 ### Create Sampler and DataLoader
 
 Now, we have obtained `data_train`, `data_val`, and `data_test`. The next step
 is to construct sampler and DataLoader. The first step is to construct batchify
 function, which pads and stacks sequences to form mini-batch.
 
-```{.python .input  n=4}
+```{.python .input  n=5}
 train_batchify_fn = btf.Tuple(btf.Pad(), btf.Pad(),
                               btf.Stack(dtype='float32'), btf.Stack(dtype='float32'))
 test_batchify_fn = btf.Tuple(btf.Pad(), btf.Pad(),
@@ -271,7 +303,7 @@ target_test_lengths = list(map(lambda x: x[-1], data_test_lengths))
 We can then construct bucketing samplers, which generate batches by grouping
 sequences with similar lengths.
 
-```{.python .input  n=5}
+```{.python .input  n=6}
 bucket_scheme = ExpWidthBucket(bucket_len_step=1.2)
 train_batch_sampler = FixedBucketSampler(lengths=data_train_lengths,
                                              batch_size=batch_size,
@@ -304,9 +336,19 @@ logging.info('Test Batch Sampler:\n{}'.format(test_batch_sampler.stats()))
 
 ```
 
+```{.json .output n=6}
+[
+ {
+  "name": "stderr",
+  "output_type": "stream",
+  "text": "2018-08-14 07:41:10,686 - root - Train Batch Sampler:\nFixedBucketSampler:\n  sample_num=30, batch_num=14\n  key=[(10, 11), (12, 12), (13, 13), (14, 15), (15, 16), (17, 18), (18, 20), (20, 22), (22, 24), (28, 31), (32, 36), (36, 41), (41, 47), (48, 55)]\n  cnt=[1, 1, 1, 1, 2, 2, 2, 4, 1, 2, 5, 1, 4, 3]\n  batch_size=[245, 225, 207, 180, 172, 155, 139, 136, 117, 89, 81, 72, 63, 53]\n2018-08-14 07:41:10,689 - root - Valid Batch Sampler:\nFixedBucketSampler:\n  sample_num=30, batch_num=14\n  key=[10, 11, 13, 15, 16, 18, 20, 22, 24, 31, 36, 41, 47, 55]\n  cnt=[1, 1, 1, 2, 3, 3, 2, 1, 1, 4, 3, 5, 2, 1]\n  batch_size=[25, 23, 19, 17, 16, 14, 13, 12, 11, 8, 7, 6, 5, 4]\n2018-08-14 07:41:10,692 - root - Test Batch Sampler:\nFixedBucketSampler:\n  sample_num=30, batch_num=14\n  key=[10, 11, 13, 15, 16, 18, 20, 22, 24, 31, 36, 41, 47, 55]\n  cnt=[1, 1, 1, 2, 3, 3, 2, 1, 1, 4, 3, 5, 2, 1]\n  batch_size=[25, 23, 19, 17, 16, 14, 13, 12, 11, 8, 7, 6, 5, 4]\n"
+ }
+]
+```
+
 Given the samplers, we can create DataLoader, which is iterable.
 
-```{.python .input  n=6}
+```{.python .input  n=7}
 train_data_loader = ShardedDataLoader(data_train,
                                       batch_sampler=train_batch_sampler,
                                       batchify_fn=train_batchify_fn,
@@ -330,7 +372,7 @@ use the encoder and decoder in `NMTModel` to construct the Transformer model.
 
 <div style="width: 500px;">![transformer](transformer.png)</div>
 
-```{.python .input  n=7}
+```{.python .input  n=8}
 encoder, decoder = get_transformer_encoder_decoder(units=num_units,
                                                    hidden_size=hidden_size,
                                                    dropout=dropout,
@@ -359,9 +401,19 @@ test_loss_function.hybridize(static_alloc=static_alloc)
 detokenizer = SacreMosesDetokenizer()
 ```
 
+```{.json .output n=8}
+[
+ {
+  "name": "stderr",
+  "output_type": "stream",
+  "text": "2018-08-14 07:41:14,743 - root - NMTModel(\n  (encoder): TransformerEncoder(\n    (dropout_layer): Dropout(p = 0.1, axes=())\n    (layer_norm): LayerNorm(eps=1e-05, axis=-1, center=True, scale=True, in_channels=0)\n    (transformer_cells): HybridSequential(\n      (0): TransformerEncoderCell(\n        (dropout_layer): Dropout(p = 0.1, axes=())\n        (attention_cell): MultiHeadAttentionCell(\n          (_base_cell): DotProductAttentionCell(\n            (_dropout_layer): Dropout(p = 0.1, axes=())\n          )\n          (proj_query): Dense(None -> 512, linear)\n          (proj_key): Dense(None -> 512, linear)\n          (proj_value): Dense(None -> 512, linear)\n        )\n        (proj): Dense(None -> 512, linear)\n        (ffn): PositionwiseFFN(\n          (ffn_1): Dense(None -> 2048, Activation(relu))\n          (ffn_2): Dense(None -> 512, linear)\n          (dropout_layer): Dropout(p = 0.1, axes=())\n          (layer_norm): LayerNorm(eps=1e-05, axis=-1, center=True, scale=True, in_channels=0)\n        )\n        (layer_norm): LayerNorm(eps=1e-05, axis=-1, center=True, scale=True, in_channels=0)\n      )\n      (1): TransformerEncoderCell(\n        (dropout_layer): Dropout(p = 0.1, axes=())\n        (attention_cell): MultiHeadAttentionCell(\n          (_base_cell): DotProductAttentionCell(\n            (_dropout_layer): Dropout(p = 0.1, axes=())\n          )\n          (proj_query): Dense(None -> 512, linear)\n          (proj_key): Dense(None -> 512, linear)\n          (proj_value): Dense(None -> 512, linear)\n        )\n        (proj): Dense(None -> 512, linear)\n        (ffn): PositionwiseFFN(\n          (ffn_1): Dense(None -> 2048, Activation(relu))\n          (ffn_2): Dense(None -> 512, linear)\n          (dropout_layer): Dropout(p = 0.1, axes=())\n          (layer_norm): LayerNorm(eps=1e-05, axis=-1, center=True, scale=True, in_channels=0)\n        )\n        (layer_norm): LayerNorm(eps=1e-05, axis=-1, center=True, scale=True, in_channels=0)\n      )\n      (2): TransformerEncoderCell(\n        (dropout_layer): Dropout(p = 0.1, axes=())\n        (attention_cell): MultiHeadAttentionCell(\n          (_base_cell): DotProductAttentionCell(\n            (_dropout_layer): Dropout(p = 0.1, axes=())\n          )\n          (proj_query): Dense(None -> 512, linear)\n          (proj_key): Dense(None -> 512, linear)\n          (proj_value): Dense(None -> 512, linear)\n        )\n        (proj): Dense(None -> 512, linear)\n        (ffn): PositionwiseFFN(\n          (ffn_1): Dense(None -> 2048, Activation(relu))\n          (ffn_2): Dense(None -> 512, linear)\n          (dropout_layer): Dropout(p = 0.1, axes=())\n          (layer_norm): LayerNorm(eps=1e-05, axis=-1, center=True, scale=True, in_channels=0)\n        )\n        (layer_norm): LayerNorm(eps=1e-05, axis=-1, center=True, scale=True, in_channels=0)\n      )\n      (3): TransformerEncoderCell(\n        (dropout_layer): Dropout(p = 0.1, axes=())\n        (attention_cell): MultiHeadAttentionCell(\n          (_base_cell): DotProductAttentionCell(\n            (_dropout_layer): Dropout(p = 0.1, axes=())\n          )\n          (proj_query): Dense(None -> 512, linear)\n          (proj_key): Dense(None -> 512, linear)\n          (proj_value): Dense(None -> 512, linear)\n        )\n        (proj): Dense(None -> 512, linear)\n        (ffn): PositionwiseFFN(\n          (ffn_1): Dense(None -> 2048, Activation(relu))\n          (ffn_2): Dense(None -> 512, linear)\n          (dropout_layer): Dropout(p = 0.1, axes=())\n          (layer_norm): LayerNorm(eps=1e-05, axis=-1, center=True, scale=True, in_channels=0)\n        )\n        (layer_norm): LayerNorm(eps=1e-05, axis=-1, center=True, scale=True, in_channels=0)\n      )\n      (4): TransformerEncoderCell(\n        (dropout_layer): Dropout(p = 0.1, axes=())\n        (attention_cell): MultiHeadAttentionCell(\n          (_base_cell): DotProductAttentionCell(\n            (_dropout_layer): Dropout(p = 0.1, axes=())\n          )\n          (proj_query): Dense(None -> 512, linear)\n          (proj_key): Dense(None -> 512, linear)\n          (proj_value): Dense(None -> 512, linear)\n        )\n        (proj): Dense(None -> 512, linear)\n        (ffn): PositionwiseFFN(\n          (ffn_1): Dense(None -> 2048, Activation(relu))\n          (ffn_2): Dense(None -> 512, linear)\n          (dropout_layer): Dropout(p = 0.1, axes=())\n          (layer_norm): LayerNorm(eps=1e-05, axis=-1, center=True, scale=True, in_channels=0)\n        )\n        (layer_norm): LayerNorm(eps=1e-05, axis=-1, center=True, scale=True, in_channels=0)\n      )\n      (5): TransformerEncoderCell(\n        (dropout_layer): Dropout(p = 0.1, axes=())\n        (attention_cell): MultiHeadAttentionCell(\n          (_base_cell): DotProductAttentionCell(\n            (_dropout_layer): Dropout(p = 0.1, axes=())\n          )\n          (proj_query): Dense(None -> 512, linear)\n          (proj_key): Dense(None -> 512, linear)\n          (proj_value): Dense(None -> 512, linear)\n        )\n        (proj): Dense(None -> 512, linear)\n        (ffn): PositionwiseFFN(\n          (ffn_1): Dense(None -> 2048, Activation(relu))\n          (ffn_2): Dense(None -> 512, linear)\n          (dropout_layer): Dropout(p = 0.1, axes=())\n          (layer_norm): LayerNorm(eps=1e-05, axis=-1, center=True, scale=True, in_channels=0)\n        )\n        (layer_norm): LayerNorm(eps=1e-05, axis=-1, center=True, scale=True, in_channels=0)\n      )\n    )\n  )\n  (decoder): TransformerDecoder(\n    (dropout_layer): Dropout(p = 0.1, axes=())\n    (layer_norm): LayerNorm(eps=1e-05, axis=-1, center=True, scale=True, in_channels=0)\n    (transformer_cells): HybridSequential(\n      (0): TransformerDecoderCell(\n        (dropout_layer): Dropout(p = 0.1, axes=())\n        (attention_cell_in): MultiHeadAttentionCell(\n          (_base_cell): DotProductAttentionCell(\n            (_dropout_layer): Dropout(p = 0.1, axes=())\n          )\n          (proj_query): Dense(None -> 512, linear)\n          (proj_key): Dense(None -> 512, linear)\n          (proj_value): Dense(None -> 512, linear)\n        )\n        (attention_cell_inter): MultiHeadAttentionCell(\n          (_base_cell): DotProductAttentionCell(\n            (_dropout_layer): Dropout(p = 0.1, axes=())\n          )\n          (proj_query): Dense(None -> 512, linear)\n          (proj_key): Dense(None -> 512, linear)\n          (proj_value): Dense(None -> 512, linear)\n        )\n        (proj_in): Dense(None -> 512, linear)\n        (proj_inter): Dense(None -> 512, linear)\n        (ffn): PositionwiseFFN(\n          (ffn_1): Dense(None -> 2048, Activation(relu))\n          (ffn_2): Dense(None -> 512, linear)\n          (dropout_layer): Dropout(p = 0.1, axes=())\n          (layer_norm): LayerNorm(eps=1e-05, axis=-1, center=True, scale=True, in_channels=0)\n        )\n        (layer_norm_in): LayerNorm(eps=1e-05, axis=-1, center=True, scale=True, in_channels=0)\n        (layer_norm_inter): LayerNorm(eps=1e-05, axis=-1, center=True, scale=True, in_channels=0)\n      )\n      (1): TransformerDecoderCell(\n        (dropout_layer): Dropout(p = 0.1, axes=())\n        (attention_cell_in): MultiHeadAttentionCell(\n          (_base_cell): DotProductAttentionCell(\n            (_dropout_layer): Dropout(p = 0.1, axes=())\n          )\n          (proj_query): Dense(None -> 512, linear)\n          (proj_key): Dense(None -> 512, linear)\n          (proj_value): Dense(None -> 512, linear)\n        )\n        (attention_cell_inter): MultiHeadAttentionCell(\n          (_base_cell): DotProductAttentionCell(\n            (_dropout_layer): Dropout(p = 0.1, axes=())\n          )\n          (proj_query): Dense(None -> 512, linear)\n          (proj_key): Dense(None -> 512, linear)\n          (proj_value): Dense(None -> 512, linear)\n        )\n        (proj_in): Dense(None -> 512, linear)\n        (proj_inter): Dense(None -> 512, linear)\n        (ffn): PositionwiseFFN(\n          (ffn_1): Dense(None -> 2048, Activation(relu))\n          (ffn_2): Dense(None -> 512, linear)\n          (dropout_layer): Dropout(p = 0.1, axes=())\n          (layer_norm): LayerNorm(eps=1e-05, axis=-1, center=True, scale=True, in_channels=0)\n        )\n        (layer_norm_in): LayerNorm(eps=1e-05, axis=-1, center=True, scale=True, in_channels=0)\n        (layer_norm_inter): LayerNorm(eps=1e-05, axis=-1, center=True, scale=True, in_channels=0)\n      )\n      (2): TransformerDecoderCell(\n        (dropout_layer): Dropout(p = 0.1, axes=())\n        (attention_cell_in): MultiHeadAttentionCell(\n          (_base_cell): DotProductAttentionCell(\n            (_dropout_layer): Dropout(p = 0.1, axes=())\n          )\n          (proj_query): Dense(None -> 512, linear)\n          (proj_key): Dense(None -> 512, linear)\n          (proj_value): Dense(None -> 512, linear)\n        )\n        (attention_cell_inter): MultiHeadAttentionCell(\n          (_base_cell): DotProductAttentionCell(\n            (_dropout_layer): Dropout(p = 0.1, axes=())\n          )\n          (proj_query): Dense(None -> 512, linear)\n          (proj_key): Dense(None -> 512, linear)\n          (proj_value): Dense(None -> 512, linear)\n        )\n        (proj_in): Dense(None -> 512, linear)\n        (proj_inter): Dense(None -> 512, linear)\n        (ffn): PositionwiseFFN(\n          (ffn_1): Dense(None -> 2048, Activation(relu))\n          (ffn_2): Dense(None -> 512, linear)\n          (dropout_layer): Dropout(p = 0.1, axes=())\n          (layer_norm): LayerNorm(eps=1e-05, axis=-1, center=True, scale=True, in_channels=0)\n        )\n        (layer_norm_in): LayerNorm(eps=1e-05, axis=-1, center=True, scale=True, in_channels=0)\n        (layer_norm_inter): LayerNorm(eps=1e-05, axis=-1, center=True, scale=True, in_channels=0)\n      )\n      (3): TransformerDecoderCell(\n        (dropout_layer): Dropout(p = 0.1, axes=())\n        (attention_cell_in): MultiHeadAttentionCell(\n          (_base_cell): DotProductAttentionCell(\n            (_dropout_layer): Dropout(p = 0.1, axes=())\n          )\n          (proj_query): Dense(None -> 512, linear)\n          (proj_key): Dense(None -> 512, linear)\n          (proj_value): Dense(None -> 512, linear)\n        )\n        (attention_cell_inter): MultiHeadAttentionCell(\n          (_base_cell): DotProductAttentionCell(\n            (_dropout_layer): Dropout(p = 0.1, axes=())\n          )\n          (proj_query): Dense(None -> 512, linear)\n          (proj_key): Dense(None -> 512, linear)\n          (proj_value): Dense(None -> 512, linear)\n        )\n        (proj_in): Dense(None -> 512, linear)\n        (proj_inter): Dense(None -> 512, linear)\n        (ffn): PositionwiseFFN(\n          (ffn_1): Dense(None -> 2048, Activation(relu))\n          (ffn_2): Dense(None -> 512, linear)\n          (dropout_layer): Dropout(p = 0.1, axes=())\n          (layer_norm): LayerNorm(eps=1e-05, axis=-1, center=True, scale=True, in_channels=0)\n        )\n        (layer_norm_in): LayerNorm(eps=1e-05, axis=-1, center=True, scale=True, in_channels=0)\n        (layer_norm_inter): LayerNorm(eps=1e-05, axis=-1, center=True, scale=True, in_channels=0)\n      )\n      (4): TransformerDecoderCell(\n        (dropout_layer): Dropout(p = 0.1, axes=())\n        (attention_cell_in): MultiHeadAttentionCell(\n          (_base_cell): DotProductAttentionCell(\n            (_dropout_layer): Dropout(p = 0.1, axes=())\n          )\n          (proj_query): Dense(None -> 512, linear)\n          (proj_key): Dense(None -> 512, linear)\n          (proj_value): Dense(None -> 512, linear)\n        )\n        (attention_cell_inter): MultiHeadAttentionCell(\n          (_base_cell): DotProductAttentionCell(\n            (_dropout_layer): Dropout(p = 0.1, axes=())\n          )\n          (proj_query): Dense(None -> 512, linear)\n          (proj_key): Dense(None -> 512, linear)\n          (proj_value): Dense(None -> 512, linear)\n        )\n        (proj_in): Dense(None -> 512, linear)\n        (proj_inter): Dense(None -> 512, linear)\n        (ffn): PositionwiseFFN(\n          (ffn_1): Dense(None -> 2048, Activation(relu))\n          (ffn_2): Dense(None -> 512, linear)\n          (dropout_layer): Dropout(p = 0.1, axes=())\n          (layer_norm): LayerNorm(eps=1e-05, axis=-1, center=True, scale=True, in_channels=0)\n        )\n        (layer_norm_in): LayerNorm(eps=1e-05, axis=-1, center=True, scale=True, in_channels=0)\n        (layer_norm_inter): LayerNorm(eps=1e-05, axis=-1, center=True, scale=True, in_channels=0)\n      )\n      (5): TransformerDecoderCell(\n        (dropout_layer): Dropout(p = 0.1, axes=())\n        (attention_cell_in): MultiHeadAttentionCell(\n          (_base_cell): DotProductAttentionCell(\n            (_dropout_layer): Dropout(p = 0.1, axes=())\n          )\n          (proj_query): Dense(None -> 512, linear)\n          (proj_key): Dense(None -> 512, linear)\n          (proj_value): Dense(None -> 512, linear)\n        )\n        (attention_cell_inter): MultiHeadAttentionCell(\n          (_base_cell): DotProductAttentionCell(\n            (_dropout_layer): Dropout(p = 0.1, axes=())\n          )\n          (proj_query): Dense(None -> 512, linear)\n          (proj_key): Dense(None -> 512, linear)\n          (proj_value): Dense(None -> 512, linear)\n        )\n        (proj_in): Dense(None -> 512, linear)\n        (proj_inter): Dense(None -> 512, linear)\n        (ffn): PositionwiseFFN(\n          (ffn_1): Dense(None -> 2048, Activation(relu))\n          (ffn_2): Dense(None -> 512, linear)\n          (dropout_layer): Dropout(p = 0.1, axes=())\n          (layer_norm): LayerNorm(eps=1e-05, axis=-1, center=True, scale=True, in_channels=0)\n        )\n        (layer_norm_in): LayerNorm(eps=1e-05, axis=-1, center=True, scale=True, in_channels=0)\n        (layer_norm_inter): LayerNorm(eps=1e-05, axis=-1, center=True, scale=True, in_channels=0)\n      )\n    )\n  )\n  (src_embed): HybridSequential(\n    (0): Embedding(358 -> 512, float32)\n    (1): Dropout(p = 0.0, axes=())\n  )\n  (tgt_embed): HybridSequential(\n    (0): Embedding(358 -> 512, float32)\n    (1): Dropout(p = 0.0, axes=())\n  )\n  (tgt_proj): Dense(None -> 381, linear)\n)\n"
+ }
+]
+```
+
 Here, we build the translator using the beam search
 
-```{.python .input  n=8}
+```{.python .input  n=9}
 translator = BeamSearchTranslator(model=model, beam_size=beam_size,
                                   scorer=BeamSearchScorer(alpha=lp_alpha,
                                                           K=lp_k),
@@ -369,10 +421,20 @@ translator = BeamSearchTranslator(model=model, beam_size=beam_size,
 logging.info('Use beam_size={}, alpha={}, K={}'.format(beam_size, lp_alpha, lp_k))
 ```
 
+```{.json .output n=9}
+[
+ {
+  "name": "stderr",
+  "output_type": "stream",
+  "text": "2018-08-14 07:41:15,079 - root - Use beam_size=4, alpha=0.6, K=5\n"
+ }
+]
+```
+
 We define evaluation function as follows. The `evaluate` function use beam
 search translator to generate outputs for the validation and testing datasets.
 
-```{.python .input  n=9}
+```{.python .input  n=10}
 def evaluate(data_loader, context=ctx):
     """Evaluate given the data loader
 
@@ -435,14 +497,14 @@ Before conducting training, we need to create trainer for updating the
 parameter. In the following example, we create a trainer that uses ADAM
 optimzier.
 
-```{.python .input  n=10}
+```{.python .input  n=11}
 trainer = gluon.Trainer(model.collect_params(), optimizer,
                         {'learning_rate': lr, 'beta2': 0.98, 'epsilon': 1e-9})
 ```
 
 We can then write the training loop. During the training, we perform the evaluation on validation and testing dataset every epoch, and record the parameters that give the hightest BLEU score on validation dataset. Before performing forward and backward, we first use `as_in_context` function to copy the mini-batch to GPU. The statement `with mx.autograd.record()` will locate Gluon backend to compute the gradients for the part inside the block. For ease of observing the convergence of the update of the `Loss` in a quick fashion, we set the `epochs = 3`. Notice that, in order to obtain the best BLEU score, we will need more epochs and large warmup steps following the original paper.
 
-```{.python .input  n=11}
+```{.python .input  n=12}
 bpe = False
 split_compound_word = False
 tokenized = False
@@ -563,11 +625,21 @@ write_sentences(test_translation_out,
                 os.path.join(save_dir, 'best_test_out.txt'))
 ```
 
+```{.json .output n=12}
+[
+ {
+  "name": "stderr",
+  "output_type": "stream",
+  "text": "2018-08-14 07:41:18,184 - root - [Epoch 0 Batch 10/14] loss=28.9083, ppl=3586784548312.6875, throughput=0.43K wps, wc=1.09K\n2018-08-14 07:42:28,224 - root - [Epoch 0] valid Loss=15.2710, valid ppl=4286389.2761, valid bleu=0.00\n2018-08-14 07:43:38,710 - root - [Epoch 0] test Loss=15.2710, test ppl=4286389.2761, test bleu=0.00\n2018-08-14 07:43:41,276 - root - [Epoch 1 Batch 10/14] loss=13.6171, ppl=820031.8395, throughput=0.61K wps, wc=1.15K\n2018-08-14 07:44:49,490 - root - [Epoch 1] valid Loss=9.5609, valid ppl=14198.3171, valid bleu=0.00\n2018-08-14 07:45:57,740 - root - [Epoch 1] test Loss=9.5609, test ppl=14198.3171, test bleu=0.00\n2018-08-14 07:46:00,402 - root - [Epoch 2 Batch 10/14] loss=9.1088, ppl=9034.4067, throughput=0.63K wps, wc=1.32K\n2018-08-14 07:47:09,574 - root - [Epoch 2] valid Loss=6.6393, valid ppl=764.5638, valid bleu=0.00\n2018-08-14 07:48:17,834 - root - [Epoch 2] test Loss=6.6393, test ppl=764.5638, test bleu=0.00\n2018-08-14 07:49:27,524 - root - Best model valid Loss=7.0692, valid ppl=1175.1757, valid bleu=0.00\n2018-08-14 07:50:40,421 - root - Best model test Loss=7.0692, test ppl=1175.1757, test bleu=0.00\n"
+ }
+]
+```
+
 ## Load Pretrained SOTA Transformer
 
 Next, we will load the pretrained SOTA Transformer using the model API in GluonNLP. In this way, we can easily get access to the SOTA machine translation model and use it in your own application.
 
-```{.python .input}
+```{.python .input  n=13}
 # model_name = 'transformer.average.params'
 # transformer_model, src_vocab, tgt_vocab = nlp.model.get_model(model_name, src_vocab=src_vocab, tgt_vocab=tgt_vocab, encoder=encoder, decoder=decoder,
 #                  share_embed=True, embed_size=num_units, tie_weights=True, prefix='transformer_')
@@ -579,7 +651,7 @@ Next, we will load the pretrained SOTA Transformer using the model API in GluonN
 
 Next, we will generate the SOTA results on validation and test datasets respectively.
 
-```{.python .input}
+```{.python .input  n=14}
 # valid_loss, valid_translation_out = evaluate(val_data_loader, ctx)
 # test_loss, test_translation_out = evaluate(test_data_loader, ctx)
 # test_bleu_score, _, _, _, _ = compute_bleu([test_tgt_sentences], test_translation_out,
