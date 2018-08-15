@@ -17,7 +17,7 @@
 # specific language governing permissions and limitations
 # under the License.
 """Encoder and decoder usded in sequence-to-sequence learning."""
-__all__ = ['TransformerEncoder', 'TransformerDecoder', 'get_transformer_encoder_decoder']
+__all__ = ['TransformerEncoder', 'TransformerDecoder', 'get_transformer_encoder_decoder', 'get_model']
 
 import os
 import warnings
