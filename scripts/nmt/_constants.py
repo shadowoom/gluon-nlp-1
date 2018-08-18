@@ -19,4 +19,6 @@
 """Constants used in the NMT examples."""
 import os
 
+__all__ = ['CACHE_PATH']
+
 CACHE_PATH = os.path.realpath(os.path.join(os.path.realpath(__file__), '..', 'cached'))
