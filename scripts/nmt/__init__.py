@@ -31,5 +31,5 @@ from .transformer import *
 from .translation import *
 from .utils import *
 
-__all__ = bleu.__all__ + dataset.__all__ + encoder_decoder.__all__ + gnmt.__all__ + loss.__all__
-+ transformer.__all__ + translation.__all__ + utils.__all__
+__all__ = bleu.__all__ + dataset.__all__ + encoder_decoder.__all__ + gnmt.__all__ + loss.__all__ \
+          + transformer.__all__ + translation.__all__ + utils.__all__
