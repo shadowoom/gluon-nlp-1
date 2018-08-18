@@ -10,10 +10,6 @@ In this notebook, we will show how to train Transformer and evaluate the pretrai
 import warnings
 warnings.filterwarnings('ignore')
 
-PATH_TO_GLUONNLP='/home/ubuntu/cgwang/code/gluon-nlp-1'
-import sys
-sys.path.insert(0, PATH_TO_GLUONNLP)
-
 import time
 import random
 import os
@@ -24,8 +20,7 @@ import numpy as np
 import mxnet as mx
 from mxnet import gluon
 import gluonnlp as nlp
-
-from scripts import nmt
+import nmt
 
 import hyperparameters as hparams
 import dataprocessor
