@@ -24,7 +24,7 @@ import mxnet as mx
 import time
 import logging
 import io
-from scripts import nmt
+import nmt
 import hyperparameters as hparams
 
 def evaluate(model, data_loader, test_loss_function, translator, tgt_vocab, detokenizer, context):
@@ -83,7 +83,7 @@ def write_sentences(sentences, file_path):
                 of.write(sent + '\n')
                 
                 
-def train_one_epoch(epoch_id, model, train_data_loader, trainer, label_smoothing, loss_function, grad_interval, average_param_dict, step_num, ctx):
+def train_one_epoch(epoch_id, model, train_data_loader, trainer, label_smoothing, loss_function, grad_interval, average_param_dict, update_average_param_dict, step_num, ctx):
     log_avg_loss = 0
     log_wc = 0
     loss_denom = 0
@@ -113,9 +113,11 @@ def train_one_epoch(epoch_id, model, train_data_loader, trainer, label_smoothing
             L.backward()
         if batch_id % grad_interval == grad_interval - 1 or\
                 batch_id == len(train_data_loader) - 1:
-            if average_param_dict is None:
-                average_param_dict = {k: v.data(ctx).copy() for k, v in
-                                      model.collect_params().items()}
+            if update_average_param_dict:
+                for k, v in model.collect_params().items():
+                    average_param_dict[k] = v.data(ctx).copy()
+                update_average_param_dict = False
+                    
             trainer.step(float(loss_denom) / hparams.batch_size / 100.0)
             param_dict = model.collect_params()
             param_dict.zero_grad()

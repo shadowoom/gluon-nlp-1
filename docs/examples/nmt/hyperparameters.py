@@ -18,7 +18,7 @@
 # under the License.
 """Hyperparameters for transformer."""
 
-from scripts import nmt
+import nmt
 
 # parameters for dataset
 dataset = 'TOY'
@@ -54,3 +54,5 @@ bleu = '13a'
 beam_size = 4
 lp_alpha = 0.6
 lp_k = 5
+
+nmt.utils.logging_config(save_dir)
