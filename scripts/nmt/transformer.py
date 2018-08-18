@@ -17,7 +17,8 @@
 # specific language governing permissions and limitations
 # under the License.
 """Encoder and decoder usded in sequence-to-sequence learning."""
-__all__ = ['TransformerEncoder', 'TransformerDecoder', 'get_transformer_encoder_decoder', 'get_model']
+__all__ = ['TransformerEncoder', 'TransformerDecoder',
+           'get_transformer_encoder_decoder', 'get_model']
 
 import os
 import warnings
@@ -25,7 +26,6 @@ import warnings
 import math
 import numpy as np
 import mxnet as mx
-import gluonnlp as nlp
 from mxnet import cpu
 from mxnet.gluon import nn
 from mxnet.gluon.block import HybridBlock
@@ -35,9 +35,10 @@ except ImportError:
     from .encoder_decoder import Seq2SeqEncoder, Seq2SeqDecoder, _get_attention_cell
 
 from mxnet.gluon.model_zoo.model_store import get_model_file
-from gluonnlp.data.utils import _load_pretrained_vocab
 from mxnet.gluon.model_zoo import model_store
+from gluonnlp.data.utils import _load_pretrained_vocab
 from scripts.nmt.translation import NMTModel
+import gluonnlp as nlp
 
 
 def _position_encoding_init(max_length, dim):
@@ -894,8 +895,8 @@ def _get_transformer_model(model_cls, model_name, dataset_name, src_vocab, tgt_v
     return net, src_vocab, tgt_vocab
 
 
-def transformer_en_de_512(dataset_name=None, src_vocab=None, tgt_vocab=None, pretrained=False, ctx=cpu(),
-                     root=os.path.join('~', '.mxnet', 'models'), **kwargs):
+def transformer_en_de_512(dataset_name=None, src_vocab=None, tgt_vocab=None, pretrained=False,
+                          ctx=cpu(), root=os.path.join('~', '.mxnet', 'models'), **kwargs):
     r"""Transformer pretrained model.
 
     Embedding size is 400, and hidden layer size is 1150.
