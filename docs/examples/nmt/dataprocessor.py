@@ -18,9 +18,11 @@
 # under the License.
 """Data preprocessing for transformer."""
 
+import os
 import mxnet as mx
 from mxnet import gluon
 from scripts import nmt
+import hyperparameters as hparams
 
 def cache_dataset(dataset, prefix):
     """Cache the processed npy dataset  the dataset into a npz
@@ -109,14 +111,14 @@ def load_translation_data(dataset, src_lang='en', tgt_lang='de'):
     """
     if dataset == 'WMT2014BPE':
         common_prefix = 'WMT2014BPE_{}_{}_{}_{}'.format(src_lang, tgt_lang,
-                                                        src_max_len, tgt_max_len)
+                                                        hparams.src_max_len, hparams.tgt_max_len)
         data_train = nlp.data.WMT2014BPE('train', src_lang=src_lang, tgt_lang=tgt_lang)
         data_val = nlp.data.WMT2014BPE('newstest2013', src_lang=src_lang, tgt_lang=tgt_lang)
         data_test = nlp.data.WMT2014BPE('newstest2014', src_lang=src_lang, tgt_lang=tgt_lang, 
                                full=False)
     elif dataset == 'TOY':
         common_prefix = 'TOY_{}_{}_{}_{}'.format(src_lang, tgt_lang,
-                                                 src_max_len, tgt_max_len)
+                                                 hparams.src_max_len, hparams.tgt_max_len)
         data_train = nmt.dataset.TOY('train', src_lang=src_lang, tgt_lang=tgt_lang)
         data_val = nmt.dataset.TOY('val', src_lang=src_lang, tgt_lang=tgt_lang)
         data_test = nmt.dataset.TOY('test', src_lang=src_lang, tgt_lang=tgt_lang)

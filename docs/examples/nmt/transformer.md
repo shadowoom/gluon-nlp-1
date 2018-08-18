@@ -34,16 +34,9 @@ import utils
 ```{.json .output n=1}
 [
  {
-  "ename": "TypeError",
-  "evalue": "bad operand type for unary +: 'list'",
-  "output_type": "error",
-  "traceback": [
-   "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
-   "\u001b[0;31mTypeError\u001b[0m                                 Traceback (most recent call last)",
-   "\u001b[0;32m<ipython-input-1-427ca36c2339>\u001b[0m in \u001b[0;36m<module>\u001b[0;34m()\u001b[0m\n\u001b[1;32m     16\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0mmxnet\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mgluon\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     17\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mgluonnlp\u001b[0m \u001b[0;32mas\u001b[0m \u001b[0mnlp\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m---> 18\u001b[0;31m \u001b[0;32mfrom\u001b[0m \u001b[0mscripts\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mnmt\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m     19\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     20\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mhyperparameters\u001b[0m \u001b[0;32mas\u001b[0m \u001b[0mhparams\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
-   "\u001b[0;32m~/cgwang/code/gluon-nlp-1/scripts/nmt/__init__.py\u001b[0m in \u001b[0;36m<module>\u001b[0;34m()\u001b[0m\n\u001b[1;32m     33\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     34\u001b[0m \u001b[0m__all__\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mbleu\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m__all__\u001b[0m \u001b[0;34m+\u001b[0m \u001b[0mdataset\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m__all__\u001b[0m \u001b[0;34m+\u001b[0m \u001b[0mencoder_decoder\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m__all__\u001b[0m \u001b[0;34m+\u001b[0m \u001b[0mgnmt\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m__all__\u001b[0m \u001b[0;34m+\u001b[0m \u001b[0mloss\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m__all__\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m---> 35\u001b[0;31m \u001b[0;34m+\u001b[0m \u001b[0mtransformer\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m__all__\u001b[0m \u001b[0;34m+\u001b[0m \u001b[0mtranslation\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m__all__\u001b[0m \u001b[0;34m+\u001b[0m \u001b[0mutils\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m__all__\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m",
-   "\u001b[0;31mTypeError\u001b[0m: bad operand type for unary +: 'list'"
-  ]
+  "name": "stdout",
+  "output_type": "stream",
+  "text": "All Logs will be saved to /home/ubuntu/cgwang/code/gluon-nlp-1/docs/examples/nmt/hyperparameters.log\n"
  }
 ]
 ```
@@ -65,7 +58,7 @@ sequences and 2) split the string input to a list of tokens and 3) map the
 string token into its index in the vocabulary and 4) append EOS token to source
 sentence and add BOS and EOS tokens to target sentence.
 
-```{.python .input  n=4}
+```{.python .input  n=3}
 data_train, data_val, data_test, val_tgt_sentences, test_tgt_sentences, src_vocab, tgt_vocab = dataprocessor.load_translation_data(dataset=hparams.dataset, src_lang=hparams.src_lang, tgt_lang=hparams.tgt_lang)
 data_train_lengths = dataprocessor.get_data_lengths(data_train)
 data_val_lengths = dataprocessor.get_data_lengths(data_val)
@@ -84,6 +77,24 @@ data_val = gluon.data.SimpleDataset([(ele[0], ele[1], len(ele[0]), len(ele[1]), 
                           for i, ele in enumerate(data_val)])
 data_test = gluon.data.SimpleDataset([(ele[0], ele[1], len(ele[0]), len(ele[1]), i)
                            for i, ele in enumerate(data_test)])
+```
+
+```{.json .output n=3}
+[
+ {
+  "ename": "AttributeError",
+  "evalue": "module 'scripts.nmt' has no attribute '_constants'",
+  "output_type": "error",
+  "traceback": [
+   "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
+   "\u001b[0;31mAttributeError\u001b[0m                            Traceback (most recent call last)",
+   "\u001b[0;32m<ipython-input-3-11437c2b82fc>\u001b[0m in \u001b[0;36m<module>\u001b[0;34m()\u001b[0m\n\u001b[0;32m----> 1\u001b[0;31m \u001b[0mdata_train\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mdata_val\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mdata_test\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mval_tgt_sentences\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mtest_tgt_sentences\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0msrc_vocab\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mtgt_vocab\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mdataprocessor\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mload_translation_data\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mdataset\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0mhparams\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mdataset\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0msrc_lang\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0mhparams\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0msrc_lang\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mtgt_lang\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0mhparams\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mtgt_lang\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m      2\u001b[0m \u001b[0mdata_train_lengths\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mdataprocessor\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mget_data_lengths\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mdata_train\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      3\u001b[0m \u001b[0mdata_val_lengths\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mdataprocessor\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mget_data_lengths\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mdata_val\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      4\u001b[0m \u001b[0mdata_test_lengths\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mdataprocessor\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mget_data_lengths\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mdata_test\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      5\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n",
+   "\u001b[0;32m~/cgwang/code/gluon-nlp-1/docs/examples/nmt/dataprocessor.py\u001b[0m in \u001b[0;36mload_translation_data\u001b[0;34m(dataset, src_lang, tgt_lang)\u001b[0m\n\u001b[1;32m    126\u001b[0m         \u001b[0;32mraise\u001b[0m \u001b[0mNotImplementedError\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    127\u001b[0m     \u001b[0msrc_vocab\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mtgt_vocab\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mdata_train\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0msrc_vocab\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mdata_train\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mtgt_vocab\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m--> 128\u001b[0;31m     \u001b[0mdata_train_processed\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mload_cached_dataset\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mcommon_prefix\u001b[0m \u001b[0;34m+\u001b[0m \u001b[0;34m'_train'\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m    129\u001b[0m     \u001b[0;32mif\u001b[0m \u001b[0;32mnot\u001b[0m \u001b[0mdata_train_processed\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    130\u001b[0m         data_train_processed = process_dataset(data_train, src_vocab, tgt_vocab,\n",
+   "\u001b[0;32m~/cgwang/code/gluon-nlp-1/docs/examples/nmt/dataprocessor.py\u001b[0m in \u001b[0;36mload_cached_dataset\u001b[0;34m(prefix)\u001b[0m\n\u001b[1;32m     41\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     42\u001b[0m \u001b[0;32mdef\u001b[0m \u001b[0mload_cached_dataset\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mprefix\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m---> 43\u001b[0;31m     \u001b[0mcached_file_path\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mos\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mpath\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mjoin\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mnmt\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m_constants\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mCACHE_PATH\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mprefix\u001b[0m \u001b[0;34m+\u001b[0m \u001b[0;34m'.npz'\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m     44\u001b[0m     \u001b[0;32mif\u001b[0m \u001b[0mos\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mpath\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mexists\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mcached_file_path\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     45\u001b[0m         \u001b[0mprint\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m'Load cached data from {}'\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mformat\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mcached_file_path\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+   "\u001b[0;31mAttributeError\u001b[0m: module 'scripts.nmt' has no attribute '_constants'"
+  ]
+ }
+]
 ```
 
 ### Create Sampler and DataLoader
