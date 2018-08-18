@@ -46,7 +46,7 @@ sequences and 2) split the string input to a list of tokens and 3) map the
 string token into its index in the vocabulary and 4) append EOS token to source
 sentence and add BOS and EOS tokens to target sentence.
 
-```{.python .input  n=4}
+```{.python .input  n=3}
 data_train, data_val, data_test, val_tgt_sentences, test_tgt_sentences, src_vocab, tgt_vocab = dataprocessor.load_translation_data(dataset=hparams.dataset, src_lang=hparams.src_lang, tgt_lang=hparams.tgt_lang)
 data_train_lengths = dataprocessor.get_data_lengths(data_train)
 data_val_lengths = dataprocessor.get_data_lengths(data_val)
@@ -67,7 +67,7 @@ Now, we have obtained `data_train`, `data_val`, and `data_test`. The next step
 is to construct sampler and DataLoader. The first step is to construct batchify
 function, which pads and stacks sequences to form mini-batch.
 
-```{.python .input  n=5}
+```{.python .input  n=4}
 train_batchify_fn = nlp.data.batchify.Tuple(nlp.data.batchify.Pad(), nlp.data.batchify.Pad(),
                               nlp.data.batchify.Stack(dtype='float32'), nlp.data.batchify.Stack(dtype='float32'))
 test_batchify_fn = nlp.data.batchify.Tuple(nlp.data.batchify.Pad(), nlp.data.batchify.Pad(),
@@ -80,7 +80,7 @@ target_test_lengths = list(map(lambda x: x[-1], data_test_lengths))
 We can then construct bucketing samplers, which generate batches by grouping
 sequences with similar lengths.
 
-```{.python .input  n=6}
+```{.python .input  n=5}
 bucket_scheme = nlp.data.ExpWidthBucket(bucket_len_step=1.2)
 train_batch_sampler = nlp.data.FixedBucketSampler(lengths=data_train_lengths,
                                              batch_size=hparams.batch_size,
@@ -114,7 +114,7 @@ logging.info('Test Batch Sampler:\n{}'.format(test_batch_sampler.stats()))
 
 Given the samplers, we can create DataLoader, which is iterable.
 
-```{.python .input  n=7}
+```{.python .input  n=6}
 train_data_loader = nlp.data.ShardedDataLoader(data_train,
                                       batch_sampler=train_batch_sampler,
                                       batchify_fn=train_batchify_fn,
@@ -138,7 +138,7 @@ use the encoder and decoder in `NMTModel` to construct the Transformer model.
 
 <div style="width: 500px;">![transformer](transformer.png)</div>
 
-```{.python .input  n=8}
+```{.python .input  n=7}
 encoder, decoder = nmt.transformer.get_transformer_encoder_decoder(units=hparams.num_units,
                                                    hidden_size=hparams.hidden_size,
                                                    dropout=hparams.dropout,
@@ -169,7 +169,7 @@ detokenizer = nlp.data.SacreMosesDetokenizer()
 
 Here, we build the translator using the beam search
 
-```{.python .input  n=9}
+```{.python .input  n=8}
 translator = nmt.translation.BeamSearchTranslator(model=model, beam_size=hparams.beam_size,
                                   scorer=nlp.model.BeamSearchScorer(alpha=hparams.lp_alpha,
                                                           K=hparams.lp_k),
@@ -183,14 +183,14 @@ Before conducting training, we need to create trainer for updating the
 parameter. In the following example, we create a trainer that uses ADAM
 optimzier.
 
-```{.python .input  n=11}
+```{.python .input  n=9}
 trainer = gluon.Trainer(model.collect_params(), hparams.optimizer,
                         {'learning_rate': hparams.lr, 'beta2': 0.98, 'epsilon': 1e-9})
 ```
 
 We can then write the training loop. During the training, we perform the evaluation on validation and testing dataset every epoch, and record the parameters that give the hightest BLEU score on validation dataset. Before performing forward and backward, we first use `as_in_context` function to copy the mini-batch to GPU. The statement `with mx.autograd.record()` will locate Gluon backend to compute the gradients for the part inside the block. For ease of observing the convergence of the update of the `Loss` in a quick fashion, we set the `epochs = 3`. Notice that, in order to obtain the best BLEU score, we will need more epochs and large warmup steps following the original paper.
 
-```{.python .input  n=12}
+```{.python .input  n=10}
 bpe = False
 split_compound_word = False
 tokenized = False
@@ -200,10 +200,12 @@ warmup_steps = hparams.warmup_steps
 grad_interval = hparams.num_accumulated
 model.collect_params().setattr('grad_req', 'add')
 average_start = (len(train_data_loader) // grad_interval) * (hparams.epochs - hparams.average_start)
-average_param_dict = None
+average_param_dict = {k: mx.nd.array([0]) for k, v in
+                                      model.collect_params().items()}
+update_average_param_dict = True
 model.collect_params().zero_grad()
 for epoch_id in range(hparams.epochs):
-    utils.train_one_epoch(epoch_id, model, train_data_loader, trainer, label_smoothing, loss_function, grad_interval, average_param_dict, step_num, ctx)
+    utils.train_one_epoch(epoch_id, model, train_data_loader, trainer, label_smoothing, loss_function, grad_interval, average_param_dict, update_average_param_dict, step_num, ctx)
     mx.nd.waitall()
     # We define evaluation function as follows. The `evaluate` function use beam search translator to generate outputs for the validation and testing datasets.
     valid_loss, valid_translation_out = utils.evaluate(model, val_data_loader, test_loss_function, translator, tgt_vocab, detokenizer, ctx)
@@ -261,21 +263,30 @@ utils.write_sentences(test_translation_out,
 
 Next, we will load the pretrained SOTA Transformer using the model API in GluonNLP. In this way, we can easily get access to the SOTA machine translation model and use it in your own application.
 
-```{.python .input  n=13}
+```{.python .input  n=19}
 model_name = 'transformer_en_de_512'
 
 transformer_model, src_vocab, tgt_vocab = nmt.transformer.get_model(model_name, dataset_name='WMT2014', pretrained=True, ctx=ctx)
 
-print(transformer_model)
-print(src_vocab)
-print(tgt_vocab)
+# print(transformer_model)
+# print(src_vocab)
+# print(tgt_vocab)
+
+print('params0....')
+params0 = model.collect_params()
+print(params0)
+
+print('params1....')
+params1 = transformer_model.collect_params()
+print(params1)
 ```
 
 Next, we will generate the SOTA results on validation and test datasets respectively. For ease of illustration, we only show the loss on the TOY validation and test datasets. To be able to obtain the SOTA results, please set the `demo=False`, and we are able to achieve 27.09 as the BLEU score.
 
-```{.python .input  n=14}
-valid_loss, _ = utils.evaluate(val_data_loader, ctx)
-test_loss, _ = utils.evaluate(test_data_loader, ctx)
+```{.python .input  n=20}
+import utils
+valid_loss, _ = utils.evaluate(transformer_model, val_data_loader, test_loss_function, translator, tgt_vocab, detokenizer, ctx)
+test_loss, _ = utils.evaluate(transformer_model, test_data_loader, test_loss_function, translator, tgt_vocab, detokenizer, ctx)
 print('Best validation loss %.2f'%(valid_loss))
 print('Best test loss %.2f'%(test_loss))
 ```

@@ -20,10 +20,11 @@
 
 import os
 import io
+import time
 import numpy as np
 import mxnet as mx
 from mxnet import gluon
-from scripts import nmt
+import nmt
 import hyperparameters as hparams
 
 def cache_dataset(dataset, prefix):
@@ -130,7 +131,7 @@ def load_translation_data(dataset, src_lang='en', tgt_lang='de'):
     data_train_processed = load_cached_dataset(common_prefix + '_train')
     if not data_train_processed:
         data_train_processed = process_dataset(data_train, src_vocab, tgt_vocab,
-                                               src_max_len, tgt_max_len)
+                                               hparams.src_max_len, hparams.tgt_max_len)
         cache_dataset(data_train_processed, common_prefix + '_train')
     data_val_processed = load_cached_dataset(common_prefix + '_val')
     if not data_val_processed:
