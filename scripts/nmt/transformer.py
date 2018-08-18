@@ -26,17 +26,13 @@ import warnings
 import math
 import numpy as np
 import mxnet as mx
-from mxnet import cpu
+from mxnet import cpu, gluon
 from mxnet.gluon import nn
 from mxnet.gluon.block import HybridBlock
 try:
     from encoder_decoder import Seq2SeqEncoder, Seq2SeqDecoder, _get_attention_cell
 except ImportError:
     from .encoder_decoder import Seq2SeqEncoder, Seq2SeqDecoder, _get_attention_cell
-
-from mxnet.gluon.model_zoo.model_store import get_model_file
-from mxnet.gluon.model_zoo import model_store
-from gluonnlp.data.utils import _load_pretrained_vocab
 from scripts.nmt.translation import NMTModel
 import gluonnlp as nlp
 
@@ -865,14 +861,15 @@ def _load_vocab(dataset_name, vocab, root):
         if vocab is not None:
             warnings.warn('Both dataset_name and vocab are specified. Loading vocab for dataset. '
                           'Input "vocab" argument will be ignored.')
-        vocab = _load_pretrained_vocab(dataset_name, root)
+        vocab = nlp.data.utils._load_pretrained_vocab(dataset_name, root)
     else:
         assert vocab is not None, 'Must specify vocab if not loading from predefined datasets.'
     return vocab
 
 
 def _load_pretrained_params(net, model_name, dataset_name, root, ctx):
-    model_file = get_model_file('_'.join([model_name, dataset_name]), root=root)
+    model_file = gluon.model_zoo.model_store.get_model_file('_'.join([model_name, dataset_name]),
+                                                            root=root)
     net.load_params(model_file, ctx=ctx)
 
 
@@ -947,7 +944,7 @@ def transformer_en_de_512(dataset_name=None, src_vocab=None, tgt_vocab=None, pre
                                   predefined_args['tie_weights'],
                                   predefined_args['embed_initializer'], ctx, root)
 
-model_store._model_sha1.update(
+gluon.model_zoo.model_store._model_sha1.update(
     {name: checksum for checksum, name in [
         ('14bd361b593bd1570106d74f29f9507f4f772bfe', 'transformer_en_de_512_WMT2014'),
     ]})
