@@ -25,7 +25,7 @@ import io
 from scripts import nmt
 import hyperparameters as hparams
 
-def evaluate(model, data_loader, test_loss_function, translator, tgt_vocab, detokenizer, context=ctx):
+def evaluate(model, data_loader, test_loss_function, translator, tgt_vocab, detokenizer, context):
     """Evaluate given the data loader
 
     Parameters
