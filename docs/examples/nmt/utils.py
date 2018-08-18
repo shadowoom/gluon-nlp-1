@@ -18,6 +18,8 @@
 # under the License.
 """Utilities for transformer."""
 
+import numpy as np
+import math
 import mxnet as mx
 import time
 import logging
@@ -81,7 +83,7 @@ def write_sentences(sentences, file_path):
                 of.write(sent + '\n')
                 
                 
-def train_one_epoch(epoch_id, model, train_data_loader, trainer, label_smoothing, loss_function, grad_interval, average_param_dict):
+def train_one_epoch(epoch_id, model, train_data_loader, trainer, label_smoothing, loss_function, grad_interval, average_param_dict, step_num, ctx):
     log_avg_loss = 0
     log_wc = 0
     loss_denom = 0
@@ -90,7 +92,7 @@ def train_one_epoch(epoch_id, model, train_data_loader, trainer, label_smoothing
     for batch_id, seqs in enumerate(train_data_loader):
         if batch_id % grad_interval == 0:
             step_num += 1
-            new_lr = lr / math.sqrt(hparams.num_units) * min(1. / math.sqrt(step_num), step_num * hparams.warmup_steps ** (-1.5))
+            new_lr = hparams.lr / math.sqrt(hparams.num_units) * min(1. / math.sqrt(step_num), step_num * hparams.warmup_steps ** (-1.5))
             trainer.set_learning_rate(new_lr)
         src_wc, tgt_wc, bs = np.sum([(shard[2].sum(), shard[3].sum(), shard[0].shape[0])
                                      for shard in seqs], axis=0)
@@ -117,7 +119,7 @@ def train_one_epoch(epoch_id, model, train_data_loader, trainer, label_smoothing
             trainer.step(float(loss_denom) / hparams.batch_size / 100.0)
             param_dict = model.collect_params()
             param_dict.zero_grad()
-            if step_num > average_start:
+            if step_num > hparams.average_start:
                 alpha = 1. / max(1, step_num - hparams.average_start)
                 for name, average_param in average_param_dict.items():
                     average_param[:] += alpha * (param_dict[name].data(ctx) - average_param)

@@ -24,21 +24,12 @@ import numpy as np
 import mxnet as mx
 from mxnet import gluon
 import gluonnlp as nlp
+
 from scripts import nmt
 
 import hyperparameters as hparams
 import dataprocessor
 import utils
-```
-
-```{.json .output n=1}
-[
- {
-  "name": "stdout",
-  "output_type": "stream",
-  "text": "All Logs will be saved to /home/ubuntu/cgwang/code/gluon-nlp-1/docs/examples/nmt/hyperparameters.log\n"
- }
-]
 ```
 
 ### Set Environment
@@ -48,6 +39,8 @@ np.random.seed(100)
 random.seed(100)
 mx.random.seed(10000)
 ctx = mx.gpu(0)
+
+nmt.utils.logging_config(hparams.save_dir)
 ```
 
 ### Load and Preprocess Dataset
@@ -58,43 +51,19 @@ sequences and 2) split the string input to a list of tokens and 3) map the
 string token into its index in the vocabulary and 4) append EOS token to source
 sentence and add BOS and EOS tokens to target sentence.
 
-```{.python .input  n=3}
+```{.python .input  n=4}
 data_train, data_val, data_test, val_tgt_sentences, test_tgt_sentences, src_vocab, tgt_vocab = dataprocessor.load_translation_data(dataset=hparams.dataset, src_lang=hparams.src_lang, tgt_lang=hparams.tgt_lang)
 data_train_lengths = dataprocessor.get_data_lengths(data_train)
 data_val_lengths = dataprocessor.get_data_lengths(data_val)
 data_test_lengths = dataprocessor.get_data_lengths(data_test)
 
-with io.open(os.path.join(save_dir, 'val_gt.txt'), 'w', encoding='utf-8') as of:
-    for ele in val_tgt_sentences:
-        of.write(' '.join(ele) + '\n')
-
-with io.open(os.path.join(save_dir, 'test_gt.txt'), 'w', encoding='utf-8') as of:
-    for ele in test_tgt_sentences:
-        of.write(' '.join(ele) + '\n')
+dataprocessor.write_evaluation_sentences(val_tgt_sentences, test_tgt_sentences)
 
 data_train = data_train.transform(lambda src, tgt: (src, tgt, len(src), len(tgt)), lazy=False)
 data_val = gluon.data.SimpleDataset([(ele[0], ele[1], len(ele[0]), len(ele[1]), i)
                           for i, ele in enumerate(data_val)])
 data_test = gluon.data.SimpleDataset([(ele[0], ele[1], len(ele[0]), len(ele[1]), i)
                            for i, ele in enumerate(data_test)])
-```
-
-```{.json .output n=3}
-[
- {
-  "ename": "AttributeError",
-  "evalue": "module 'scripts.nmt' has no attribute '_constants'",
-  "output_type": "error",
-  "traceback": [
-   "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
-   "\u001b[0;31mAttributeError\u001b[0m                            Traceback (most recent call last)",
-   "\u001b[0;32m<ipython-input-3-11437c2b82fc>\u001b[0m in \u001b[0;36m<module>\u001b[0;34m()\u001b[0m\n\u001b[0;32m----> 1\u001b[0;31m \u001b[0mdata_train\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mdata_val\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mdata_test\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mval_tgt_sentences\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mtest_tgt_sentences\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0msrc_vocab\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mtgt_vocab\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mdataprocessor\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mload_translation_data\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mdataset\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0mhparams\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mdataset\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0msrc_lang\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0mhparams\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0msrc_lang\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mtgt_lang\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0mhparams\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mtgt_lang\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m      2\u001b[0m \u001b[0mdata_train_lengths\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mdataprocessor\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mget_data_lengths\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mdata_train\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      3\u001b[0m \u001b[0mdata_val_lengths\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mdataprocessor\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mget_data_lengths\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mdata_val\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      4\u001b[0m \u001b[0mdata_test_lengths\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mdataprocessor\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mget_data_lengths\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mdata_test\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      5\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n",
-   "\u001b[0;32m~/cgwang/code/gluon-nlp-1/docs/examples/nmt/dataprocessor.py\u001b[0m in \u001b[0;36mload_translation_data\u001b[0;34m(dataset, src_lang, tgt_lang)\u001b[0m\n\u001b[1;32m    126\u001b[0m         \u001b[0;32mraise\u001b[0m \u001b[0mNotImplementedError\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    127\u001b[0m     \u001b[0msrc_vocab\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mtgt_vocab\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mdata_train\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0msrc_vocab\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mdata_train\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mtgt_vocab\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m--> 128\u001b[0;31m     \u001b[0mdata_train_processed\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mload_cached_dataset\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mcommon_prefix\u001b[0m \u001b[0;34m+\u001b[0m \u001b[0;34m'_train'\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m    129\u001b[0m     \u001b[0;32mif\u001b[0m \u001b[0;32mnot\u001b[0m \u001b[0mdata_train_processed\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    130\u001b[0m         data_train_processed = process_dataset(data_train, src_vocab, tgt_vocab,\n",
-   "\u001b[0;32m~/cgwang/code/gluon-nlp-1/docs/examples/nmt/dataprocessor.py\u001b[0m in \u001b[0;36mload_cached_dataset\u001b[0;34m(prefix)\u001b[0m\n\u001b[1;32m     41\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     42\u001b[0m \u001b[0;32mdef\u001b[0m \u001b[0mload_cached_dataset\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mprefix\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m---> 43\u001b[0;31m     \u001b[0mcached_file_path\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mos\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mpath\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mjoin\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mnmt\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m_constants\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mCACHE_PATH\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mprefix\u001b[0m \u001b[0;34m+\u001b[0m \u001b[0;34m'.npz'\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m     44\u001b[0m     \u001b[0;32mif\u001b[0m \u001b[0mos\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mpath\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mexists\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mcached_file_path\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     45\u001b[0m         \u001b[0mprint\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m'Load cached data from {}'\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mformat\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mcached_file_path\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
-   "\u001b[0;31mAttributeError\u001b[0m: module 'scripts.nmt' has no attribute '_constants'"
-  ]
- }
-]
 ```
 
 ### Create Sampler and DataLoader
@@ -111,7 +80,6 @@ test_batchify_fn = nlp.data.batchify.Tuple(nlp.data.batchify.Pad(), nlp.data.bat
                              nlp.data.batchify.Stack())
 target_val_lengths = list(map(lambda x: x[-1], data_val_lengths))
 target_test_lengths = list(map(lambda x: x[-1], data_test_lengths))
-
 ```
 
 We can then construct bucketing samplers, which generate batches by grouping
@@ -147,7 +115,6 @@ test_batch_sampler = nlp.data.FixedBucketSampler(lengths=target_test_lengths,
                                         use_average_length=True,
                                         bucket_scheme=bucket_scheme)
 logging.info('Test Batch Sampler:\n{}'.format(test_batch_sampler.stats()))
-
 ```
 
 Given the samplers, we can create DataLoader, which is iterable.
@@ -237,62 +204,62 @@ step_num = 0
 warmup_steps = hparams.warmup_steps
 grad_interval = hparams.num_accumulated
 model.collect_params().setattr('grad_req', 'add')
-average_start = (len(train_data_loader) // hparams.grad_interval) * (hparams.epochs - hparams.average_start)
+average_start = (len(train_data_loader) // grad_interval) * (hparams.epochs - hparams.average_start)
 average_param_dict = None
 model.collect_params().zero_grad()
-for epoch_id in range(epochs):
-    train_one_epoch(epoch_id, model)
+for epoch_id in range(hparams.epochs):
+    utils.train_one_epoch(epoch_id, model, train_data_loader, trainer, label_smoothing, loss_function, grad_interval, average_param_dict, step_num, ctx)
     mx.nd.waitall()
     # We define evaluation function as follows. The `evaluate` function use beam search translator to generate outputs for the validation and testing datasets.
     valid_loss, valid_translation_out = utils.evaluate(model, val_data_loader, test_loss_function, translator, tgt_vocab, detokenizer, ctx)
     valid_bleu_score, _, _, _, _ = nmt.bleu.compute_bleu([val_tgt_sentences], valid_translation_out,
-                                                tokenized=tokenized, tokenizer=bleu,
+                                                tokenized=tokenized, tokenizer=hparams.bleu,
                                                 split_compound_word=split_compound_word,
                                                 bpe=bpe)
     logging.info('[Epoch {}] valid Loss={:.4f}, valid ppl={:.4f}, valid bleu={:.2f}'
                  .format(epoch_id, valid_loss, np.exp(valid_loss), valid_bleu_score * 100))
     test_loss, test_translation_out = utils.evaluate(model, test_data_loader, test_loss_function, translator, tgt_vocab, detokenizer, ctx)
     test_bleu_score, _, _, _, _ = nmt.bleu.compute_bleu([test_tgt_sentences], test_translation_out,
-                                               tokenized=tokenized, tokenizer=bleu,
+                                               tokenized=tokenized, tokenizer=hparams.bleu,
                                                split_compound_word=split_compound_word,
                                                bpe=bpe)
     logging.info('[Epoch {}] test Loss={:.4f}, test ppl={:.4f}, test bleu={:.2f}'
                  .format(epoch_id, test_loss, np.exp(test_loss), test_bleu_score * 100))
-    write_sentences(valid_translation_out,
-                    os.path.join(save_dir, 'epoch{:d}_valid_out.txt').format(epoch_id))
-    write_sentences(test_translation_out,
-                    os.path.join(save_dir, 'epoch{:d}_test_out.txt').format(epoch_id))
+    utils.write_sentences(valid_translation_out,
+                    os.path.join(hparams.save_dir, 'epoch{:d}_valid_out.txt').format(epoch_id))
+    utils.write_sentences(test_translation_out,
+                    os.path.join(hparams.save_dir, 'epoch{:d}_test_out.txt').format(epoch_id))
     if valid_bleu_score > best_valid_bleu:
         best_valid_bleu = valid_bleu_score
-        save_path = os.path.join(save_dir, 'valid_best.params')
+        save_path = os.path.join(hparams.save_dir, 'valid_best.params')
         logging.info('Save best parameters to {}'.format(save_path))
         model.save_params(save_path)
-    save_path = os.path.join(save_dir, 'epoch{:d}.params'.format(epoch_id))
+    save_path = os.path.join(hparams.save_dir, 'epoch{:d}.params'.format(epoch_id))
     model.save_params(save_path)
-save_path = os.path.join(save_dir, 'average.params')
+save_path = os.path.join(hparams.save_dir, 'average.params')
 mx.nd.save(save_path, average_param_dict)
-for k, v in model.collect_params().items():
+
+if hparams.average_start > 0:
+    for k, v in model.collect_params().items():
         v.set_data(average_param_dict[k])
-# if average_start > 0:
-    
-# else:
-#     model.load_params(os.path.join(save_dir, 'valid_best.params'), ctx)
+else:
+    model.load_params(os.path.join(save_dir, 'valid_best.params'), ctx)
 valid_loss, valid_translation_out = utils.evaluate(model, val_data_loader, test_loss_function, translator, tgt_vocab, detokenizer, ctx)
 valid_bleu_score, _, _, _, _ = nmt.bleu.compute_bleu([val_tgt_sentences], valid_translation_out,
-                                            tokenized=tokenized, tokenizer=bleu, bpe=bpe,
+                                            tokenized=tokenized, tokenizer=hparams.bleu, bpe=bpe,
                                             split_compound_word=split_compound_word)
 logging.info('Best model valid Loss={:.4f}, valid ppl={:.4f}, valid bleu={:.2f}'
              .format(valid_loss, np.exp(valid_loss), valid_bleu_score * 100))
 test_loss, test_translation_out = utils.evaluate(model, test_data_loader, test_loss_function, translator, tgt_vocab, detokenizer, ctx)
 test_bleu_score, _, _, _, _ = nmt.bleu.compute_bleu([test_tgt_sentences], test_translation_out,
-                                           tokenized=tokenized, tokenizer=bleu, bpe=bpe,
+                                           tokenized=tokenized, tokenizer=hparams.bleu, bpe=bpe,
                                            split_compound_word=split_compound_word)
 logging.info('Best model test Loss={:.4f}, test ppl={:.4f}, test bleu={:.2f}'
              .format(test_loss, np.exp(test_loss), test_bleu_score * 100))
-write_sentences(valid_translation_out,
-                os.path.join(save_dir, 'best_valid_out.txt'))
-write_sentences(test_translation_out,
-                os.path.join(save_dir, 'best_test_out.txt'))
+utils.write_sentences(valid_translation_out,
+                os.path.join(hparams.save_dir, 'best_valid_out.txt'))
+utils.write_sentences(test_translation_out,
+                os.path.join(hparams.save_dir, 'best_test_out.txt'))
 ```
 
 ## Load Pretrained SOTA Transformer
