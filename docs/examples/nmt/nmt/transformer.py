@@ -37,7 +37,7 @@ except ImportError:
 from mxnet.gluon.model_zoo.model_store import get_model_file
 from gluonnlp.data.utils import _load_pretrained_vocab
 from mxnet.gluon.model_zoo import model_store
-from scripts.nmt.translation import NMTModel
+from .translation import NMTModel
 
 
 def _position_encoding_init(max_length, dim):
