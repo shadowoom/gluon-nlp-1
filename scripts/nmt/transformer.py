@@ -33,8 +33,8 @@ try:
     from encoder_decoder import Seq2SeqEncoder, Seq2SeqDecoder, _get_attention_cell
 except ImportError:
     from .encoder_decoder import Seq2SeqEncoder, Seq2SeqDecoder, _get_attention_cell
-from .translation import NMTModel
 import gluonnlp as nlp
+from .translation import NMTModel
 
 
 def _position_encoding_init(max_length, dim):
