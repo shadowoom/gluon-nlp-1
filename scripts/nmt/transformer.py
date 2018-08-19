@@ -33,7 +33,7 @@ try:
     from encoder_decoder import Seq2SeqEncoder, Seq2SeqDecoder, _get_attention_cell
 except ImportError:
     from .encoder_decoder import Seq2SeqEncoder, Seq2SeqDecoder, _get_attention_cell
-from scripts.nmt.translation import NMTModel
+from .translation import NMTModel
 import gluonnlp as nlp
 
 
