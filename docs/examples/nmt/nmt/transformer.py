@@ -872,7 +872,15 @@ def _load_vocab(dataset_name, vocab, root):
 
 def _load_pretrained_params(net, model_name, dataset_name, root, ctx):
     model_file = get_model_file('_'.join([model_name, dataset_name]), root=root)
+    print('model_file')
+    print(model_file)
     net.load_params(model_file, ctx=ctx)
+    for k, v in net.collect_params.items():
+        print('k:')
+        print(k)
+        print('v:')
+        print(v.data())
+
 
 
 def _get_transformer_model(model_cls, model_name, dataset_name, src_vocab, tgt_vocab,
