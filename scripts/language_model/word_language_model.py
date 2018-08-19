@@ -168,13 +168,9 @@ else:
 
 model.initialize(mx.init.Xavier(), ctx=context)
 
-# model.hybridize(static_alloc=True)
-
-print(model.collect_params())
+model.hybridize(static_alloc=True)
 
 print(model)
-
-print(model_eval)
 
 
 if args.optimizer == 'sgd':
@@ -188,7 +184,6 @@ elif args.optimizer == 'adam':
                       'beta2': 0.999,
                       'epsilon': 1e-9}
 
-#TODO: update_kv_store=False?
 trainer = gluon.Trainer(model.collect_params(), args.optimizer, trainer_params,
                         update_on_kvstore=False)
 
@@ -253,7 +248,7 @@ class JointActivationRegularizationLoss(gluon.loss.Loss):
 
 
 joint_loss = JointActivationRegularizationLoss(loss, ar_loss, tar_loss)
-# joint_loss.hybridize(static_alloc=True)
+joint_loss.hybridize(static_alloc=True)
 
 ###############################################################################
 # Training code
@@ -353,8 +348,6 @@ def train():
     best_val = float('Inf')
     start_train_time = time.time()
     parameters = model.collect_params()
-    # parameters = model.collect_params().values()
-    # model.collect_params().zero_grad()
     param_dict_avg = None
     t = 0
     avg_trigger = 0
@@ -378,26 +371,14 @@ def train():
             target_list = gluon.utils.split_and_load(target, context, batch_axis=1, even_split=True)
             hiddens = detach(hiddens)
             Ls = []
-            # L = 0
             with autograd.record():
                 for j, (X, y, h) in enumerate(zip(data_list, target_list, hiddens)):
                     output, h, encoder_hs, dropped_encoder_hs = model(X, h)
                     l = joint_loss(output, y, encoder_hs, dropped_encoder_hs)
-                    # L = L + l.as_in_context(context[0]) / X.size
                     Ls.append(l.as_in_context(context[0]) / (len(context) * X.size))
                     hiddens[j] = h
             for L in Ls:
                 L.backward()
-            # L.backward()
-
-            # # #Calculate the average of each parameter's gradient over all the context, and copy back to each context,
-            # # #this result in every context has the same averaged gradient regarding to each parameter Double check
-            # trainer.allreduce_grads()
-            # # # Do clipping over the parameters on the context
-            # # # TODO: make the global norm as one copy and transfer back to the contexts
-            # for d in data_list:
-            #     grads = [p.grad(d.context) for p in parameters.values()]
-            #     gluon.utils.clip_global_norm(grads, args.clip)
 
             nlp.model.utils.multi_gpu_clip_global_norm(trainer, parameters.values(), args.clip)
 
@@ -406,15 +387,11 @@ def train():
                     param_dict_avg = {k.split(model._prefix)[1]: v.data(context[0]).copy()
                                       for k, v in parameters.items()}
 
-            #TODO: the allreduce_grads have been computed twice
             trainer.update(1)
 
             if args.ntasgd and ntasgd:
-                gamma = 1.0 / max(1, epoch * ((len(train_data) // args.bptt) + 1)
-                                  + batch_i - avg_trigger + 1)
-                print('gamma: %f' % gamma)
-                # param_dict_batch_i = model.collect_params()
-                # param_dict_batch_i.zero_grad()
+                gamma = 1.0 / max(1, epoch * (len(train_data) // args.bptt)
+                                  + batch_i - avg_trigger + 2)
                 for name, param_avg in param_dict_avg.items():
                     param_avg[:] += gamma * (parameters['{}{}'.format(model._prefix, name)]
                                              .data(context[0]) - param_avg)
@@ -424,27 +401,18 @@ def train():
 
             if batch_i % args.log_interval == 0 and batch_i > 0:
                 cur_L = total_L / args.log_interval
-                try:
-                    print('[Epoch %d Batch %d/%d] current loss %.2f, ppl %.2f, '
-                          'throughput %.2f samples/s, lr %.2f'
-                          % (epoch, batch_i, len(train_data) // args.bptt, cur_L, math.exp(cur_L),
-                             args.batch_size * args.log_interval
-                             / (time.time() - start_log_interval_time),
-                             lr_batch_start * seq_len / args.bptt))
-                except OverflowError:
-                    print('Current PPL is too large!')
+                print('[Epoch %d Batch %d/%d] current loss %.2f, ppl %.2f, '
+                      'throughput %.2f samples/s, lr %.2f'
+                      % (epoch, batch_i, len(train_data) // args.bptt, cur_L, math.exp(cur_L),
+                         args.batch_size * args.log_interval
+                         / (time.time() - start_log_interval_time),
+                         lr_batch_start * seq_len / args.bptt))
                 total_L = 0.0
                 start_log_interval_time = time.time()
             i += seq_len
             batch_i += 1
 
         mx.nd.waitall()
-
-        # for d in data_list:
-        #     print(d.context)
-        #     for p in parameters.values():
-        #         print(p)
-        #         print(p.grad(d.context)[:1])
 
         print('[Epoch %d] throughput %.2f samples/s' % (
             epoch, (args.batch_size * len(train_data)) / (time.time() - start_epoch_time)))
@@ -454,31 +422,12 @@ def train():
         else:
             model.save_params('{}.val.params'.format(args.save))
         val_L = evaluate(val_data, val_batch_size, '{}.val.params'.format(args.save), context[0])
-        try:
-            print('[Epoch %d] time cost %.2fs, valid loss %.2f, valid ppl %.2f，lr %.2f' % (
-                epoch, time.time() - start_epoch_time, val_L, math.exp(val_L),
-                trainer.learning_rate))
-        except OverflowError:
-            print('[Epoch %d] Val PPL is too large!' % epoch)
+        print('[Epoch %d] time cost %.2fs, valid loss %.2f, valid ppl %.2f，lr %.2f' % (
+            epoch, time.time() - start_epoch_time, val_L, math.exp(val_L),
+            trainer.learning_rate))
 
         if args.ntasgd and avg_trigger == 0:
-            # if ntasgd:
-            #     mx.nd.save('{}.val.params'.format(args.save), param_dict_avg)
-            # else:
-            #     model.save_params('{}.val.params'.format(args.save))
-            # val_L = evaluate(val_data, val_batch_size,
-            #                  '{}.val.params'.format(args.save), context[0])
-            # try:
-            #     print('[Epoch %d Batch %d/%d] valid loss %.2f, valid ppl %.2f, '
-            #           'throughput %.2f samples/s, lr %.2f'
-            #           % (epoch, batch_i, len(train_data) // args.bptt, val_L, math.exp(val_L),
-            #              args.batch_size * args.log_interval / (
-            #                          time.time() - start_log_interval_time),
-            #              lr_batch_start * seq_len / args.bptt))
-            # except OverflowError:
-            #     print('Val PPL is too large!')
-            # if t > n and val_L > min(logs[-n:]):
-            if t > n and val_L > min(logs[:-n]):
+            if t > n and val_L > min(logs[-n:]):
                 if param_dict_avg is None:
                     param_dict_avg = {k.split(model._prefix)[1]: v.data(context[0]).copy()
                                       for k, v in parameters.items()}
@@ -500,11 +449,8 @@ def train():
             else:
                 model.save_params(args.save)
             test_L = evaluate(test_data, test_batch_size, args.save, context[0])
-            try:
-                print('[Epoch %d] test loss %.2f, test ppl %.2f'
-                      % (epoch, test_L, math.exp(test_L)))
-            except OverflowError:
-                print('[Epoch %d] test PPL is too large!' % epoch)
+            print('[Epoch %d] test loss %.2f, test ppl %.2f'
+                  % (epoch, test_L, math.exp(test_L)))
         else:
             update_lr_epoch += 1
             if update_lr_epoch % args.lr_update_interval == 0 and update_lr_epoch != 0:
@@ -512,9 +458,6 @@ def train():
                 print('Learning rate after interval update %f' % lr_scale)
                 trainer.set_learning_rate(lr_scale)
                 update_lr_epoch = 0
-
-        #TODO: add the lr scheduler trick (change to mxnet scheduler)
-
 
     print('Total training throughput %.2f samples/s'
           %((args.batch_size * len(train_data) * args.epochs) / (time.time() - start_train_time)))
@@ -527,12 +470,6 @@ if __name__ == '__main__':
 
     final_val_L = evaluate(val_data, val_batch_size, args.save, context[0])
     final_test_L = evaluate(test_data, test_batch_size, args.save, context[0])
-    try:
-        print('Best validation loss %.2f, val ppl %.2f' % (final_val_L, math.exp(final_val_L)))
-    except OverflowError:
-        print('Best val PPL is too large!')
-    try:
-        print('Best test loss %.2f, test ppl %.2f' % (final_test_L, math.exp(final_test_L)))
-    except OverflowError:
-        print('Best test PPL is too large!')
+    print('Best validation loss %.2f, val ppl %.2f' % (final_val_L, math.exp(final_val_L)))
+    print('Best test loss %.2f, test ppl %.2f' % (final_test_L, math.exp(final_test_L)))
     print('Total time cost %.2fs'%(time.time()-start_pipeline_time))
