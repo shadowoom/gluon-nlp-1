@@ -872,15 +872,10 @@ def _load_vocab(dataset_name, vocab, root):
 
 def _load_pretrained_params(net, model_name, dataset_name, root, ctx):
     model_file = get_model_file('_'.join([model_name, dataset_name]), root=root)
-    print('model_file')
-    print(model_file)
-    net.load_params(model_file, ctx=ctx)
-    for k, v in net.collect_params.items():
-        print('k:')
-        print(k)
-        print('v:')
-        print(v.data())
-
+    temp_params = mx.nd.load(model_file)
+    new_temp_params = {'transformer_' + k if 'src_embed' not in k else k: v for k, v in temp_params.items()}
+    mx.nd.save('_'.join(['temporal', model_name, dataset_name]), new_temp_params)
+    net.load_params('_'.join(['temporal', model_name, dataset_name]), ctx=ctx)
 
 
 def _get_transformer_model(model_cls, model_name, dataset_name, src_vocab, tgt_vocab,
@@ -896,6 +891,7 @@ def _get_transformer_model(model_cls, model_name, dataset_name, src_vocab, tgt_v
     kwargs['embed_size'] = embed_size
     kwargs['tie_weights'] = tie_weights
     kwargs['embed_initializer'] = embed_initializer
+    kwargs['prefix'] = ''
     net = model_cls(**kwargs)
     if pretrained:
         _load_pretrained_params(net, model_name, dataset_name, root, ctx)
@@ -949,10 +945,10 @@ def transformer_en_de_512(dataset_name=None, src_vocab=None, tgt_vocab=None, pre
                                                        max_tgt_length=549,
                                                        scaled=predefined_args['scaled'])
     return _get_transformer_model(NMTModel, 'transformer_en_de_512', dataset_name,
-                                  src_vocab, tgt_vocab, encoder, decoder, pretrained,
+                                  src_vocab, tgt_vocab, encoder, decoder,
                                   predefined_args['share_embed'], predefined_args['embed_size'],
                                   predefined_args['tie_weights'],
-                                  predefined_args['embed_initializer'], ctx, root)
+                                  predefined_args['embed_initializer'], pretrained, ctx, root)
 
 model_store._model_sha1.update(
     {name: checksum for checksum, name in [
