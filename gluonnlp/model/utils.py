@@ -23,7 +23,9 @@ import collections
 import functools
 import re
 import warnings
+import numpy as np
 
+from mxnet import gluon, ndarray
 from mxnet.gluon import Block, contrib, rnn
 from .parameter import WeightDropParameter
 
@@ -207,3 +209,36 @@ def _get_rnn_layer(mode, num_layers, input_size, hidden_size, dropout, weight_dr
         apply_weight_drop(block, '.*h2h_weight', rate=weight_dropout)
 
     return block
+
+
+def _multi_gpu_clip_global_norm_scale(arrays, max_norm):
+    """Compute the global norm'scale in order to make the 2-norm smaller than `max_norm`.
+    """
+    assert len(arrays) > 0
+    ctx = arrays[0].context
+    total_norm = ndarray.add_n(*[ndarray.dot(x, x).as_in_context(ctx)
+                                 for x in (arr.reshape((-1,)) for arr in arrays)])
+    total_norm = ndarray.sqrt(total_norm).asscalar()
+    if not np.isfinite(total_norm):
+        warnings.warn(UserWarning('nan or inf is detected. Clipping results will be undefined.'),
+                      stacklevel=2)
+    scale = max_norm / (total_norm + 1e-8)
+    return total_norm, scale
+
+
+def multi_gpu_clip_global_norm(trainer, parameters, max_norm):
+    """Rescales NDArrays so that the sum of their 2-norm on every context
+    is smaller than `max_norm`.
+    """
+    trainer.allreduce_grads()
+    ctx = list(parameters)[0].list_ctx()[0]
+    global_grads = [p.grad(ctx) for p in parameters]
+    total_norm, scale = _multi_gpu_clip_global_norm_scale(global_grads, max_norm)
+    if scale < 1.0:
+        for global_grad in global_grads:
+            global_grad *= scale
+        if len(list(parameters)[0].list_ctx()) > 1:
+            for ctx in list(parameters)[0].list_ctx()[1:]:
+                for p in parameters:
+                    p.as_in_context(ctx)
+    return total_norm
