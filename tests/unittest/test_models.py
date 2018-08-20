@@ -110,9 +110,9 @@ def test_cache_models():
 def test_get_cache_model_noncache_models():
     language_models_params = {'awd_lstm_lm_1150': 'awd_lstm_lm_1150_wikitext-2-45d6df33.params',
                               'awd_lstm_lm_600': 'awd_lstm_lm_600_wikitext-2-7894a046.params',
-                              'standard_lstm_lm_200': 'standard_lstm_lm_200_wikitext-2-f5410ea9.params',
-                              'standard_lstm_lm_650': 'standard_lstm_lm_650_wikitext-2-e229f41f.params',
-                              'standard_lstm_lm_1500': 'standard_lstm_lm_1500_wikitext-2-66ae69fd.params'}
+                              'standard_lstm_lm_200': 'standard_lstm_lm_200_wikitext-2-b233c700.params',
+                              'standard_lstm_lm_650': 'standard_lstm_lm_650_wikitext-2-631f3904.params',
+                              'standard_lstm_lm_1500': 'standard_lstm_lm_1500_wikitext-2-a4163513.params'}
     datasets = ['wikitext-2']
     for name in language_models_params.keys():
         for dataset_name in datasets:
