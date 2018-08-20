@@ -417,7 +417,7 @@ def standard_lstm_lm_1500(dataset_name=None, vocab=None, pretrained=False, ctx=c
 
 model_store._model_sha1.update(
     {name: checksum for checksum, name in [
-        ('29131a42b153e3d05958686354426f2743fe9b0e', 'standard_lstm_lm_1500_wikitext-2'),
+        ('66ae69fd2008751567ee74e1d34e77407af5f65e', 'standard_lstm_lm_1500_wikitext-2'),
         ('e229f41f08a1d83b95a78370cc3b4690e2e6c44d', 'standard_lstm_lm_650_wikitext-2'),
         ('f5410ea9d7369e401e93b13acdc1dbc2a35138b4', 'standard_lstm_lm_200_wikitext-2'),
         ('45d6df33f35715fb760ec8d18ed567016a897df7', 'awd_lstm_lm_1150_wikitext-2'),

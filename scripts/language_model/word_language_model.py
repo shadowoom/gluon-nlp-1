@@ -469,8 +469,7 @@ if __name__ == '__main__':
     start_pipeline_time = time.time()
     if not args.eval_only:
         train()
-    model.load_params(args.save, ctx=mx.gpu(0))
-    model.save_params(args.save + '.gpu0')
+    model.load_params(args.save, context)
     final_val_L = evaluate(val_data, val_batch_size, args.save, context[0])
     final_test_L = evaluate(test_data, test_batch_size, args.save, context[0])
     print('Best validation loss %.2f, val ppl %.2f' % (final_val_L, math.exp(final_val_L)))
