@@ -251,7 +251,7 @@ class JointActivationRegularizationLoss(gluon.loss.Loss):
 
 
 joint_loss = JointActivationRegularizationLoss(loss, args.alpha, args.beta)
-joint_loss.hybridize(static_alloc=True)
+# joint_loss.hybridize(static_alloc=True)
 
 ###############################################################################
 # Training code
