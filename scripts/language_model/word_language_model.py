@@ -383,6 +383,10 @@ def train():
 
         mx.nd.waitall()
 
+        if epoch >= 62:
+            model.save_params(args.save + '.cp.' + str(epoch))
+            print('saved checking point!')
+
         print('[Epoch %d] throughput %.2f samples/s'%(
             epoch, (args.batch_size * len(train_data)) / (time.time() - start_epoch_time)))
         val_L = evaluate(val_data, val_batch_size, context[0])
