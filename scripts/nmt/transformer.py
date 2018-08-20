@@ -34,7 +34,10 @@ try:
 except ImportError:
     from .encoder_decoder import Seq2SeqEncoder, Seq2SeqDecoder, _get_attention_cell
 import gluonnlp as nlp
-from .translation import NMTModel
+try:
+    from translation import NMTModel
+except ImportError:
+    from .translation import NMTModel
 
 
 def _position_encoding_init(max_length, dim):
