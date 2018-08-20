@@ -324,7 +324,7 @@ def evaluate(data_source, batch_size, params_file_name, ctx=None):
     total_L = 0.0
     ntotal = 0
 
-    model_eval.load_params(params_file_name, context)
+    model_eval.load_parameters(params_file_name, context)
 
     hidden = model_eval.begin_state(batch_size=batch_size, func=mx.nd.zeros, ctx=context[0])
     i = 0
@@ -422,7 +422,7 @@ def train():
         if args.ntasgd and ntasgd:
             mx.nd.save('{}.val.params'.format(args.save), param_dict_avg)
         else:
-            model.save_params('{}.val.params'.format(args.save))
+            model.save_parameters('{}.val.params'.format(args.save))
         val_L = evaluate(val_data, val_batch_size, '{}.val.params'.format(args.save), context[0])
         print('[Epoch %d] time cost %.2fs, valid loss %.2f, valid ppl %.2f，lr %.2f' % (
             epoch, time.time() - start_epoch_time, val_L, math.exp(val_L),
@@ -449,7 +449,7 @@ def train():
             if args.ntasgd and ntasgd:
                 mx.nd.save(args.save, param_dict_avg)
             else:
-                model.save_params(args.save)
+                model.save_parameters(args.save)
             test_L = evaluate(test_data, test_batch_size, args.save, context[0])
             print('[Epoch %d] test loss %.2f, test ppl %.2f'
                   % (epoch, test_L, math.exp(test_L)))
@@ -469,7 +469,7 @@ if __name__ == '__main__':
     start_pipeline_time = time.time()
     if not args.eval_only:
         train()
-    model.load_params(args.save, context)
+    model.load_parameters(args.save, context)
     final_val_L = evaluate(val_data, val_batch_size, args.save, context[0])
     final_test_L = evaluate(test_data, test_batch_size, args.save, context[0])
     print('Best validation loss %.2f, val ppl %.2f' % (final_val_L, math.exp(final_val_L)))
