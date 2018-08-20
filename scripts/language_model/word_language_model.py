@@ -183,8 +183,7 @@ elif args.optimizer == 'adam':
                       'beta2': 0.999,
                       'epsilon': 1e-9}
 
-trainer = gluon.Trainer(model.collect_params(), args.optimizer, trainer_params,
-                        update_on_kvstore=False)
+trainer = gluon.Trainer(model.collect_params(), args.optimizer, trainer_params)
 
 loss = gluon.loss.SoftmaxCrossEntropyLoss()
 ar_loss = nlp.loss.ActivationRegularizationLoss(args.alpha)
@@ -466,7 +465,8 @@ if __name__ == '__main__':
     start_pipeline_time = time.time()
     if not args.eval_only:
         train()
-
+    model.load_params(args.save, ctx=mx.gpu(0))
+    model.save_params(args.save + '.gpu0')
     final_val_L = evaluate(val_data, val_batch_size, args.save, context[0])
     final_test_L = evaluate(test_data, test_batch_size, args.save, context[0])
     print('Best validation loss %.2f, val ppl %.2f' % (final_val_L, math.exp(final_val_L)))
