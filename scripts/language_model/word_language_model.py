@@ -136,7 +136,7 @@ train_data = train_batchify(train_dataset)
 val_batch_size = 10
 val_batchify = nlp.data.batchify.CorpusBatchify(vocab, val_batch_size)
 val_data = val_batchify(val_dataset)
-test_batch_size = 10
+test_batch_size = 1
 test_batchify = nlp.data.batchify.CorpusBatchify(vocab, test_batch_size)
 test_data = test_batchify(test_dataset)
 
@@ -489,14 +489,14 @@ if __name__ == '__main__':
             for k, v in average_param.items():
                 v[:] += gamma * (epoch_param[k].as_in_context(context[0]) - v)
         mx.nd.save('awd_lstm_lm_1150_wikitext-2.average.params', average_param)
-        val_L = evaluate(val_data, 10, 'awd_lstm_lm_1150_wikitext-2.average.params', context[0])
+        val_L = evaluate(val_data, val_batch_size, 'awd_lstm_lm_1150_wikitext-2.average.params', context[0])
         if val_L < min_val_L:
             min_val_L = val_L
             model.save_parameters('awd_lstm_lm_1150_wikitext-2.best.average.params')
             print('validation loss %.2f, val ppl %.2f' % (val_L, math.exp(val_L)))
 
-    final_val_L = evaluate(val_data, 10, 'awd_lstm_lm_1150_wikitext-2.best.average.params', context[0])
-    final_test_L = evaluate(test_data, 1, 'awd_lstm_lm_1150_wikitext-2.best.average.params', context[0])
+    final_val_L = evaluate(val_data, val_batch_size, 'awd_lstm_lm_1150_wikitext-2.best.average.params', context[0])
+    final_test_L = evaluate(test_data, test_batch_size, 'awd_lstm_lm_1150_wikitext-2.best.average.params', context[0])
     print('Best validation loss %.2f, val ppl %.2f' % (final_val_L, math.exp(final_val_L)))
     print('Best test loss %.2f, test ppl %.2f' % (final_test_L, math.exp(final_test_L)))
     print('Total time cost %.2fs' % (time.time()-start_pipeline_time))
