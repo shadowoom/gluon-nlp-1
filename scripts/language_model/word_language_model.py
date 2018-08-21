@@ -106,6 +106,10 @@ parser.add_argument('--lr_update_interval', type=int, default=30,
                     help='lr udpate interval')
 parser.add_argument('--lr_update_factor', type=float, default=0.1,
                     help='lr udpate factor')
+parser.add_argument('--a', type=int, default=62,
+                    help='lr udpate interval')
+parser.add_argument('--b', type=int, default=202,
+                    help='lr udpate interval')
 args = parser.parse_args()
 
 ###############################################################################
@@ -467,22 +471,32 @@ def train():
 
 if __name__ == '__main__':
     start_pipeline_time = time.time()
-    if not args.eval_only:
-        train()
+    # if not args.eval_only:
+    #     train()
 
-    # param_dir = []
-    # average_param = None
-    # for param_file in param_dir:
-    #     epoch_param = mx.nd.load(param_file)
-    #     if
-    #     for k, v in epoch_param.items():
-    #         average_param[:] += gamma * (parameters['{}{}'.format(model._prefix, name)]
-    #                                 .data(context[0]) - param_avg)
+    average_param = None
+    min_val_L = float('Inf')
+    print(args.a)
+    print(args.b)
+    for epoch in range(args.a, args.b):
+        print('epoch %d' % epoch)
+        epoch_param = mx.nd.load('awd_lstm_lm_1150_wikitext-2.params.cp.' + str(epoch))
+        if average_param == None:
+            average_param = {k: v.as_in_context(context[0]).copy() for k, v in epoch_param.items()}
+        else:
+            gamma = 1.0 / max(1, epoch - args.a + 1)
+            print('gamma %.2f' % gamma)
+            for k, v in average_param.items():
+                v[:] += gamma * (epoch_param[k].as_in_context(context[0]) - v)
+        mx.nd.save('awd_lstm_lm_1150_wikitext-2.average.params', average_param)
+        val_L = evaluate(val_data, 10, 'awd_lstm_lm_1150_wikitext-2.average.params', context[0])
+        if val_L < min_val_L:
+            min_val_L = val_L
+            model.save_parameters('awd_lstm_lm_1150_wikitext-2.best.average.params')
+            print('validation loss %.2f' % val_L)
 
-
-    model.load_parameters(args.save, context)
-    final_val_L = evaluate(val_data, val_batch_size, args.save, context[0])
-    final_test_L = evaluate(test_data, test_batch_size, args.save, context[0])
+    final_val_L = evaluate(val_data, 10, 'awd_lstm_lm_1150_wikitext-2.best.average.params', context[0])
+    final_test_L = evaluate(test_data, 1, 'awd_lstm_lm_1150_wikitext-2.best.average.params', context[0])
     print('Best validation loss %.2f, val ppl %.2f' % (final_val_L, math.exp(final_val_L)))
     print('Best test loss %.2f, test ppl %.2f' % (final_test_L, math.exp(final_test_L)))
     print('Total time cost %.2fs' % (time.time()-start_pipeline_time))
