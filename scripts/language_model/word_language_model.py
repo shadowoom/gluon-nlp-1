@@ -492,7 +492,7 @@ if __name__ == '__main__':
         val_L = evaluate(val_data, val_batch_size, 'awd_lstm_lm_1150_wikitext-2.average.params', context[0])
         if val_L < min_val_L:
             min_val_L = val_L
-            mx.nd.save('awd_lstm_lm_1150_wikitext-2.best.average.params')
+            mx.nd.save('awd_lstm_lm_1150_wikitext-2.best.average.params', average_param)
             print('validation loss %.2f, val ppl %.2f' % (val_L, math.exp(val_L)))
 
     final_val_L = evaluate(val_data, val_batch_size, 'awd_lstm_lm_1150_wikitext-2.best.average.params', context[0])
