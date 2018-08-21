@@ -469,6 +469,17 @@ if __name__ == '__main__':
     start_pipeline_time = time.time()
     if not args.eval_only:
         train()
+
+    # param_dir = []
+    # average_param = None
+    # for param_file in param_dir:
+    #     epoch_param = mx.nd.load(param_file)
+    #     if
+    #     for k, v in epoch_param.items():
+    #         average_param[:] += gamma * (parameters['{}{}'.format(model._prefix, name)]
+    #                                 .data(context[0]) - param_avg)
+
+
     model.load_parameters(args.save, context)
     final_val_L = evaluate(val_data, val_batch_size, args.save, context[0])
     final_test_L = evaluate(test_data, test_batch_size, args.save, context[0])
