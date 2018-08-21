@@ -358,8 +358,8 @@ def train():
                 for j, (X, y, h) in enumerate(zip(data_list, target_list, hiddens)):
                     output, h, encoder_hs, dropped_encoder_hs = forward(X, h)
                     l = criterion(output, y, encoder_hs, dropped_encoder_hs)
-                    L = L + l.as_in_context(context[0]) / X.size
-                    Ls.append(l/X.size)
+                    L = L + (l.as_in_context(context[0]) / (len(context) * X.size))
+                    Ls.append(l.as_in_context(context[0]) / (len(context) * X.size))
                     hiddens[j] = h
             L.backward()
             grads = [p.grad(d.context) for p in parameters for d in data_list]
