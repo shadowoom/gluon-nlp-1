@@ -947,6 +947,7 @@ def transformer_en_de_512(dataset_name=None, src_vocab=None, tgt_vocab=None, pre
                                   predefined_args['tie_weights'],
                                   predefined_args['embed_initializer'], ctx, root)
 
+
 gluon.model_zoo.model_store._model_sha1.update(
     {name: checksum for checksum, name in [
         ('14bd361b593bd1570106d74f29f9507f4f772bfe', 'transformer_en_de_512_WMT2014'),
