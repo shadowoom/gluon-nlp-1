@@ -85,9 +85,7 @@ parser.add_argument('--save', type=str, default='model.params',
                     help='path to save the final model')
 parser.add_argument('--eval_only', action='store_true',
                     help='Whether to only evaluate the trained model')
-parser.add_argument('--gpus', type=str,
-                    help='list of gpus to run, e.g. 0 or 0,2,5. empty means using cpu.'
-                         '(using single gpu is suggested)')
+parser.add_argument('--gpu', type=str, help='single gpu id')
 parser.add_argument('--optimizer', type=str, default='sgd',
                     help='optimizer to use (sgd, adam)')
 parser.add_argument('--wd', type=float, default=1.2e-6,
@@ -112,8 +110,7 @@ args = parser.parse_args()
 # Load data
 ###############################################################################
 
-context = [mx.cpu()] if args.gpus is None or args.gpus == '' else \
-          [mx.gpu(int(x)) for x in args.gpus.split(',')]
+context = [mx.cpu()] if args.gpu is None or args.gpu == '' else [mx.gpu(int(args.gpu))]
 
 assert args.batch_size % len(context) == 0, \
     'Total batch size must be multiple of the number of devices'
@@ -382,14 +379,15 @@ def train():
             for L in Ls:
                 L.backward()
 
-            nlp.model.utils.multi_gpu_clip_global_norm(trainer, parameters.values(), args.clip)
+            grads = [p.grad(d.context) for p in parameters.values() for d in data_list]
+            gluon.utils.clip_global_norm(grads, args.clip)
 
             if args.ntasgd and ntasgd:
                 if param_dict_avg is None:
                     param_dict_avg = {k.split(model._prefix)[1]: v.data(context[0]).copy()
                                       for k, v in parameters.items()}
 
-            trainer.update(1)
+            trainer.step(1)
 
             if args.ntasgd and ntasgd:
                 gamma = 1.0 / max(1, epoch * (len(train_data) // args.bptt)
