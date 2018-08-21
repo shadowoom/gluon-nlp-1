@@ -488,15 +488,15 @@ if __name__ == '__main__':
             print('gamma %.2f' % gamma)
             for k, v in average_param.items():
                 v[:] += gamma * (epoch_param[k].as_in_context(context[0]) - v)
-        mx.nd.save('awd_lstm_lm_1150_wikitext-2.average.params', average_param)
-        val_L = evaluate(val_data, val_batch_size, 'awd_lstm_lm_1150_wikitext-2.average.params', context[0])
+        mx.nd.save(args.save + '.awd_lstm_lm_1150_wikitext-2.average.params', average_param)
+        val_L = evaluate(val_data, val_batch_size, args.save + '.awd_lstm_lm_1150_wikitext-2.average.params', context[0])
         if val_L < min_val_L:
             min_val_L = val_L
-            mx.nd.save('awd_lstm_lm_1150_wikitext-2.best.average.params', average_param)
+            mx.nd.save(args.save + '.awd_lstm_lm_1150_wikitext-2.best.average.params', average_param)
             print('validation loss %.2f, val ppl %.2f' % (val_L, math.exp(val_L)))
 
-    final_val_L = evaluate(val_data, val_batch_size, 'awd_lstm_lm_1150_wikitext-2.best.average.params', context[0])
-    final_test_L = evaluate(test_data, test_batch_size, 'awd_lstm_lm_1150_wikitext-2.best.average.params', context[0])
+    final_val_L = evaluate(val_data, val_batch_size, args.save + '.awd_lstm_lm_1150_wikitext-2.best.average.params', context[0])
+    final_test_L = evaluate(test_data, test_batch_size, args.save + '.awd_lstm_lm_1150_wikitext-2.best.average.params', context[0])
     print('Best validation loss %.2f, val ppl %.2f' % (final_val_L, math.exp(final_val_L)))
     print('Best test loss %.2f, test ppl %.2f' % (final_test_L, math.exp(final_test_L)))
     print('Total time cost %.2fs' % (time.time()-start_pipeline_time))
