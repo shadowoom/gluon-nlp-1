@@ -855,9 +855,11 @@ def get_transformer_encoder_decoder(num_layers=2,
                                  prefix=prefix + 'dec_', params=params)
     return encoder, decoder
 
+
 def register_vocab(dataset, sha1):
     if dataset not in nlp.data.utils._vocab_sha1:
         nlp.data.utils._vocab_sha1[dataset] = sha1
+
 
 def _load_vocab(dataset_name, vocab, root):
     if dataset_name:
