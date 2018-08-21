@@ -493,7 +493,7 @@ if __name__ == '__main__':
         if val_L < min_val_L:
             min_val_L = val_L
             model.save_parameters('awd_lstm_lm_1150_wikitext-2.best.average.params')
-            print('validation loss %.2f' % val_L)
+            print('validation loss %.2f, val ppl %.2f' % (val_L, math.exp(val_L)))
 
     final_val_L = evaluate(val_data, 10, 'awd_lstm_lm_1150_wikitext-2.best.average.params', context[0])
     final_test_L = evaluate(test_data, 1, 'awd_lstm_lm_1150_wikitext-2.best.average.params', context[0])
