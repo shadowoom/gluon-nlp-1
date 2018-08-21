@@ -23,9 +23,7 @@ import collections
 import functools
 import re
 import warnings
-import numpy as np
 
-from mxnet import ndarray
 from mxnet.gluon import Block, contrib, rnn
 from .parameter import WeightDropParameter
 
