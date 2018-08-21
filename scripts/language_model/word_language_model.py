@@ -478,7 +478,7 @@ if __name__ == '__main__':
     min_val_L = float('Inf')
     print(args.a)
     print(args.b)
-    for epoch in range(args.a, args.b):
+    for epoch in range(args.a, args.b + 1):
         print('epoch %d' % epoch)
         epoch_param = mx.nd.load('awd_lstm_lm_1150_wikitext-2.params.cp.' + str(epoch))
         if average_param == None:
