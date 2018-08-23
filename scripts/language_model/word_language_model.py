@@ -491,7 +491,7 @@ if __name__ == '__main__':
         mx.nd.save(args.save + '.' + str(args.a) + '-' + str(args.b) + '.average.params',
                    average_param)
         val_L = evaluate(val_data, val_batch_size, args.save + '.' + str(args.a) + '-' + str(args.b)
-                         + '.average.params', average_param, context[0])
+                         + '.average.params', context[0])
         if val_L < min_val_L:
             min_val_L = val_L
             mx.nd.save(args.save + '.' + str(args.a) + '-' + str(args.b) + '.best.average.params',
