@@ -219,9 +219,9 @@ def train():
             hiddens = detach(hiddens)
             Ls = []
 
-            # mx.profiler.set_config(profile_all=True, aggregate_stats=False,
-            #                        filename='profile_output.json')
-            # mx.profiler.set_state('run')
+            mx.profiler.set_config(profile_all=True, aggregate_stats=False,
+                                   filename='profile_output.json')
+            mx.profiler.set_state('run')
 
             with autograd.record():
                 for j, (X, y, m, s, h) in enumerate(zip(data, target, mask, sample, hiddens)):
@@ -250,8 +250,8 @@ def train():
 
             trainer.step(len(context))
 
-            # if nbatch == 10:
-            #     mx.profiler.set_state('stop')
+            if nbatch == 10:
+                mx.profiler.set_state('stop')
 
             total_L += sum([mx.nd.sum(L).asscalar() / args.bptt for L in Ls])
 
