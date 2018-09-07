@@ -218,6 +218,11 @@ def train():
             nbatch += 1
             hiddens = detach(hiddens)
             Ls = []
+
+            mx.profiler.set_config(profile_all=True, aggregate_stats=False,
+                                   filename='profile_output.json')
+            mx.profiler.set_state('run')
+
             with autograd.record():
                 for j, (X, y, m, s, h) in enumerate(zip(data, target, mask, sample, hiddens)):
                     output, h, new_target = model(X, y, h, s)
@@ -244,6 +249,9 @@ def train():
                 gluon.utils.clip_global_norm(encoder_grad, args.clip)
 
             trainer.step(len(context))
+
+            if nbatch == 10:
+                mx.profiler.set_state('stop')
 
             total_L += sum([mx.nd.sum(L).asscalar() / args.bptt for L in Ls])
 
