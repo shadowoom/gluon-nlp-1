@@ -87,6 +87,7 @@ def test_text_models():
             model.collect_params().initialize()
         output, state = model(mx.nd.arange(330).reshape(33, 10))
         output.wait_to_read()
+        del model
 
 @pytest.mark.serial
 def test_cache_models():
