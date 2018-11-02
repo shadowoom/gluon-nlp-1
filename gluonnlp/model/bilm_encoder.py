@@ -25,6 +25,15 @@ from mxnet import gluon
 from mxnet.gluon import nn
 from .utils import _get_rnn_cell_clip_residual
 
+import numpy
+import warnings
+try:
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=FutureWarning)
+        import h5py
+except ImportError:
+    import h5py
+
 
 class BiLMEncoder(gluon.Block):
     r"""Bidirectional LM encoder.
@@ -191,3 +200,64 @@ class BiLMEncoder(gluon.Block):
             outputs_backward[layer_index] = mx.nd.stack(*outputs_backward[layer_index])
 
         return (outputs_forward, outputs_backward), (states_forward, states_backward)
+
+    def load_weights(self, weight_file):
+        """
+        Load the pre-trained weights from the file.
+        """
+        requires_grad = self.requires_grad
+
+        with h5py.File(weight_file, 'r') as fin:
+            for i_layer, lstms in enumerate(
+                    zip(self.forward_layers, self.backward_layers)
+            ):
+                for j_direction, lstm in enumerate(lstms):
+                    # lstm is an instance of LSTMCellWithProjection
+                    #TODO: check cell size==projection_size?
+                    cell_size = lstm[0].projection_size
+
+                    dataset = fin['RNN_%s' % j_direction]['RNN']['MultiRNNCell']['Cell%s' % i_layer
+                                                                                ]['LSTMCell']
+
+                    # tensorflow packs together both W and U matrices into one matrix,
+                    # but pytorch maintains individual matrices.  In addition, tensorflow
+                    # packs the gates as input, memory, forget, output but pytorch
+                    # uses input, forget, memory, output.  So we need to modify the weights.
+                    tf_weights = numpy.transpose(dataset['W_0'][...])
+                    mx_weights = tf_weights.copy()
+
+                    # split the W from U matrices
+                    input_size = lstm[0].input_size
+                    input_weights = mx_weights[:, :input_size]
+                    recurrent_weights = mx_weights[:, input_size:]
+                    tf_input_weights = tf_weights[:, :input_size]
+                    tf_recurrent_weights = tf_weights[:, input_size:]
+
+                    # handle the different gate order convention
+                    for mx_w, tf_w in [[input_weights, tf_input_weights],
+                                          [recurrent_weights, tf_recurrent_weights]]:
+                        mx_w[(1 * cell_size):(2 * cell_size), :] = tf_w[(2 * cell_size):(3 * cell_size), :]
+                        mx_w[(2 * cell_size):(3 * cell_size), :] = tf_w[(1 * cell_size):(2 * cell_size), :]
+
+                    lstm.input_linearity.weight.data()[:] = mx.nd.array(input_weights)
+                    lstm.state_linearity.weight.data()[:] = mx.nd.array(recurrent_weights)
+                    lstm.input_linearity.weight.grad_req = requires_grad
+                    lstm.state_linearity.weight.grad_req = requires_grad
+
+                    # the bias weights
+                    tf_bias = dataset['B'][...]
+                    # tensorflow adds 1.0 to forget gate bias instead of modifying the
+                    # parameters...
+                    tf_bias[(2 * cell_size):(3 * cell_size)] += 1
+                    mx_bias = tf_bias.copy()
+                    mx_bias[(1 * cell_size):(2 * cell_size)
+                              ] = tf_bias[(2 * cell_size):(3 * cell_size)]
+                    mx_bias[(2 * cell_size):(3 * cell_size)
+                              ] = tf_bias[(1 * cell_size):(2 * cell_size)]
+                    lstm.state_linearity.bias.data()[:] = mx.nd.array(mx_bias)
+                    lstm.state_linearity.bias.grad_req = requires_grad
+
+                    # the projection weights
+                    proj_weights = numpy.transpose(dataset['W_P_0'][...])
+                    lstm.state_projection.weight.data()[:] = mx.nd.array(proj_weights)
+                    lstm.state_projection.weight.grad_req = requires_grad
