@@ -239,10 +239,10 @@ class BiLMEncoder(gluon.Block):
                         mx_w[(1 * cell_size):(2 * cell_size), :] = tf_w[(2 * cell_size):(3 * cell_size), :]
                         mx_w[(2 * cell_size):(3 * cell_size), :] = tf_w[(1 * cell_size):(2 * cell_size), :]
 
-                    lstm.input_linearity.weight.data()[:] = mx.nd.array(input_weights)
-                    lstm.state_linearity.weight.data()[:] = mx.nd.array(recurrent_weights)
-                    lstm.input_linearity.weight.grad_req = requires_grad
-                    lstm.state_linearity.weight.grad_req = requires_grad
+                    lstm[0].params.get('i2h_weight').data()[:] = mx.nd.array(input_weights)
+                    lstm[0].params.get('h2h_weight').data()[:] = mx.nd.array(recurrent_weights)
+                    lstm[0].params.get('i2h_weight').grad_req = requires_grad
+                    lstm[0].params.get('h2h_weight').grad_req = requires_grad
 
                     # the bias weights
                     tf_bias = dataset['B'][...]
@@ -254,10 +254,10 @@ class BiLMEncoder(gluon.Block):
                               ] = tf_bias[(2 * cell_size):(3 * cell_size)]
                     mx_bias[(2 * cell_size):(3 * cell_size)
                               ] = tf_bias[(1 * cell_size):(2 * cell_size)]
-                    lstm.state_linearity.bias.data()[:] = mx.nd.array(mx_bias)
-                    lstm.state_linearity.bias.grad_req = requires_grad
+                    lstm[0].params.get('h2h_bias').data()[:] = mx.nd.array(mx_bias)
+                    lstm[0].params.get('h2h_bias').grad_req = requires_grad
 
                     # the projection weights
                     proj_weights = numpy.transpose(dataset['W_P_0'][...])
-                    lstm.state_projection.weight.data()[:] = mx.nd.array(proj_weights)
-                    lstm.state_projection.weight.grad_req = requires_grad
+                    lstm[0].params.get('h2r_weight').data()[:] = mx.nd.array(proj_weights)
+                    lstm[0].params.get('h2r_weight').grad_req = requires_grad
