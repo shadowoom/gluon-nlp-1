@@ -69,8 +69,8 @@ class BiLMEncoder(gluon.Block):
     proj_clip : float
         Clip projection between [-projclip, projclip] in LSTMPCellWithClip cell
     """
-    def __init__(self, mode, num_layers, input_size, hidden_size, dropout,
-                 skip_connection, proj_size=None, cell_clip=None, proj_clip=None, **kwargs):
+    def __init__(self, mode, num_layers, input_size, hidden_size, dropout=0.0,
+                 skip_connection=False, proj_size=None, cell_clip=None, proj_clip=None, **kwargs):
         super(BiLMEncoder, self).__init__(**kwargs)
 
         self._mode = mode
@@ -103,7 +103,7 @@ class BiLMEncoder(gluon.Block):
                                                                 proj_clip=self._proj_clip)
 
                     self.forward_layers.add(forward_layer)
-                    lstm_input_size = hidden_size
+                    # lstm_input_size = hidden_size
 
             lstm_input_size = self._input_size
             self.backward_layers = nn.Sequential()
@@ -124,15 +124,15 @@ class BiLMEncoder(gluon.Block):
                                                                  proj_clip=self._proj_clip)
 
                     self.backward_layers.add(backward_layer)
-                    lstm_input_size = hidden_size
+                    # lstm_input_size = hidden_size
 
     def begin_state(self, **kwargs):
-        return [forward_layer.begin_state(**kwargs)
+        return [forward_layer[0].begin_state(**kwargs)
                 for _, forward_layer in enumerate(self.forward_layers)], \
-               [backward_layer.begin_state(**kwargs)
+               [backward_layer[0].begin_state(**kwargs)
                 for _, backward_layer in enumerate(self.backward_layers)]
 
-    def forward(self, inputs, states): # pylint: disable=arguments-differ
+    def forward(self, inputs, states=None, mask=None): # pylint: disable=arguments-differ
         """Defines the forward computation for cache cell. Arguments can be either
         :py:class:`NDArray` or :py:class:`Symbol`.
 
@@ -164,10 +164,12 @@ class BiLMEncoder(gluon.Block):
             states_backward: The out states from backward pass,
             which has the same shape with *states[1]*.
         """
-        seq_len = inputs[0].shape[0]
+        #TODO NTC, forward and backward pass use the same data, check states_forward and states_backward shape
+        inputs = inputs.transpose(axes=(1,0,2))
+        seq_len = inputs.shape[0]
 
         if not states:
-            states_forward, states_backward = self.begin_state(batch_size=inputs[0].shape[1])
+            states_forward, states_backward = self.begin_state(batch_size=inputs.shape[1])
         else:
             states_forward, states_backward = states
 
@@ -175,37 +177,39 @@ class BiLMEncoder(gluon.Block):
         outputs_backward = []
 
         for layer_index in range(self._num_layers):
+            print('layer_index %d' % layer_index)
             outputs_forward.append([])
             for token_index in range(seq_len):
                 if layer_index == 0:
                     output, states_forward[layer_index] = self.forward_layers[layer_index](
-                        inputs[0][token_index], states_forward[layer_index])
+                        inputs[token_index], states_forward[layer_index])
                 else:
                     output, states_forward[layer_index] = self.forward_layers[layer_index](
                         outputs_forward[layer_index-1][token_index], states_forward[layer_index])
                 outputs_forward[layer_index].append(output)
-
+            print('forward completed')
             outputs_backward.append([None] * seq_len)
             for token_index in reversed(range(seq_len)):
                 if layer_index == 0:
                     output, states_backward[layer_index] = self.backward_layers[layer_index](
-                        inputs[1][token_index], states_backward[layer_index])
+                        inputs[token_index], states_backward[layer_index])
                 else:
                     output, states_backward[layer_index] = self.backward_layers[layer_index](
                         outputs_backward[layer_index-1][token_index], states_backward[layer_index])
                 outputs_backward[layer_index][token_index] = output
-
+            print('backward completed')
         for layer_index in range(self._num_layers):
             outputs_forward[layer_index] = mx.nd.stack(*outputs_forward[layer_index])
             outputs_backward[layer_index] = mx.nd.stack(*outputs_backward[layer_index])
 
         return (outputs_forward, outputs_backward), (states_forward, states_backward)
 
-    def load_weights(self, weight_file):
+    def load_weights(self, weight_file, requires_grad):
         """
         Load the pre-trained weights from the file.
         """
-        requires_grad = self.requires_grad
+        #TODO
+        # requires_grad = self._requires_grad
 
         with h5py.File(weight_file, 'r') as fin:
             for i_layer, lstms in enumerate(
@@ -214,7 +218,7 @@ class BiLMEncoder(gluon.Block):
                 for j_direction, lstm in enumerate(lstms):
                     # lstm is an instance of LSTMCellWithProjection
                     #TODO: check cell size==projection_size?
-                    cell_size = lstm[0].projection_size
+                    cell_size = lstm[0]._hidden_size
 
                     dataset = fin['RNN_%s' % j_direction]['RNN']['MultiRNNCell']['Cell%s' % i_layer
                                                                                 ]['LSTMCell']
@@ -227,7 +231,7 @@ class BiLMEncoder(gluon.Block):
                     mx_weights = tf_weights.copy()
 
                     # split the W from U matrices
-                    input_size = lstm[0].input_size
+                    input_size = lstm[0]._input_size
                     input_weights = mx_weights[:, :input_size]
                     recurrent_weights = mx_weights[:, input_size:]
                     tf_input_weights = tf_weights[:, :input_size]
