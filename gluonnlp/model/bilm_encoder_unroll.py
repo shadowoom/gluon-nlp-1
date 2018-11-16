@@ -17,7 +17,7 @@
 # specific language governing permissions and limitations
 # under the License.
 """Bidirectional LM encoder."""
-__all__ = ['BiLMEncoder']
+__all__ = ['BiLMEncoderUnroll']
 
 import mxnet as mx
 
@@ -38,7 +38,7 @@ except ImportError:
     import h5py
 
 
-class BiLMEncoder(gluon.HybridBlock):
+class BiLMEncoderUnroll(gluon.HybridBlock):
     r"""Bidirectional LM encoder.
 
     We implement the encoder of the biLM proposed in the following work::
@@ -68,13 +68,13 @@ class BiLMEncoder(gluon.HybridBlock):
     proj_size : int
         The projection size of each LSTMPCellWithClip cell
     cell_clip : float
-        Clip cell state between [-cellclip, cell_clip] in LSTMPCellWithClip cell
+        Clip cell state between [-cellclip, projclip] in LSTMPCellWithClip cell
     proj_clip : float
         Clip projection between [-projclip, projclip] in LSTMPCellWithClip cell
     """
     def __init__(self, mode, num_layers, input_size, hidden_size, dropout=0.0,
                  skip_connection=True, proj_size=None, cell_clip=None, proj_clip=None, **kwargs):
-        super(BiLMEncoder, self).__init__(**kwargs)
+        super(BiLMEncoderUnroll, self).__init__(**kwargs)
 
         self._mode = mode
         self._num_layers = num_layers
@@ -129,11 +129,11 @@ class BiLMEncoder(gluon.HybridBlock):
                     self.backward_layers.add(backward_layer)
                     lstm_input_size = self._proj_size
 
-    def begin_state(self, func, **kwargs):
-        return [self.forward_layers[0][0].begin_state(func=func, **kwargs) for _ in range(self._num_layers)], \
-               [self.backward_layers[0][0].begin_state(func=func, **kwargs) for _ in range(self._num_layers)]
+    def begin_state(self, F, **kwargs):
+        return [self.forward_layers[0][0].begin_state(func=F.zeros, **kwargs) for _ in range(self._num_layers)], \
+               [self.backward_layers[0][0].begin_state(func=F.zeros, **kwargs) for _ in range(self._num_layers)]
 
-    def hybrid_forward(self, F, inputs, states=None, mask=None, *args, **kwargs):# pylint: disable=arguments-differ
+    def hybrid_forward(self, F, inputs, mask=None, states=None, *args, **kwargs):# pylint: disable=arguments-differ
         """Defines the forward computation for cache cell. Arguments can be either
         :py:class:`NDArray` or :py:class:`Symbol`.
 
@@ -165,54 +165,65 @@ class BiLMEncoder(gluon.HybridBlock):
             states_backward: The out states from backward pass,
             which has the same shape with *states[1]*.
         """
+        #TODO NTC, forward and backward pass use the same data, check states_forward and states_backward shape
         inputs = inputs.transpose(axes=(1,0,2))
+        # seq_len = inputs.shape[0]
+
+        # if not states:
+        #     states_forward, states_backward = self.begin_state(F, batch_size=20)
+        # else:
+        #     states_forward, states_backward = states
         states_forward, states_backward = states
-        sequence_length = mask.sum(axis=1)
 
         outputs_forward = []
         outputs_backward = []
 
         for layer_index in range(self._num_layers):
+            # print('layer_index %d' % layer_index)
+
             if layer_index == 0:
                 layer_inputs = inputs
             else:
                 layer_inputs = outputs_forward[layer_index-1]
+            # output, states_forward[layer_index] = self.forward_layers[layer_index].\
+            #     unroll(seq_len, layer_inputs, states_forward[layer_index], layout='TNC', merge_outputs=True)
             output, states_forward[layer_index] = F.contrib.foreach(self.forward_layers[layer_index], layer_inputs, states_forward[layer_index])
             outputs_forward.append(output)
+            # print('forward completed')
 
             if layer_index == 0:
-                # layer_inputs = F.reverse(inputs, axis=0)
-                # sequence_length = mask.sum(axis=1)
-                layer_inputs = F.SequenceReverse(inputs, sequence_length=sequence_length, use_sequence_length=True, axis=0)
+                layer_inputs = F.reverse(inputs, axis=0)
             else:
-                # layer_inputs = F.reverse(outputs_backward[layer_index-1], axis=0)
-                layer_inputs = F.SequenceReverse(outputs_backward[layer_index-1], sequence_length=sequence_length,
-                                                 use_sequence_length=True, axis=0)
+                layer_inputs = F.reverse(outputs_backward[layer_index-1], axis=0)
+            # output, states_backward[layer_index] = self.backward_layers[layer_index].\
+            #     unroll(37, layer_inputs, states_backward[layer_index], layout='TNC',
+            #            merge_outputs=True)
             output, states_backward[layer_index] = F.contrib.foreach(
                 self.backward_layers[layer_index], layer_inputs, states_backward[layer_index])
-            # outputs_backward.append(F.reverse(output, axis=0))
-            outputs_backward.append(F.SequenceReverse(output, sequence_length=sequence_length, use_sequence_length=True, axis=0))
+            outputs_backward.append(F.reverse(output, axis=0))
+            # print('backward completed')
+
         out = F.concat(*[F.stack(*outputs_forward, axis=0),
                              F.stack(*outputs_backward, axis=0)], dim=-1)
 
-        # cell_states = []
-        # for i in range(self._num_layers):
-        #     cell_states.append(states_forward[i][0])
-        #     cell_states.append(states_backward[i][0])
-        # hidden_states = []
-        # for i in range(self._num_layers):
-        #     hidden_states.append(states_forward[i][1])
-        #     hidden_states.append(states_backward[i][1])
-        # cell_state = F.stack(*cell_states, axis=0)
-        # hidden_state = F.stack(*hidden_states, axis=0)
+        cell_states = []
+        for i in range(self._num_layers):
+            cell_states.append(states_forward[i][0])
+            cell_states.append(states_backward[i][0])
+        hidden_states = []
+        for i in range(self._num_layers):
+            hidden_states.append(states_forward[i][1])
+            hidden_states.append(states_backward[i][1])
+        cell_state = F.stack(*cell_states, axis=0)
+        hidden_state = F.stack(*hidden_states, axis=0)
 
-        return out, [states_forward, states_backward]
+        return out, [cell_state, hidden_state]
 
     def load_weights(self, weight_file, requires_grad):
         """
         Load the pre-trained weights from the file.
         """
-        # TODO
+        #TODO
         # requires_grad = self._requires_grad
 
         with h5py.File(weight_file, 'r') as fin:
@@ -224,7 +235,7 @@ class BiLMEncoder(gluon.HybridBlock):
                 # print('i_layer %d' % i_layer)
                 for j_direction, lstm in enumerate(lstms):
                     # lstm is an instance of LSTMCellWithProjection
-                    # TODO: check cell size==projection_size?
+                    #TODO: check cell size==projection_size?
                     # print('j_direction %d' % j_direction)
                     if i_layer == 0:
                         rnn_cell = lstm[0]
@@ -234,7 +245,7 @@ class BiLMEncoder(gluon.HybridBlock):
                     cell_size = rnn_cell._hidden_size
 
                     dataset = fin['RNN_%s' % j_direction]['RNN']['MultiRNNCell']['Cell%s' % i_layer
-                                                                                 ]['LSTMCell']
+                                                                                ]['LSTMCell']
 
                     # tensorflow packs together both W and U matrices into one matrix,
                     # but pytorch maintains individual matrices.  In addition, tensorflow
@@ -252,13 +263,9 @@ class BiLMEncoder(gluon.HybridBlock):
 
                     # handle the different gate order convention
                     for mx_w, tf_w in [[input_weights, tf_input_weights],
-                                       [recurrent_weights, tf_recurrent_weights]]:
-                        mx_w[(1 * cell_size):(2 * cell_size), :] = tf_w[
-                                                                   (2 * cell_size):(3 * cell_size),
-                                                                   :]
-                        mx_w[(2 * cell_size):(3 * cell_size), :] = tf_w[
-                                                                   (1 * cell_size):(2 * cell_size),
-                                                                   :]
+                                          [recurrent_weights, tf_recurrent_weights]]:
+                        mx_w[(1 * cell_size):(2 * cell_size), :] = tf_w[(2 * cell_size):(3 * cell_size), :]
+                        mx_w[(2 * cell_size):(3 * cell_size), :] = tf_w[(1 * cell_size):(2 * cell_size), :]
 
                     # the bias weights
                     tf_bias = dataset['B'][...]
@@ -267,9 +274,9 @@ class BiLMEncoder(gluon.HybridBlock):
                     tf_bias[(2 * cell_size):(3 * cell_size)] += 1
                     mx_bias = tf_bias.copy()
                     mx_bias[(1 * cell_size):(2 * cell_size)
-                    ] = tf_bias[(2 * cell_size):(3 * cell_size)]
+                              ] = tf_bias[(2 * cell_size):(3 * cell_size)]
                     mx_bias[(2 * cell_size):(3 * cell_size)
-                    ] = tf_bias[(1 * cell_size):(2 * cell_size)]
+                              ] = tf_bias[(1 * cell_size):(2 * cell_size)]
 
                     # the projection weights
                     proj_weights = numpy.transpose(dataset['W_P_0'][...])

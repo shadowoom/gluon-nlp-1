@@ -73,7 +73,7 @@ class LSTMPCellWithClip(LSTMPCell):
         Container for weight sharing between cells.
         Created if `None`.
     cell_clip : float
-        Clip cell state between [-cellclip, projclip] in LSTMPCellWithClip cell
+        Clip cell state between [-cellclip, cell_clip] in LSTMPCellWithClip cell
     projection_clip : float
         Clip projection between [-projection_clip, projection_clip] in LSTMPCellWithClip cell
     """
@@ -128,12 +128,12 @@ class LSTMPCellWithClip(LSTMPCell):
         next_c = F._internal._plus(forget_gate * states[1], in_gate * in_transform,
                                    name=prefix+'state')
         if self._cell_clip is not None:
-            F.clip(next_c, a_min=-self._cell_clip, a_max=self._cell_clip, out=next_c)
+            next_c = next_c.clip(-self._cell_clip, self._cell_clip)
         hidden = F._internal._mul(out_gate, F.Activation(next_c, act_type='tanh'),
                                   name=prefix+'hidden')
         next_r = F.FullyConnected(data=hidden, num_hidden=self._projection_size,
                                   weight=h2r_weight, no_bias=True, name=prefix+'out')
         if self._projection_clip is not None:
-            F.clip(next_r, a_min=-self._projection_clip, a_max=self._projection_clip, out=next_r)
+            next_r = next_r.clip(-self._projection_clip, self._projection_clip)
 
         return next_r, [next_r, next_c]

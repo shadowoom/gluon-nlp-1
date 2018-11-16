@@ -213,12 +213,12 @@ def _get_rnn_cell_clip_residual(mode, num_layers, input_size, hidden_size, dropo
     proj_size : int
         The projection size of each LSTMPCellWithClip cell
     cell_clip : float
-        Clip cell state between [-cellclip, projclip] in LSTMPCellWithClip cell
+        Clip cell state between [-cellclip, cell_clip] in LSTMPCellWithClip cell
     proj_clip : float
         Clip projection between [-projclip, projclip] in LSTMPCellWithClip cell
 
     """
-    rnn_cell = rnn.SequentialRNNCell()
+    rnn_cell = rnn.HybridSequentialRNNCell()
     with rnn_cell.name_scope():
         for _ in range(num_layers):
             if mode == 'rnn_relu':

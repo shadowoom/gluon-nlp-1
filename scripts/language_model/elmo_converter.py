@@ -970,45 +970,45 @@ def print_outputs_nd(lstm_outputs):
 # outputs3, mask3 = model3(inputs)
 # print_outputs(outputs3)
 
-# data_dir = '/Users/chgwang/Documents/code/elmo-data/'
-# options_file = 'elmo_2x4096_512_2048cnn_2xhighway_options.json'
-# weight_file = 'elmo_2x4096_512_2048cnn_2xhighway_weights.hdf5'
-#
-# print('4!!!')
-# model4 = _ElmoBiLm(options_file=data_dir + options_file,
-#                    weight_file=data_dir + weight_file,
-#                    lstm_mode='manual',
-#                    cnn_encoder='encoder')
-# print(model4)
-# model4.initialize()
-# model4._token_embedder._load_weights()
-# model4._token_embedder._char_embedding.weight.set_data(model4._token_embedder._char_embedding_weights)
-# model4._elmo_lstm.load_weights(model4._weight_file, model4._requires_grad)
-# model4.save_parameters(data_dir + weight_file + '.params')
-# model4.hybridize()
-# inputs = nd.ones(shape=(20,35,50))
-# begin_state = model4._elmo_lstm.begin_state(mx.nd.zeros, batch_size=20)
-# outputs4, mask4 = model4(inputs, begin_state)
-# print_outputs_nd(outputs4[0])
-#
-# print('5!!!')
-# model5 = _ElmoBiLm(options_file=data_dir + options_file,
-#                    lstm_mode='manual',
-#                    cnn_encoder='encoder')
-# print(model5)
-# model5.load_parameters(data_dir + weight_file + '.params')
-# model5.hybridize()
-# inputs = nd.ones(shape=(20,35,50))
-# begin_state = model5._elmo_lstm.begin_state(mx.nd.zeros, batch_size=20)
-# outputs5, mask5 = model5(inputs, begin_state)
-# print_outputs_nd(outputs5[0])
-#
-# from numpy.testing import assert_almost_equal
-# import torch
-# t_output = torch.load(data_dir + weight_file + '.tout')
-# assert_almost_equal(outputs4[0].asnumpy(), t_output.numpy(), decimal=5)
-# assert_almost_equal(outputs5[0].asnumpy(), t_output.numpy(), decimal=5)
-# print('equal with torch!')
+data_dir = '/Users/chgwang/Documents/code/elmo-data/'
+options_file = 'elmo_2x4096_512_2048cnn_2xhighway_options.json'
+weight_file = 'elmo_2x4096_512_2048cnn_2xhighway_weights.hdf5'
+
+print('4!!!')
+model4 = _ElmoBiLm(options_file=data_dir + options_file,
+                   weight_file=data_dir + weight_file,
+                   lstm_mode='manual',
+                   cnn_encoder='encoder')
+print(model4)
+model4.initialize()
+model4._token_embedder._load_weights()
+model4._token_embedder._char_embedding.weight.set_data(model4._token_embedder._char_embedding_weights)
+model4._elmo_lstm.load_weights(model4._weight_file, model4._requires_grad)
+model4.save_parameters(data_dir + weight_file + '.params')
+model4.hybridize()
+inputs = nd.ones(shape=(20,35,50))
+begin_state = model4._elmo_lstm.begin_state(mx.nd.zeros, batch_size=20)
+outputs4, mask4 = model4(inputs, begin_state)
+print_outputs_nd(outputs4[0])
+
+print('5!!!')
+model5 = _ElmoBiLm(options_file=data_dir + options_file,
+                   lstm_mode='manual',
+                   cnn_encoder='encoder')
+print(model5)
+model5.load_parameters(data_dir + weight_file + '.params')
+model5.hybridize()
+inputs = nd.ones(shape=(20,35,50))
+begin_state = model5._elmo_lstm.begin_state(mx.nd.zeros, batch_size=20)
+outputs5, mask5 = model5(inputs, begin_state)
+print_outputs_nd(outputs5[0])
+
+from numpy.testing import assert_almost_equal
+import torch
+t_output = torch.load(data_dir + weight_file + '.tout')
+assert_almost_equal(outputs4[0].asnumpy(), t_output.numpy(), decimal=5)
+assert_almost_equal(outputs5[0].asnumpy(), t_output.numpy(), decimal=5)
+print('equal with torch!')
 
 #
 # def almost_equal(outputs0, outputs1, mask0, mask1):

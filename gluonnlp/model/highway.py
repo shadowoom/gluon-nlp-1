@@ -121,6 +121,6 @@ class Highway(gluon.HybridBlock):
             nonlinear_transform, transform_gate = projected_input.split(num_outputs=2, axis=-1)
             nonlinear_transform = self._activation(nonlinear_transform)
             transform_gate = transform_gate.sigmoid()
-            current_input = (1 - transform_gate) * linear_transform + \
-                            transform_gate * nonlinear_transform
+            current_input = transform_gate * linear_transform + \
+                            (1 - transform_gate) * nonlinear_transform
         return current_input
