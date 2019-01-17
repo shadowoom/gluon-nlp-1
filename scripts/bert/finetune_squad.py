@@ -361,12 +361,12 @@ def train():
                                  trainer.learning_rate, toc - tic))
                 tic = time.time()
                 step_loss = 0.0
-            epoch_toc = time.time()
-            log.info('Epoch: {}, Time cost={:.2f} s, Thoughput={:.2f} samples/s'
-                     .format(epoch_id, epoch_toc - epoch_tic,
-                             len(train_dataloader) / (epoch_toc - epoch_tic)))
-            net.save_parameters(os.path.join(output_dir, 'net_parameters'))
-            evaluate()
+        epoch_toc = time.time()
+        log.info('Epoch: {}, Time cost={:.2f} s, Thoughput={:.2f} samples/s'
+                 .format(epoch_id, epoch_toc - epoch_tic,
+                         len(train_dataloader) / (epoch_toc - epoch_tic)))
+        net.save_parameters(os.path.join(output_dir, 'net_parameters'))
+        evaluate()
 
 
 def evaluate():
