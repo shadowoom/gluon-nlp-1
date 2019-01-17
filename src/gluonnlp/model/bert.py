@@ -22,7 +22,7 @@ __all__ = ['BERTModel', 'BERTEncoder', 'BERTEncoderCell', 'BERTPositionwiseFFN',
            'BERTLayerNorm', 'bert_12_768_12', 'bert_24_1024_16']
 
 import os
-from mxnet.gluon import Block
+from mxnet.gluon import Block, HybridBlock
 from mxnet.gluon import nn
 from mxnet.gluon.model_zoo import model_store
 import mxnet as mx
@@ -234,7 +234,7 @@ class BERTEncoderCell(BaseTransformerEncoderCell):
 #                                FULL MODEL                                   #
 ###############################################################################
 
-class BERTModel(Block):
+class BERTModel(HybridBlock):
     """Model for BERT (Bidirectional Encoder Representations from Transformers).
 
     Parameters
@@ -368,13 +368,15 @@ class BERTModel(Block):
                               prefix=prefix)
         return pooler
 
-    def forward(self, inputs, token_types, valid_length=None, masked_positions=None): #pylint: disable=arguments-differ
+
+    def hybrid_forward(self, F, inputs, token_types, valid_length=None, masked_positions=None)\
+            : #pylint: disable=arguments-differ
         """Generate the representation given the inputs.
 
         This is used in training or fine-tuning a BERT model.
         """
         outputs = []
-        seq_out, _ = self._encode_sequence(inputs, token_types, valid_length)
+        seq_out, _ = self._encode_sequence(F, inputs, token_types, valid_length)
         outputs.append(seq_out)
         if self._use_pooler:
             pooled_out = self._apply_pooling(seq_out)
@@ -382,15 +384,10 @@ class BERTModel(Block):
             if self._use_classifier:
                 next_sentence_classifier_out = self.classifier(pooled_out)
                 outputs.append(next_sentence_classifier_out)
-        if self._use_decoder:
-            assert masked_positions is not None, \
-              'masked_positions tensor is required for decoding masked language model'
-            decoder_out = self._decode(seq_out, masked_positions)
-            outputs.append(decoder_out)
         return tuple(outputs) if len(outputs) > 1 else outputs[0]
 
 
-    def _encode_sequence(self, inputs, token_types, valid_length=None):
+    def _encode_sequence(self, F, inputs, token_types, valid_length=None):
         """Generate the representation given the input sequences.
 
         This is used for pre-training or fine-tuning a BERT model.
