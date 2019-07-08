@@ -1,10 +1,5 @@
-Language Model
---------------
-
-:download:`[Download] </model_zoo/language_model.zip>`
-
 Language Models with Transformers
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-----------------------------------
 
 Reference: C Wang, M Li, A Smola. "`Language Models with Transformers <https://arxiv.org/abs/1904.09408>`_". arXiv preprint arXiv:1904.09408 (2019).
 
