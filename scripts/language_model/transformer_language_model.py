@@ -1,8 +1,8 @@
 """
-BERT-based Language Models
+Language Models with Transformers
 ==================================
 
-Reference paper will be available soon.
+Reference: C Wang, M Li, A Smola. "`Language Models with Transformers <https://arxiv.org/abs/1904.09408>`_". arXiv preprint arXiv:1904.09408 (2019).
 """
 
 # coding: utf-8

@@ -18,7 +18,7 @@
 # under the License.
 
 # pylint: disable=wildcard-import
-"""Language Model example."""
+"""Language Models with Transformers."""
 
 from . import transformer_lm
 

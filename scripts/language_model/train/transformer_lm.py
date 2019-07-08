@@ -16,7 +16,7 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-"""Language models."""
+"""Language Models with Transformers."""
 __all__ = ['BERTRNN']
 
 from mxnet.gluon import Block, nn
@@ -26,7 +26,7 @@ from gluonnlp.model.utils import _get_rnn_layer
 
 
 class BERTRNN(Block):
-    """BERT based language model. Paper would be available soon.
+    """Language Models with Transformers.
 
     Parameters
     ----------
