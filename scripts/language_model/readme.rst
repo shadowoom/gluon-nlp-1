@@ -62,3 +62,20 @@ The key features used to reproduce the results on wikitext-103 based on the corr
    $ python transformer_language_model.py --data wikitext103 --model bert_lm_24_1024_16_400_2500 --val_batch_size 8 --test_batch_size 8 --bptt 64 --seed 1111 --batch_size 12 --gpus 0
 
 Note that the corresponding multi-gpu evaluations are also supported. The pre-trained model `bert_lm_24_1024_16_400_2500_wikitext103` would be updated soon.
+
+Reference Paper
+~~~~~~~~~~~~~~~~
+
+The bibtext entry of the `reference paper <https://arxiv.org/abs/1904.09408>`_ is:
+
+.. code::
+
+   @article{lmtransformer2019,
+      title={Language Models with Transformers},
+      author={Chenguang Wang and Mu Li and Alexander J. Smola},
+      journal={ArXiv},
+      year={2019},
+      volume={abs/1904.09408}
+   }
+
+
